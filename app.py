@@ -1,3 +1,16 @@
+# IMPORTANT: Patch gevent early before any other imports
+try:
+    import gevent.monkey
+    # Patch only specific modules known to cause issues or needed for networking
+    gevent.monkey.patch_ssl()
+    gevent.monkey.patch_socket()
+    # You might need to add others like patch_thread() if threading issues arise
+    print("Gevent monkey patching applied (ssl, socket).") # Optional: confirmation log
+except ImportError:
+    # Handle case where gevent might not be installed or is optional
+    print("gevent not found, monkey patching skipped.")
+    pass
+
 import os
 import logging
 import requests
