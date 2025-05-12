@@ -151,7 +151,7 @@
                                                 {% if meal.nutritional_values %}
                                                 <span class="nutrient-info-trigger" 
                                                       data-bs-toggle="popover"
-                                                      data-bs-trigger="hover focus" 
+                                                      data-bs-trigger="click" 
                                                       data-bs-placement="top"
                                                       data-bs-html="true" 
                                                       data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 
@@ -202,7 +202,7 @@
                                         {% if meal.nutritional_values %}
                                         <span class="nutrient-info-trigger" 
                                               data-bs-toggle="popover"
-                                              data-bs-trigger="hover focus" 
+                                              data-bs-trigger="click" 
                                               data-bs-placement="top"
                                               data-bs-html="true" 
                                               data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 

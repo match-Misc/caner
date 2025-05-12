@@ -22,10 +22,12 @@ from flask import Flask
 
 # --- Database Models Import ---
 try:
-    # Import only the necessary models and the db instance
-    from models import db, XXXLutzChangingMeal
+# Import only the necessary models and the db instance
+from models import db, XXXLutzChangingMeal, Meal # Added Meal for data_loader
+# Import the XML data loading function
+from data_loader import load_xml_data_to_db
 except ImportError as e:
-    print(f"Error importing database models: {e}")
+    print(f"Error importing database models or data_loader: {e}")
     sys.exit(1)
 
 
@@ -69,6 +71,9 @@ MENU_HG_URL = "https://guestc.me/menu-hg"
 MIN_MENU_HG_PDF_SIZE_BYTES = 30 * 1024  # 30KB
 MIN_MENU_HG_PNG_SIZE_BYTES = 50 * 1024  # 50KB
 STATIC_FOLDER_PATH = os.path.join(os.path.dirname(__file__), "static")
+XML_SOURCE_URL = (
+    "https://www.studentenwerk-hannover.de/fileadmin/user_upload/Speiseplan/SP-UTF8.xml"
+)
 
 
 # --- Minimal Flask App for Context ---
@@ -495,15 +500,37 @@ if __name__ == "__main__":
     logger.info("=============================================")
 
     start_time = time.time()
-    voucher_success = refresh_xxxlutz_vouchers()
-    menu_success = refresh_menu_hg_and_process()
+    xml_success = False
+    voucher_success = False
+    menu_success = False
+
+    # Ensure operations run within app context for database access
+    with app.app_context():
+        logger.info("--- Starting Mensa XML Data Refresh ---")
+        try:
+            xml_success = load_xml_data_to_db(XML_SOURCE_URL)
+            if xml_success:
+                logger.info("--- Mensa XML Data Refresh Completed Successfully ---")
+            else:
+                logger.error("--- Mensa XML Data Refresh Failed ---")
+        except Exception as e:
+            logger.error(f"Critical error during Mensa XML data refresh: {e}")
+            logger.error(traceback.format_exc())
+            xml_success = False # Ensure failure is recorded
+        
+        # Existing voucher and menu refresh calls (already handle their own logging)
+        voucher_success = refresh_xxxlutz_vouchers()
+        menu_success = refresh_menu_hg_and_process()
+
     end_time = time.time()
     duration = end_time - start_time
 
     logger.info("=============================================")
     logger.info(f"Data Fetcher Script Finished in {duration:.2f} seconds")
+    logger.info(f"Mensa XML Refresh Success: {xml_success}")
     logger.info(f"Voucher Refresh Success: {voucher_success}")
     logger.info(f"Menu HG Refresh Success: {menu_success}")
     logger.info("=============================================")
 
-    sys.exit(0 if voucher_success and menu_success else 1)
+    # Exit with 0 only if ALL tasks succeeded
+    sys.exit(0 if xml_success and voucher_success and menu_success else 1)

@@ -23,10 +23,10 @@ import uuid
 import json
 # import base64 # Removed, no longer needed
 import traceback
-import threading
+# import threading # Removed, scheduler moved out
 import sys
 import re # Added import for regular expressions
-from datetime import datetime, date, timedelta # Added timedelta import
+from datetime import datetime, date # Removed timedelta import
 
 # --- Third-Party Imports ---
 from flask import (
@@ -149,13 +149,14 @@ if not all([db_user, db_password, db_host, db_name]):
     # Potentially exit or raise an error here if the database connection is critical for startup
     # For now, we'll let it try to connect, which will fail informatively.
 
+
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_POOL_RECYCLE"] = 300 # Recycle connections every 5 minutes
 
-# Initialize the database
-db.init_app(app)
+# Initialize the database - moved db.init_app(app) inside app_context below
 
 
 # --- START: Data Refresh Functions ---
@@ -221,81 +222,37 @@ def perform_initial_app_loads():
     logger.info("Initial application data loads completed.")
 
 
-def background_mensa_xml_scheduler():
-    """Background thread function to refresh Mensa XML data daily at 11:00 AM CET."""
-    logger.info("Background Mensa XML refresh scheduler started. Will update daily at 11:00 AM CET (server's local time assumed to be CET).")
-    
-    TARGET_HOUR = 11
-    TARGET_MINUTE = 0
-
-    while True:
-        now = datetime.now()
-        
-        # Calculate the next run time
-        next_run_datetime = now.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
-        
-        if now >= next_run_datetime:
-            # If current time is past 11:00 AM today, schedule for 11:00 AM tomorrow
-            tomorrow = now + timedelta(days=1)
-            next_run_datetime = tomorrow.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
-            
-        sleep_duration_seconds = (next_run_datetime - now).total_seconds()
-        
-        # Ensure sleep duration is not negative (e.g. if script starts just after 11 AM)
-        if sleep_duration_seconds < 0:
-             # This case should ideally be covered by the logic above,
-             # but as a safeguard if calculations are very close to the target time.
-             tomorrow = now + timedelta(days=1)
-             next_run_datetime = tomorrow.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
-             sleep_duration_seconds = (next_run_datetime - now).total_seconds()
-
-        logger.info(f"Next Mensa XML data refresh scheduled for: {next_run_datetime.strftime('%Y-%m-%d %H:%M:%S')}. Sleeping for {sleep_duration_seconds:.0f} seconds.")
-        
-        try:
-            time.sleep(sleep_duration_seconds)
-            logger.info("Running scheduled Mensa XML data refresh (11:00 AM CET target)...")
-            refresh_mensa_xml_data() # This function handles its own app context
-            logger.info("Scheduled Mensa XML data refresh cycle completed.")
-        except Exception as e:
-            logger.error(f"Error in background_mensa_xml_scheduler sleep or refresh: {e}")
-            logger.error(traceback.format_exc())
-            # Sleep for a shorter, fixed interval before retrying scheduling logic (e.g. 5 minutes)
-            # to avoid tight loop on persistent errors.
-            time.sleep(300)
-
-
 # --- END: Data Refresh Functions ---
 
 
 # Create tables and load data (Startup Sequence)
 with app.app_context(): # Needed for db.create_all() and initial loads
+    # Initialize the database within the app context
+    db.init_app(app)
+    logger.info("SQLAlchemy initialized within app context.")
+
     # Initialize global data structures that will be populated by refresh functions
     mensa_data = {}  # Populated by refresh_mensa_xml_data
     available_mensen = []  # Populated by refresh_mensa_xml_data
     available_dates = []  # Populated by refresh_mensa_xml_data
 
-    # Create database tables and perform initial data loads
-    with app.app_context():
-        db.create_all()
-        logger.info("Database tables created (if not exist).")
 
-        # Load XXXLutz FIXED meals. Changing meals are handled by menu_hg processing.
-        # load_xxxlutz_meals() clears changing meals, so it's fine to call before menu_hg processing.
-        logger.info("Loading XXXLutz fixed meals into database at startup...")
-        if load_xxxlutz_meals():  # This function is from data_loader.py
-            logger.info("Successfully loaded XXXLutz fixed meals.")
-        else:
-            logger.error("Failed to load XXXLutz fixed meals.")
+    # Create database tables and perform initial data loads
+    # No longer need a nested context here as db is initialized in the outer one
+    db.create_all()
+    logger.info("Database tables created (if not exist).")
+
+    # Load XXXLutz FIXED meals. Changing meals are handled by menu_hg processing.
+    # load_xxxlutz_meals() clears changing meals, so it's fine to call before menu_hg processing.
+    logger.info("Loading XXXLutz fixed meals into database at startup...")
+    if load_xxxlutz_meals():  # This function is from data_loader.py
+        logger.info("Successfully loaded XXXLutz fixed meals.")
+    else:
+        logger.error("Failed to load XXXLutz fixed meals.")
 
     # Perform initial loads needed *by the app* itself
     # Voucher/Menu data is assumed to be populated by the external data_fetcher script (e.g., via cron)
     perform_initial_app_loads() # This now only loads Mensa XML
-
-    # Start the background refresh thread ONLY for Mensa XML
-    logger.info("Starting background Mensa XML data refresh thread...")
-    xml_refresh_thread = threading.Thread(target=background_mensa_xml_scheduler, daemon=True)
-    xml_refresh_thread.start()
-    logger.info("Background Mensa XML data refresh thread initiated.")
 
 
 @app.route("/")
