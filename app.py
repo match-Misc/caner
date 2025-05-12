@@ -19,6 +19,7 @@ from flask import (
     make_response,
     send_from_directory,
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 from pdf2image import convert_from_path
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -104,6 +105,15 @@ last_menu_hg_refresh_time = 0
 # Create Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default_secret_key")
+
+# Configure proxy support
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,      # Number of proxy servers in front of the app
+    x_proto=1,    # Number of proxies handling protocol/SSL
+    x_host=1,     # Number of proxies handling host headers
+    x_prefix=1    # Number of proxies handling path prefix
+)
 
 # Configure the database
 # All database configuration is loaded from .secrets

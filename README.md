@@ -72,9 +72,34 @@ Das Caner is a dynamic web application that helps students and staff at Leibniz 
    ```
 
 5. **Run the Application**
+
+   Development:
    ```shell
    python app.py
    ```
+
+   Production with Gunicorn:
+   ```shell
+   # Install Gunicorn using uv
+   uv pip install gunicorn gevent
+
+   # Run with Gunicorn configuration
+   gunicorn -c gunicorn.conf.py app:app
+   ```
+
+   With Nginx Proxy Manager:
+   1. Start your Gunicorn server
+   2. In Nginx Proxy Manager:
+      - Add new Proxy Host
+      - Set domain name
+      - Forward to: http://127.0.0.1:8000
+      - Enable SSL if needed
+      - Add recommended security headers:
+        ```
+        X-Frame-Options: SAMEORIGIN
+        X-Content-Type-Options: nosniff
+        Referrer-Policy: strict-origin-when-cross-origin
+        ```
 
 ## 📊 Data Sources
 
