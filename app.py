@@ -9,7 +9,11 @@ import json
 import base64
 import traceback
 import threading  # Added for background tasks
+import sys
 from datetime import datetime, date
+
+# Increase recursion limit
+sys.setrecursionlimit(5000)  # Increased from default 1000
 
 from flask import (
     Flask,
@@ -1020,16 +1024,37 @@ def index():
     except Exception as e:
         logger.error(f"Error retrieving page view count: {e}")
 
-    return render_template(
-        "index.html",
-        data=filtered_data,
-        available_mensen=filtered_mensen,
-        available_dates=filtered_dates,
-        selected_date=selected_date,
-        selected_mensa=selected_mensa,
-        mensa_emojis=mensa_emojis,
-        page_views=current_page_views,
-    )
+    try:
+        # Test JSON serialization before rendering
+        # This will catch any potential circular references
+        json.dumps({
+            'data': filtered_data,
+            'available_mensen': filtered_mensen,
+            'available_dates': filtered_dates,
+            'selected_date': selected_date,
+            'selected_mensa': selected_mensa,
+            'mensa_emojis': mensa_emojis,
+            'page_views': current_page_views,
+        }, default=str)  # Use str as fallback for non-serializable objects
+        
+        return render_template(
+            "index.html",
+            data=filtered_data,
+            available_mensen=filtered_mensen,
+            available_dates=filtered_dates,
+            selected_date=selected_date,
+            selected_mensa=selected_mensa,
+            mensa_emojis=mensa_emojis,
+            page_views=current_page_views,
+        )
+    except RecursionError as e:
+        logger.error(f"RecursionError in index route: {e}")
+        logger.error(f"Data that caused the error: {traceback.format_exc()}")
+        return "Entschuldigung, es gab einen Fehler bei der Verarbeitung der Daten. Bitte versuchen Sie es in ein paar Minuten erneut.", 500
+    except Exception as e:
+        logger.error(f"Error in index route: {e}")
+        logger.error(traceback.format_exc())
+        return "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.", 500
 
 
 @app.template_filter("format_date")
