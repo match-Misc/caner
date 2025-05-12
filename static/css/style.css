@@ -667,17 +667,7 @@ body {
     font-weight: bold;
 }
 
-.btn-nutrient-toggle {
-    font-size: 0.85rem;
-}
-
-.nutrient-card {
-    font-size: 0.8rem;
-    color: var(--text-dark);
-    max-width: 100%;
-    background-color: var(--bg-nutrient-card);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+/* .btn-nutrient-toggle, .nutrient-card styles removed */
 
 
 
@@ -1075,13 +1065,74 @@ a.github-link i.fa-github {
     color: #58a6ff;
 }
 
-/* Remove focus ring/border from info button */
-.btn-info:focus,
-.btn-info:active:focus,
-.btn-info.active:focus,
-.btn-info.focus,
-.btn-info:active.focus,
-.btn-info.active.focus {
+/* Removed .btn-info hover/focus override rules */
+
+/* Custom Popover Styling for Nutrient Info */
+.popover {
+    /* Use theme variables for consistency */
+    --bs-popover-bg: var(--bg-card);
+    --bs-popover-border-color: var(--border-color);
+    --bs-popover-header-bg: var(--bg-filter);
+    --bs-popover-header-color: var(--text-dark);
+    --bs-popover-body-color: var(--text-dark);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    font-size: 0.85rem;
+    max-width: 300px; /* Adjust max width if needed */
+}
+
+[data-theme="dark"] .popover {
+    /* Dark mode overrides */
+    --bs-popover-bg: var(--bg-card);
+    --bs-popover-border-color: var(--border-color);
+    --bs-popover-header-bg: var(--bg-filter);
+    --bs-popover-header-color: var(--text-light);
+    --bs-popover-body-color: var(--text-light);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+}
+
+.popover-header {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.nutrient-list {
+    padding-left: 0; /* Remove default ul padding */
+    list-style: none; /* Remove bullets */
+    margin-bottom: 0 !important; /* Override Bootstrap defaults if necessary */
+}
+
+.nutrient-list li {
+    padding: 3px 0;
+    border-bottom: 1px dashed var(--border-color);
+    font-size: 0.8rem; /* Slightly smaller font for list items */
+}
+
+.nutrient-list li:last-child {
+    border-bottom: none;
+}
+
+.nutrient-list strong {
+    display: inline-block;
+    min-width: 80px; /* Helps align values */
+    margin-right: 5px;
+}
+
+/* Styling for the trigger icon itself */
+.nutrient-info-trigger {
+    display: inline-block; /* Allows cursor style */
+    line-height: 1; /* Align icon better */
+}
+
+.nutrient-info-trigger i.fa-info-circle {
+    transition: color 0.2s ease; /* Smooth transition for color */
+    /* Use text-info color defined by Bootstrap, which should handle dark mode */
+}
+
+/* Ensure no unwanted background or border on the trigger span */
+.nutrient-info-trigger:hover,
+.nutrient-info-trigger:focus {
+    background: none !important;
+    border: none !important;
     outline: none !important;
     box-shadow: none !important;
 }
@@ -1129,12 +1180,7 @@ a.github-link i.fa-github {
     transition: color 0.3s ease;
 }
 
-/* Nutrient info */
-.nutrient-info-collapse .card {
-    border-color: var(--border-color);
-    background-color: var(--bg-card);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
+/* Styles related to .nutrient-info-collapse and dark mode overrides removed */
 
 /* Caner info section */
 .mobile-caner-info {

@@ -12,23 +12,23 @@ except ImportError:
     print("gevent not found, monkey patching skipped.")
     pass
 
+# --- Standard Library Imports ---
 import os
 import logging
 import requests
-import shutil
-import subprocess
+# import shutil # Removed, no longer needed
+# import subprocess # Removed, no longer needed
 import time
 import uuid
 import json
-import base64
+# import base64 # Removed, no longer needed
 import traceback
-import threading  # Added for background tasks
+import threading
 import sys
-from datetime import datetime, date
+import re # Added import for regular expressions
+from datetime import datetime, date, timedelta # Added timedelta import
 
-# Increase recursion limit
-sys.setrecursionlimit(5000)  # Increased from default 1000
-
+# --- Third-Party Imports ---
 from flask import (
     Flask,
     render_template,
@@ -38,19 +38,23 @@ from flask import (
     send_from_directory,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
-from pdf2image import convert_from_path
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service as FirefoxService
+# from pdf2image import convert_from_path # Removed, no longer needed
+# from selenium import webdriver # Removed, no longer needed
+# from selenium.webdriver.firefox.options import Options # Removed, no longer needed
+# from selenium.webdriver.firefox.service import Service as FirefoxService # Removed, no longer needed
 from dotenv import load_dotenv
 
-# Application-specific imports
-# These must come after all standard and third-party library imports
+# --- Application-Specific Imports ---
 from utils.xml_parser import parse_mensa_data, get_available_mensen, get_available_dates
 from models import db, Meal, XXXLutzChangingMeal, XXXLutzFixedMeal, MealVote, PageView
 from data_loader import load_xml_data_to_db, load_xxxlutz_meals
+# NOTE: We don't import from data_fetcher here as it's meant to be run separately (e.g., via cron)
 
-# Load environment variables. This must be done after all imports but before any code that uses env vars.
+# Increase recursion limit (Keep this relatively high up)
+sys.setrecursionlimit(5000)  # Increased from default 1000
+
+
+# Load environment variables. This must be done after imports but before using env vars.
 dotenv_path = os.path.join(os.path.dirname(__file__), ".secrets")
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path=dotenv_path)
@@ -102,23 +106,20 @@ logging.getLogger().setLevel(logging.INFO)
 logger.info(f"Logging initialized. Log file at: {log_file_path}")
 
 
-# Constants
-XXXLUTZ_VOUCHER_URL = "https://guestc.me/xxxlde"  # Placeholder URL
-MIN_VOUCHER_PDF_SIZE_BYTES = 10 * 1024  # 10KB for XXXLutz vouchers
-VOUCHER_MAX_AGE_SECONDS = 7 * 24 * 60 * 60  # 7 days
+# Constants - Remove voucher/menu specific ones, keep XML and refresh interval
 XML_SOURCE_URL = (
     "https://www.studentenwerk-hannover.de/fileadmin/user_upload/Speiseplan/SP-UTF8.xml"
 )
-MENU_HG_URL = "https://guestc.me/menu-hg"
-MIN_MENU_HG_PDF_SIZE_BYTES = 30 * 1024  # 30KB
-MIN_MENU_HG_PNG_SIZE_BYTES = 50 * 1024  # 50KB
+# VOUCHER_MAX_AGE_SECONDS = 7 * 24 * 60 * 60  # Kept for potential use elsewhere, or remove if not needed
+MIN_MENU_HG_PDF_SIZE_BYTES = 30 * 1024  # Keep for download route check
+MIN_MENU_HG_PNG_SIZE_BYTES = 50 * 1024  # Keep for image route check
 
-# --- START: Added for periodic data refresh ---
-DATA_REFRESH_INTERVAL_SECONDS = 4 * 60 * 60  # 4 hours
-last_xml_refresh_time = 0
-last_vouchers_refresh_time = 0
-last_menu_hg_refresh_time = 0
-# --- END: Added for periodic data refresh ---
+# --- START: Periodic data refresh settings ---
+# XML refresh is now scheduled for a specific time (11 AM CET), not a fixed interval.
+last_xml_refresh_time = 0 
+# last_vouchers_refresh_time = 0 # Removed, handled externally or via cron
+# last_menu_hg_refresh_time = 0 # Removed, handled externally or via cron
+# --- END: Periodic data refresh settings ---
 
 # Create Flask app
 app = Flask(__name__)
@@ -201,568 +202,73 @@ def refresh_mensa_xml_data():
         logger.error(traceback.format_exc())
         return False
 
-
-def refresh_xxxlutz_vouchers():
-    global last_vouchers_refresh_time
-    logger.info("Attempting to refresh XXXLutz vouchers...")
-    try:
-        with app.app_context():
-            success = download_and_manage_xxxlutz_vouchers()
-            if success:
-                logger.info("Successfully refreshed XXXLutz vouchers.")
-                last_vouchers_refresh_time = time.time()
-            else:
-                logger.error("Failed to refresh XXXLutz vouchers.")
-            return success
-    except Exception as e:
-        logger.error(f"Error during XXXLutz voucher refresh: {e}")
-        logger.error(traceback.format_exc())
-        return False
+# Removed refresh_xxxlutz_vouchers function (now in data_fetcher.py)
+# Removed refresh_menu_hg_and_process function (now in data_fetcher.py)
 
 
-def refresh_menu_hg_and_process():
-    global last_menu_hg_refresh_time
-    logger.info("Attempting to refresh and process Menu HG PDF/PNG...")
-    try:
-        with app.app_context():
-            static_folder = app.static_folder if app.static_folder else "static"
-            menu_dir = os.path.join(static_folder, "menu")
-            os.makedirs(menu_dir, exist_ok=True)
-            pdf_filename = "menu_hg.pdf"
-            pdf_path = os.path.join(menu_dir, pdf_filename)
-            png_filename = "menu_hg.png"
-            png_path = os.path.join(menu_dir, png_filename)
-
-            if os.path.exists(pdf_path):
-                try:
-                    os.remove(pdf_path)
-                except OSError as e:
-                    logger.warning(
-                        f"Could not remove existing menu_hg.pdf before refresh: {e}"
-                    )
-
-            download_successful = get_pdf(MENU_HG_URL, pdf_path)
-            if not download_successful:
-                logger.error("get_pdf failed for Menu HG PDF during refresh.")
-                return False
-            if (
-                not os.path.exists(pdf_path)
-                or os.path.getsize(pdf_path) < MIN_MENU_HG_PDF_SIZE_BYTES
-            ):
-                logger.error(
-                    f"Menu HG PDF at {pdf_path} is missing or too small after download attempt during refresh. Size: {os.path.getsize(pdf_path) if os.path.exists(pdf_path) else 'N/A'}"
-                )
-                if os.path.exists(pdf_path):
-                    try:
-                        os.remove(pdf_path)
-                    except Exception as e_rm:
-                        logger.error(f"Failed to remove small PDF {pdf_path}: {e_rm}")
-                return False
-
-            logger.info(
-                f"Successfully downloaded new Menu HG PDF to {pdf_path} (Size: {os.path.getsize(pdf_path)}) during refresh."
-            )
-
-            conversion_to_png_successful = False
-            try:
-                images = convert_from_path(pdf_path, dpi=150, first_page=1, last_page=1)
-                if images:
-                    if os.path.exists(png_path):
-                        try:
-                            os.remove(png_path)
-                        except Exception as e_rm:
-                            logger.error(f"Failed to remove old PNG {png_path}: {e_rm}")
-                    images[0].save(png_path, "PNG")
-                    if (
-                        os.path.exists(png_path)
-                        and os.path.getsize(png_path) > MIN_MENU_HG_PNG_SIZE_BYTES
-                    ):
-                        logger.info(
-                            f"Successfully converted PDF to PNG: {png_path} (Size: {os.path.getsize(png_path)}) during refresh."
-                        )
-                        conversion_to_png_successful = True
-                    else:
-                        logger.warning(
-                            f"PNG file {png_path} is too small or missing after conversion during refresh. Size: {os.path.getsize(png_path) if os.path.exists(png_path) else 'N/A'}"
-                        )
-                else:
-                    logger.error(
-                        "PDF to PNG conversion yielded no images during refresh."
-                    )
-            except Exception as e_conv:
-                logger.error(
-                    f"Error during PDF to PNG conversion for refresh: {e_conv}"
-                )
-                logger.error(traceback.format_exc())
-
-            if conversion_to_png_successful:
-                logger.info(
-                    f"Processing Menu HG PNG ({png_path}) with AI during refresh."
-                )
-                process_menu_image_and_update_meals(png_path)
-                last_menu_hg_refresh_time = time.time()
-                return True
-            else:
-                logger.warning(
-                    "Skipping AI menu processing during refresh due to PNG conversion failure."
-                )
-                return False  # Indicate that the full process wasn't successful
-    except Exception as e:
-        logger.error(f"Error during Menu HG refresh and process: {e}")
-        logger.error(traceback.format_exc())
-        return False
+# Removed get_pdf function (now in data_fetcher.py)
+# Removed download_and_manage_xxxlutz_vouchers function (now in data_fetcher.py)
+# Removed process_menu_image_and_update_meals function (now in data_fetcher.py)
 
 
-def perform_all_initial_loads():
-    logger.info("Performing initial data loads at application startup...")
-    # Ensure app context for operations that might need it directly or indirectly
-    # although refresh functions now manage their own contexts.
+def perform_initial_app_loads():
+    """Performs data loads required *directly* by the app at startup."""
+    logger.info("Performing initial application data loads (Mensa XML)...")
+    # Only Mensa XML refresh is critical for immediate app functionality here.
+    # Voucher/Menu HG data is handled externally and routes check file existence.
     with app.app_context():
         refresh_mensa_xml_data()
-        refresh_xxxlutz_vouchers()
-        refresh_menu_hg_and_process()
-    logger.info("Initial data loads completed.")
+    logger.info("Initial application data loads completed.")
 
 
-def background_scheduler():
-    logger.info(
-        f"Background refresh scheduler started. Update interval: {DATA_REFRESH_INTERVAL_SECONDS / 3600:.1f} hours."
-    )
-    # Initial sleep to avoid immediate re-run after startup load,
+def background_mensa_xml_scheduler():
+    """Background thread function to refresh Mensa XML data daily at 11:00 AM CET."""
+    logger.info("Background Mensa XML refresh scheduler started. Will update daily at 11:00 AM CET (server's local time assumed to be CET).")
+    
+    TARGET_HOUR = 11
+    TARGET_MINUTE = 0
+
     while True:
-        time.sleep(DATA_REFRESH_INTERVAL_SECONDS)
-        logger.info(
-            "Running scheduled data refresh cycle..."
-        )  # Removed unnecessary f-string marker
-        # These functions handle their own app_context internally
-        refresh_mensa_xml_data()
-        refresh_xxxlutz_vouchers()
-        refresh_menu_hg_and_process()
-        logger.info("Scheduled data refresh cycle completed.")
+        now = datetime.now()
+        
+        # Calculate the next run time
+        next_run_datetime = now.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
+        
+        if now >= next_run_datetime:
+            # If current time is past 11:00 AM today, schedule for 11:00 AM tomorrow
+            tomorrow = now + timedelta(days=1)
+            next_run_datetime = tomorrow.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
+            
+        sleep_duration_seconds = (next_run_datetime - now).total_seconds()
+        
+        # Ensure sleep duration is not negative (e.g. if script starts just after 11 AM)
+        if sleep_duration_seconds < 0:
+             # This case should ideally be covered by the logic above,
+             # but as a safeguard if calculations are very close to the target time.
+             tomorrow = now + timedelta(days=1)
+             next_run_datetime = tomorrow.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
+             sleep_duration_seconds = (next_run_datetime - now).total_seconds()
+
+        logger.info(f"Next Mensa XML data refresh scheduled for: {next_run_datetime.strftime('%Y-%m-%d %H:%M:%S')}. Sleeping for {sleep_duration_seconds:.0f} seconds.")
+        
+        try:
+            time.sleep(sleep_duration_seconds)
+            logger.info("Running scheduled Mensa XML data refresh (11:00 AM CET target)...")
+            refresh_mensa_xml_data() # This function handles its own app context
+            logger.info("Scheduled Mensa XML data refresh cycle completed.")
+        except Exception as e:
+            logger.error(f"Error in background_mensa_xml_scheduler sleep or refresh: {e}")
+            logger.error(traceback.format_exc())
+            # Sleep for a shorter, fixed interval before retrying scheduling logic (e.g. 5 minutes)
+            # to avoid tight loop on persistent errors.
+            time.sleep(300)
 
 
 # --- END: Data Refresh Functions ---
 
 
-def get_pdf(hesse_link, pdf_path):
-    logger.info(
-        f"Attempting PDF download for {hesse_link} using Selenium to {pdf_path}"
-    )
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")  # Often recommended for headless
-    options.add_argument(
-        "window-size=1920x1080"
-    )  # Can sometimes help with layout issues
-
-    driver = None  # Initialize driver to None for finally block
-    try:
-        geckodriver_path = "/snap/bin/geckodriver"  # Using user-provided path
-        logger.info(f"Using geckodriver path: {geckodriver_path}")
-        # Check if the geckodriver path exists and is executable
-        if not (
-            os.path.exists(geckodriver_path) and os.access(geckodriver_path, os.X_OK)
-        ):
-            logger.error(
-                f"Geckodriver not found or not executable at {geckodriver_path}. Please ensure it's installed correctly and the path is correct."
-            )
-            # Attempt to use geckodriver from PATH as a fallback
-            logger.warning(
-                "Attempting to use geckodriver from system PATH as a fallback."
-            )
-            driver = webdriver.Firefox(options=options)
-        else:
-            driver_service = FirefoxService(executable_path=geckodriver_path)
-            driver = webdriver.Firefox(service=driver_service, options=options)
-
-        logger.info(
-            f"Navigating to {hesse_link} using Selenium"
-        )  # Changed level to INFO
-        driver.get(hesse_link)
-
-        # Wait for the page to load and potentially for JavaScript to execute or redirects to happen.
-        # The original code had an explicit time.sleep(5).
-        # WebDriverWait can be more precise if there's a specific condition to wait for.
-        # For now, keeping the sleep as per the provided snippet.
-        # logger.debug(f"Waiting for 5 seconds after navigating to {hesse_link}") # Removed DEBUG log
-        time.sleep(5)
-
-        pdf_url = driver.current_url
-        logger.info(
-            f"Current URL after loading {hesse_link} is {pdf_url}. Attempting download."
-        )
-
-        # Use curl to download the PDF. Selenium itself can't directly save arbitrary files easily
-        # like this unless it's a known download behavior handled by print-to-PDF or specific profile settings.
-        # Using curl for the actual download from the (potentially new) pdf_url is a robust choice.
-        curl_command = [
-            "curl",
-            "-s",
-            "-L",
-            "-o",
-            pdf_path,
-            pdf_url,
-        ]  # Added -L to follow redirects from pdf_url too
-        logger.info(
-            f"Executing curl command to download from {pdf_url}"
-        )  # Changed level to INFO and simplified message
-
-        process = subprocess.run(
-            curl_command, capture_output=True, text=True, timeout=60
-        )  # Increased timeout for download
-
-        if process.returncode == 0:
-            if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
-                logger.info(
-                    f"Successfully downloaded PDF to {pdf_path} from {pdf_url} (Size: {os.path.getsize(pdf_path)} bytes)"
-                )
-                return True
-            else:
-                logger.error(
-                    f"curl command succeeded for {pdf_url} but {pdf_path} is missing or empty."
-                )
-                return False
-        else:
-            logger.error(
-                f"curl command failed for {pdf_url}. Return code: {process.returncode}. Stderr: {process.stderr.strip()}"
-            )
-            return False
-
-    except Exception as e:
-        logger.error(f"An error occurred in get_pdf for {hesse_link}: {e}")
-        # Include stack trace for better debugging
-        logger.error(traceback.format_exc())
-        return False
-    finally:
-        if driver:
-            # logger.debug("Quitting Selenium WebDriver.") # Removed DEBUG log
-            driver.quit()
-
-
-# Function to download and manage XXXLutz vouchers
-def download_and_manage_xxxlutz_vouchers():
-    """
-    Downloads the XXXLutz voucher PDF using Selenium via get_pdf function from XXXLUTZ_VOUCHER_URL.
-    If a new PDF is found (different size from existing one or older than VOUCHER_MAX_AGE_SECONDS),
-    it sets the old one as "Alte Gutscheine" and the new one as "Neue Gutscheine".
-    """
-    static_folder = app.static_folder if app.static_folder else "static"
-    vouchers_dir = os.path.join(static_folder, "vouchers")
-    os.makedirs(vouchers_dir, exist_ok=True)
-
-    new_voucher_path = os.path.join(vouchers_dir, "neue_gutscheine.pdf")
-    old_voucher_path = os.path.join(vouchers_dir, "alte_gutscheine.pdf")
-    temp_voucher_path = os.path.join(vouchers_dir, "temp_voucher.pdf")
-
-    if os.path.exists(temp_voucher_path):
-        try:
-            os.remove(temp_voucher_path)
-        except OSError as e:
-            logger.error(
-                f"Error removing pre-existing temporary voucher file {temp_voucher_path}: {e}"
-            )
-            pass
-
-    logger.info(
-        f"Attempting to download XXXLutz voucher using Selenium/get_pdf from {XXXLUTZ_VOUCHER_URL}"
-    )
-    download_successful = get_pdf(XXXLUTZ_VOUCHER_URL, temp_voucher_path)
-
-    if not download_successful:
-        logger.error(
-            f"get_pdf failed to download voucher from {XXXLUTZ_VOUCHER_URL} to {temp_voucher_path}. Main download logic will not proceed."
-        )
-        # Still return true if a valid new_voucher_path exists from a previous successful run.
-        return os.path.exists(new_voucher_path)
-
-    try:
-        if (
-            not os.path.exists(temp_voucher_path)
-            or os.path.getsize(temp_voucher_path) < MIN_VOUCHER_PDF_SIZE_BYTES
-        ):
-            logger.error(
-                f"Downloaded voucher at {temp_voucher_path} is missing or too small (Size: {os.path.getsize(temp_voucher_path) if os.path.exists(temp_voucher_path) else 'N/A'} bytes). Minimum: {MIN_VOUCHER_PDF_SIZE_BYTES}"
-            )
-            # Clean up small/invalid temp file if it exists
-            if os.path.exists(temp_voucher_path):
-                try:
-                    os.remove(temp_voucher_path)
-                except OSError as e:
-                    logger.error(
-                        f"Error removing invalid temp voucher {temp_voucher_path}: {e}"
-                    )
-            return os.path.exists(
-                new_voucher_path
-            )  # Return status of existing new_voucher_path
-
-        logger.info(
-            f"Voucher downloaded to {temp_voucher_path} (Size: {os.path.getsize(temp_voucher_path)} bytes). Proceeding with version check."
-        )
-
-        if not os.path.exists(new_voucher_path):
-            shutil.move(temp_voucher_path, new_voucher_path)
-            logger.info(
-                f"First XXXLutz voucher PDF downloaded and saved to {new_voucher_path}"
-            )
-            return True
-
-        new_voucher_size = os.path.getsize(new_voucher_path)
-        temp_voucher_size = os.path.getsize(temp_voucher_path)
-        need_rotation = temp_voucher_size != new_voucher_size
-
-        if not need_rotation:
-            try:
-                new_voucher_mtime = os.path.getmtime(new_voucher_path)
-                current_time = time.time()
-                if (current_time - new_voucher_mtime) > VOUCHER_MAX_AGE_SECONDS:
-                    logger.info(
-                        f"Voucher at {new_voucher_path} is older than {VOUCHER_MAX_AGE_SECONDS // (24 * 60 * 60)} days. Rotating."
-                    )
-                    need_rotation = True
-            except FileNotFoundError:
-                logger.warning(
-                    f"New voucher file {new_voucher_path} not found when checking age. Assuming rotation needed if sizes differ or temp is valid."
-                )
-                # If new_voucher_path doesn't exist but temp_voucher_path is valid, we should treat it as a new download scenario.
-                # This case is largely handled by the initial check for new_voucher_path existence.
-            except Exception as e:
-                logger.warning(
-                    f"Error checking voucher file age for {new_voucher_path}: {e}. Proceeding with size-based rotation logic."
-                )
-
-        if need_rotation:
-            if os.path.exists(old_voucher_path):
-                try:
-                    os.remove(old_voucher_path)
-                except OSError as e:
-                    logger.error(
-                        f"Error removing old_voucher_path {old_voucher_path}: {e}"
-                    )
-            try:
-                shutil.move(new_voucher_path, old_voucher_path)
-                logger.info(f"Moved current {new_voucher_path} to {old_voucher_path}")
-            except Exception as e:
-                logger.error(
-                    f"Error moving {new_voucher_path} to {old_voucher_path}: {e}"
-                )
-                # If this move fails, we might not want to overwrite new_voucher_path with temp_voucher_path
-                # For now, we'll log and attempt to move temp to new anyway, which might fail or overwrite.
-
-            shutil.move(temp_voucher_path, new_voucher_path)
-            logger.info(
-                f"Updated XXXLutz voucher: {temp_voucher_path} moved to {new_voucher_path}"
-            )
-        else:
-            logger.info(
-                f"XXXLutz voucher PDF at {new_voucher_path} is already up to date. Removing {temp_voucher_path}."
-            )
-            if os.path.exists(temp_voucher_path):
-                try:
-                    os.remove(temp_voucher_path)
-                except OSError as e:
-                    logger.error(
-                        f"Error removing {temp_voucher_path} when voucher is up to date: {e}"
-                    )
-        return True
-
-    except Exception as e:
-        logger.error(
-            f"Overall error in download_and_manage_xxxlutz_vouchers after get_pdf call: {e}"
-        )
-        logger.error(traceback.format_exc())
-        # Clean up temp file if it exists and something went wrong
-        if os.path.exists(temp_voucher_path):
-            try:
-                os.remove(temp_voucher_path)
-            except OSError as e_clean:
-                logger.error(
-                    f"Error cleaning up {temp_voucher_path} in exception handler: {e_clean}"
-                )
-        return os.path.exists(
-            new_voucher_path
-        )  # Return true if a usable voucher still exists
-
-
-def process_menu_image_and_update_meals(png_path):
-    logger.info(f"Starting meal processing from PNG: {png_path}")
-    if not os.path.exists(png_path):
-        logger.error(f"PNG file not found at {png_path}. Cannot process menu.")
-        return
-
-    # 1. Encode image to base64
-    try:
-        with open(png_path, "rb") as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-    except Exception as e:
-        logger.error(f"Error encoding image {png_path} to base64: {e}")
-        return
-
-    # 2. Call Mistral API (Pixtral - assuming mistral-large-latest is the one for now)
-    api_key = os.environ.get("MISTRAL_API_KEY")
-    if not api_key:
-        logger.error(
-            "MISTRAL_API_KEY not found in environment. Cannot process menu image."
-        )
-        return
-
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": f"Bearer {api_key}",
-    }
-
-    # Carefully craft the prompt for structured output
-    # Using a regular triple-quoted string for the multiline prompt.
-    # The example JSON structure is embedded directly.
-    prompt_text = (
-        "Analyze the attached menu image. Extract the main date visible on the menu (usually at the top, format it as DD.MM.YYYY). "
-        "Then, specifically look for a section titled 'Hauptspeise' or 'Hauptspeisen'. Under this section, list the first two distinct meal descriptions you can find. "
-        "Provide the output ONLY in the following JSON format, with no other text before or after the JSON block:\n"
-        '{ "date": "DD.MM.YYYY", "meals": ["Meal 1 Description from Hauptspeise", "Meal 2 Description from Hauptspeise"] }\n'
-        "If you cannot find a date, the 'Hauptspeise' section, or two distinct meals under it, provide null for the missing fields in the JSON. "
-        "Ensure the meal descriptions are complete as seen on the menu under the 'Hauptspeise' section."
-    )
-
-    payload = {
-        "model": "pixtral-12b-2409",  # Changed to specific Pixtral model
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt_text},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "temperature": 0.1,  # Lower temperature for more deterministic output
-        "max_tokens": 500,
-    }
-
-    try:
-        logger.info("Sending request to Mistral API for menu image processing...")
-        response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=90,
-        )
-        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
-
-        api_response = response.json()
-        logger.debug(f"Mistral API raw response: {api_response}")
-
-        content_str = (
-            api_response.get("choices", [{}])[0].get("message", {}).get("content", "")
-        )
-        logger.info(f"Mistral API response content: {content_str}")
-
-        # Attempt to parse the JSON from the content string
-        # Clean the string: remove potential markdown backticks for JSON block
-        if content_str.startswith("```json"):
-            content_str = content_str[len("```json") :]
-        if content_str.endswith("```"):
-            content_str = content_str[: -len("```")]
-        content_str = content_str.strip()
-
-        parsed_content = json.loads(content_str)
-        menu_date_str = parsed_content.get("date")
-        extracted_meals = parsed_content.get("meals", [])
-
-        if not menu_date_str or not extracted_meals or len(extracted_meals) < 1:
-            logger.warning(
-                f"Mistral API did not return the expected data structure or was missing date/meals. Date: {menu_date_str}, Meals: {extracted_meals}"
-            )
-            return
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Mistral API request failed: {e}")
-        if hasattr(e, "response") and e.response is not None:
-            logger.error(f"Mistral API response content: {e.response.text}")
-        return
-    except json.JSONDecodeError as e:
-        logger.error(
-            f"Failed to parse JSON from Mistral response: {e}. Response was: {content_str}"
-        )
-        return
-    except Exception as e:
-        logger.error(f"Error processing Mistral API response: {e}")
-        logger.error(traceback.format_exc())
-        return
-
-    # 3. Parse date and check if recent
-    try:
-        menu_date = datetime.strptime(menu_date_str, "%d.%m.%Y").date()
-    except ValueError:
-        logger.error(
-            f"Invalid date format '{menu_date_str}' from Mistral. Cannot parse."
-        )
-        return
-
-    today = date.today()
-    update_meals_anyway = False
-
-    # Check if there are any existing XXXLutzChangingMeal entries
-    with app.app_context():  # Context needed for DB query
-        existing_meal_count = XXXLutzChangingMeal.query.count()
-        if existing_meal_count == 0:
-            logger.info(
-                "No existing XXXLutz changing meals found in the database. Meals will be updated even if the menu date is in the past."
-            )
-            update_meals_anyway = True
-
-    # Check if the menu_date is today or in the future, OR if we should update anyway because DB is empty.
-    if not update_meals_anyway and menu_date < today:
-        logger.info(
-            f"Menu date {menu_date_str} is in the past (today is {today.strftime('%d.%m.%Y')}) and database is not empty. XXXLutz meals will not be updated."
-        )
-        return
-
-    if update_meals_anyway and menu_date < today:
-        logger.info(
-            f"Menu date {menu_date_str} is in the past, but updating because the database of XXXLutz changing meals is empty."
-        )
-    else:
-        logger.info(
-            f"Menu date {menu_date_str} ({menu_date.strftime('%A')}) is current or in the future. Proceeding to update XXXLutz changing meals."
-        )
-
-    # 4. Update XXXLutzChangingMeal in database
-    with app.app_context():  # Ensure we have an app context for database operations
-        try:
-            # Clear existing changing meals
-            num_deleted = XXXLutzChangingMeal.query.delete()
-            logger.info(f"Deleted {num_deleted} existing XXXLutz changing meals.")
-
-            # Add new meals (first two, or fewer if less than two extracted)
-            for i, meal_desc in enumerate(extracted_meals[:2]):
-                if meal_desc:  # Ensure description is not null or empty
-                    new_meal = XXXLutzChangingMeal(
-                        description=meal_desc,
-                        marking="",  # Default
-                        price_student=0.0,  # Default
-                        price_employee=0.0,  # Default
-                        price_guest=0.0,  # Default
-                        nutritional_values="",  # Default
-                    )
-                    db.session.add(new_meal)
-                    logger.info(f"Adding new XXXLutz changing meal: {meal_desc}")
-
-            db.session.commit()
-            logger.info("Successfully updated XXXLutz changing meals in the database.")
-
-        except Exception as e:
-            logger.error(f"Database error while updating XXXLutz changing meals: {e}")
-            db.session.rollback()
-            logger.error(traceback.format_exc())
-
-
-# Create tables and load data
-with app.app_context():
+# Create tables and load data (Startup Sequence)
+with app.app_context(): # Needed for db.create_all() and initial loads
     # Initialize global data structures that will be populated by refresh functions
     mensa_data = {}  # Populated by refresh_mensa_xml_data
     available_mensen = []  # Populated by refresh_mensa_xml_data
@@ -781,15 +287,15 @@ with app.app_context():
         else:
             logger.error("Failed to load XXXLutz fixed meals.")
 
-    # Perform initial loads for all dynamic data sources
-    # These functions now manage their own app_context for DB/app config access.
-    perform_all_initial_loads()
+    # Perform initial loads needed *by the app* itself
+    # Voucher/Menu data is assumed to be populated by the external data_fetcher script (e.g., via cron)
+    perform_initial_app_loads() # This now only loads Mensa XML
 
-    # Start the background refresh thread
-    logger.info("Starting background data refresh thread...")
-    refresh_thread = threading.Thread(target=background_scheduler, daemon=True)
-    refresh_thread.start()
-    logger.info("Background data refresh thread initiated.")
+    # Start the background refresh thread ONLY for Mensa XML
+    logger.info("Starting background Mensa XML data refresh thread...")
+    xml_refresh_thread = threading.Thread(target=background_mensa_xml_scheduler, daemon=True)
+    xml_refresh_thread.start()
+    logger.info("Background Mensa XML data refresh thread initiated.")
 
 
 @app.route("/")
@@ -943,11 +449,12 @@ def index():
                         "id": str(meal.id),
                         "description": meal.description,
                         "marking": meal.marking,
-                        "price_student": f"{meal.price_student:.2f}".replace(".", ","),
-                        "price_employee": f"{meal.price_employee:.2f}".replace(
+                        # Handle potential None values for prices before formatting
+                        "price_student": f"{(meal.price_student or 0.0):.2f}".replace(".", ","),
+                        "price_employee": f"{(meal.price_employee or 0.0):.2f}".replace(
                             ".", ","
                         ),
-                        "price_guest": f"{meal.price_guest:.2f}".replace(".", ","),
+                        "price_guest": f"{(meal.price_guest or 0.0):.2f}".replace(".", ","),
                         "nutritional_values": meal.nutritional_values,
                         "category": "Wechselnde Gerichte Woche",
                     }
@@ -1258,6 +765,41 @@ def get_dietary_info(marking):
 
     return " ".join(emoji_spans)
 
+@app.template_filter("format_nutritional_values")
+def format_nutritional_values(value_str):
+    if not value_str or not isinstance(value_str, str):
+        return "<p class='text-muted'><small>Keine Nährwertinformationen verfügbar.</small></p>"
+
+    # Regex to split by comma BUT not if the comma is followed by a digit and then a letter (e.g., "2,9g")
+    # This aims to split between "key=value" pairs like "Eiweiß=25,7g, Salz=2,1g"
+    # It splits on commas that are likely delimiters between nutrient entries.
+    parts = re.split(r',\s*(?=[A-Za-zÀ-ÖØ-öø-ÿ]+[=])', value_str)
+
+    if not parts or (len(parts) == 1 and '=' not in parts[0]):
+        # If splitting didn't work or only one non-key-value part, return a formatted message
+        # This might happen if the format is very different from expected.
+        return f"<p class='text-muted'><small>Nährwerte: {value_str}</small></p>"
+
+    html_output = "<ul class='list-unstyled mb-0 nutrient-list'>"
+    for part in parts:
+        part = part.strip()
+        if "=" in part:
+            key_value = part.split('=', 1)
+            key = key_value[0].strip()
+            value = key_value[1].strip() if len(key_value) > 1 else ""
+            
+            # Special handling for Brennwert to put (kcal) in small tags
+            if "Brennwert" in key and "kcal" in value:
+                # Make the (xxx kcal) part smaller and wrap kJ if also present
+                value = re.sub(r'\(([^)]+kcal[^)]*)\)', r'(<small>\1</small>)', value)
+            
+            html_output += f'<li><strong>{key}:</strong> {value}</li>'
+        elif part: # Only add if part is not empty after stripping
+            # Fallback for parts not in key=value format (should be less common now)
+            html_output += f'<li>{part}</li>' 
+            
+    html_output += '</ul>'
+    return html_output
 
 # Get or create a client ID from cookie
 def get_client_id():
@@ -1381,11 +923,11 @@ def get_votes(meal_id):
 def download_voucher(voucher_type):
     """
     Download XXXLutz vouchers.
-    voucher_type can be 'new' for 'Neue Gutscheine' or 'old' for 'Alte Gutscheine'
+    voucher_type can be 'new' for 'neue_gutscheine.pdf' or 'old' for 'alte_gutscheine.pdf'
     """
-    # Ensure we have a valid static folder path
     static_folder = app.static_folder if app.static_folder else "static"
     vouchers_dir = os.path.join(static_folder, "vouchers")
+    os.makedirs(vouchers_dir, exist_ok=True) # Ensure directory exists
 
     if voucher_type == "new":
         filename = "neue_gutscheine.pdf"
@@ -1397,11 +939,12 @@ def download_voucher(voucher_type):
     # Check if the file exists (should be populated by background task)
     file_path = os.path.join(vouchers_dir, filename)
     if not os.path.exists(file_path):
+        # Add size check? Could be useful but adds complexity. Assume background task validates.
         logger.warning(
-            f"Voucher file {filename} not found in {vouchers_dir}. Background task might not have run or failed."
+            f"Voucher file {filename} not found in {vouchers_dir}. It may be currently updating or the data fetcher script hasn't run."
         )
         return (
-            "Voucher not available. It is updated periodically. Please check back later.",
+            "Gutschein nicht verfügbar. Er wird regelmäßig aktualisiert. Bitte später erneut versuchen.",
             404,
         )
 
@@ -1419,78 +962,63 @@ def download_voucher(voucher_type):
 @app.route("/download-menu-hg")
 def download_menu_hg_pdf():
     """
-    Serves the menu_hg.pdf file previously downloaded and stored
-    by the background refresh task.
+    Serves the menu_hg.pdf file stored in static/menu.
+    Assumes the file is populated/updated by the external data_fetcher script.
     """
     static_folder = app.static_folder if app.static_folder else "static"
     menu_dir = os.path.join(static_folder, "menu")
-    os.makedirs(menu_dir, exist_ok=True)  # Ensure menu directory exists
-    filename = "menu_hg.pdf"
-    pdf_path = os.path.join(menu_dir, filename)  # Updated path
-
-    # This route now serves the PDF that is periodically downloaded and processed by the background task.
-    static_folder = app.static_folder if app.static_folder else "static"
-    menu_dir = os.path.join(static_folder, "menu")
-    os.makedirs(menu_dir, exist_ok=True)
+    os.makedirs(menu_dir, exist_ok=True) # Ensure directory exists
     filename = "menu_hg.pdf"
     pdf_path = os.path.join(menu_dir, filename)
 
     if (
         not os.path.exists(pdf_path)
-        or os.path.getsize(pdf_path) < MIN_MENU_HG_PDF_SIZE_BYTES
+        or os.path.getsize(pdf_path) < MIN_MENU_HG_PDF_SIZE_BYTES # Use constant defined in this file
     ):
         logger.warning(
-            f"Menu HG PDF ({pdf_path}) not found or too small to serve. Background task might not have run or failed."
+            f"Menu HG PDF ({pdf_path}) not found or too small. It may be updating or the data fetcher script hasn't run."
         )
         return (
-            "Menu HG PDF is not currently available. It is updated periodically. Please try again later.",
+            "Menu HG PDF nicht verfügbar. Es wird regelmäßig aktualisiert. Bitte später erneut versuchen.",
             404,
         )
 
-    logger.info(f"Serving existing Menu HG PDF: {pdf_path}")
+    logger.info(f"Serving Menu HG PDF: {pdf_path}")
     return send_from_directory(
         menu_dir,
         filename,
         as_attachment=True,
         mimetype="application/pdf",
-        download_name="menu_hg.pdf",
+        download_name="menu_hg.pdf", # Keep original download name
     )
 
 
 @app.route("/menu-hg-image")
 def get_menu_hg_image():
     """
-    Serves the menu_hg.png image previously converted and stored
-    by the background refresh task.
+    Serves the menu_hg.png image stored in static/menu.
+    Assumes the file is populated/updated by the external data_fetcher script.
     """
-    # Ensure we have a valid static folder path
-    static_folder = app.static_folder if app.static_folder else "static"
-    menu_dir = os.path.join(static_folder, "menu")  # Changed from vouchers_dir
-    os.makedirs(menu_dir, exist_ok=True)  # Ensure menu directory exists
-
-    # This route now serves the PNG that is periodically converted by the background task.
     static_folder = app.static_folder if app.static_folder else "static"
     menu_dir = os.path.join(static_folder, "menu")
-    os.makedirs(
-        menu_dir, exist_ok=True
-    )  # Ensure menu directory exists, though background task should create it
+    os.makedirs(menu_dir, exist_ok=True) # Ensure directory exists
 
     png_filename = "menu_hg.png"
     png_path = os.path.join(menu_dir, png_filename)
 
     if (
         not os.path.exists(png_path)
-        or os.path.getsize(png_path) < MIN_MENU_HG_PNG_SIZE_BYTES
+        or os.path.getsize(png_path) < MIN_MENU_HG_PNG_SIZE_BYTES # Use constant defined in this file
     ):
         logger.warning(
-            f"Menu HG PNG ({png_path}) not found or too small to serve. Background task might not have run or conversion failed."
+            f"Menu HG PNG ({png_path}) not found or too small. It may be updating or the data fetcher script hasn't run/failed conversion."
         )
         return (
-            "Menu HG image is not currently available. It is updated periodically. Please try again later.",
+            "Menu HG Bild nicht verfügbar. Es wird regelmäßig aktualisiert. Bitte später erneut versuchen.",
             404,
         )
 
-    logger.info(f"Serving existing Menu HG PNG: {png_path}")
+    logger.info(f"Serving Menu HG PNG: {png_path}")
     return send_from_directory(menu_dir, png_filename, mimetype="image/png")
 
 
@@ -1582,26 +1110,17 @@ def get_bob_recommendation():
         # Format meals for the prompt
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
-        # Construct the German prompt for Bob der Baumeister
-        prompt = (
-            (
-                "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
-                "Erinnere uns daran, einen Helm zu tragen, denn die Decke der Hauptmensa "
-                "könnte jederzeit einstürzen.\n\n"
-                "Verfügbare Gerichte:\n"
-                + meal_list_for_prompt
-                + "\n\n"
-                "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht, "
-                "im Stil von Bob: 'Ich empfehle [GERICHT], weil [GRUND].'"
-            ),
-            (
-                "Weise außerdemd in verschiedenen Variationen daraufhin, dass das Gebäude "
-                "einsturzgefährdet ist, und deswegen ein Helm oder ähnliche "
-                "Schutzausrüstung sinnvoll sein könnte, da einem beim Besuch jederzeitn "
-                "die Decke auf den Kopf fallen könnte."
-            ),
-        )
+        # Construct the German prompt for Bob der Baumeister as a single string
 
+        prompt = (
+            "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
+            "Verfügbare Gerichte:\n"
+            f"{meal_list_for_prompt}\n\n"
+            "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht, "
+            "im Stil von Bob: 'Ich empfehle [GERICHT], weil [GRUND].' "
+            "Weise in deiner Antwort auch kurz auf die einsturzgefährdete Decke der Hauptmensa hin und "
+            "erwähne, dass ein Helm ratsam ist."
+        )
 
         api_key = os.environ.get("MISTRAL_API_KEY")
         if not api_key:

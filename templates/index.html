@@ -148,14 +148,18 @@
                                         <div class="food-markings-row">
                                             {{ meal.marking|get_dietary_info|safe }}
                                             <div class="action-buttons">
-                                                <button class="btn btn-circle btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#nutrientInfo{{ loop.index }}" title="Nährwerte anzeigen">
-                                                    <i class="fas fa-info-circle"></i>
-                                                </button>
-                                                <div class="collapse nutrient-card mt-1" id="nutrientInfo{{ loop.index }}">
-                                                    <div class="card card-body py-1 px-2">
-                                                        <small>{{ meal.nutritional_values }}</small>
-                                                    </div>
-                                                </div>
+                                                {% if meal.nutritional_values %}
+                                                <span class="nutrient-info-trigger" 
+                                                      data-bs-toggle="popover"
+                                                      data-bs-trigger="hover focus" 
+                                                      data-bs-placement="top"
+                                                      data-bs-html="true" 
+                                                      data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 
+                                                      title="Nährwerte"
+                                                      style="cursor: help;">
+                                                    <i class="fas fa-info-circle text-info"></i>
+                                                </span>
+                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="food-markings-row mt-2">
@@ -196,9 +200,16 @@
                                     {{ meal.marking|get_dietary_info|safe }}
                                     <div class="action-buttons">
                                         {% if meal.nutritional_values %}
-                                        <button class="btn btn-circle btn-info" data-bs-toggle="collapse" data-bs-target="#mobileNutrientInfo{{ loop.index }}_{{ mensa|replace(' ', '_') }}" aria-expanded="false" title="Nährwerte anzeigen">
-                                            <i class="fas fa-info-circle"></i>
-                                        </button>
+                                        <span class="nutrient-info-trigger" 
+                                              data-bs-toggle="popover"
+                                              data-bs-trigger="hover focus" 
+                                              data-bs-placement="top"
+                                              data-bs-html="true" 
+                                              data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 
+                                              title="Nährwerte"
+                                              style="cursor: help;">
+                                            <i class="fas fa-info-circle text-info"></i>
+                                        </span>
                                         {% endif %}
                                         <button class="btn btn-circle btn-euro" data-bs-toggle="collapse" data-bs-target="#mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}" aria-expanded="false" title="Preise anzeigen">
                                             <i class="fas fa-euro-sign"></i>
@@ -206,13 +217,7 @@
                                     </div>
                                 </div>
 
-                                {% if meal.nutritional_values %}
-                                <div class="collapse nutrient-info-collapse" id="mobileNutrientInfo{{ loop.index }}_{{ mensa|replace(' ', '_') }}">
-                                    <div class="card card-body py-2 px-3 mt-2">
-                                        <small>{{ meal.nutritional_values }}</small>
-                                    </div>
-                                </div>
-                                {% endif %}
+                                {# Nutrient info collapse removed #}
 
                                 <div class="collapse" id="mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}">
                                     <div class="price-info-card mt-2">
@@ -533,6 +538,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ensure this part is correctly integrated with your actual voting script if it was previously in this block
     });
     */
+    
+    // Initialize Bootstrap Popovers for nutrient info triggers
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"].nutrient-info-trigger');
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+        container: 'body' // Attach popover to body to avoid table/card clipping issues
+    }));
 });
 </script>
 {% endblock %}
