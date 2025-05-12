@@ -1,11 +1,12 @@
 # IMPORTANT: Patch gevent early before any other imports
 try:
     import gevent.monkey
+
     # Patch only specific modules known to cause issues or needed for networking
     gevent.monkey.patch_ssl()
     gevent.monkey.patch_socket()
     # You might need to add others like patch_thread() if threading issues arise
-    print("Gevent monkey patching applied (ssl, socket).") # Optional: confirmation log
+    print("Gevent monkey patching applied (ssl, socket).")  # Optional: confirmation log
 except ImportError:
     # Handle case where gevent might not be installed or is optional
     print("gevent not found, monkey patching skipped.")
@@ -126,10 +127,10 @@ app.secret_key = os.environ.get("SESSION_SECRET", "default_secret_key")
 # Configure proxy support
 app.wsgi_app = ProxyFix(
     app.wsgi_app,
-    x_for=1,      # Number of proxy servers in front of the app
-    x_proto=1,    # Number of proxies handling protocol/SSL
-    x_host=1,     # Number of proxies handling host headers
-    x_prefix=1    # Number of proxies handling path prefix
+    x_for=1,  # Number of proxy servers in front of the app
+    x_proto=1,  # Number of proxies handling protocol/SSL
+    x_host=1,  # Number of proxies handling host headers
+    x_prefix=1,  # Number of proxies handling path prefix
 )
 
 # Configure the database
@@ -376,7 +377,9 @@ def get_pdf(hesse_link, pdf_path):
             driver_service = FirefoxService(executable_path=geckodriver_path)
             driver = webdriver.Firefox(service=driver_service, options=options)
 
-        logger.info(f"Navigating to {hesse_link} using Selenium") # Changed level to INFO
+        logger.info(
+            f"Navigating to {hesse_link} using Selenium"
+        )  # Changed level to INFO
         driver.get(hesse_link)
 
         # Wait for the page to load and potentially for JavaScript to execute or redirects to happen.
@@ -402,7 +405,9 @@ def get_pdf(hesse_link, pdf_path):
             pdf_path,
             pdf_url,
         ]  # Added -L to follow redirects from pdf_url too
-        logger.info(f"Executing curl command to download from {pdf_url}") # Changed level to INFO and simplified message
+        logger.info(
+            f"Executing curl command to download from {pdf_url}"
+        )  # Changed level to INFO and simplified message
 
         process = subprocess.run(
             curl_command, capture_output=True, text=True, timeout=60
@@ -856,9 +861,9 @@ def index():
                             )
                             break  # Found the first suitable date
                         # else: # Removed DEBUG log for past date check
-                            # logger.debug(
-                            #     f"{date_str_in_loop} is in the past compared to today."
-                            # )
+                        # logger.debug(
+                        #     f"{date_str_in_loop} is in the past compared to today."
+                        # )
                     except ValueError:
                         logger.warning(
                             f"Invalid date format '{date_str_in_loop}' in filtered_dates during next day search."
@@ -1040,16 +1045,19 @@ def index():
     try:
         # Test JSON serialization before rendering
         # This will catch any potential circular references
-        json.dumps({
-            'data': filtered_data,
-            'available_mensen': filtered_mensen,
-            'available_dates': filtered_dates,
-            'selected_date': selected_date,
-            'selected_mensa': selected_mensa,
-            'mensa_emojis': mensa_emojis,
-            'page_views': current_page_views,
-        }, default=str)  # Use str as fallback for non-serializable objects
-        
+        json.dumps(
+            {
+                "data": filtered_data,
+                "available_mensen": filtered_mensen,
+                "available_dates": filtered_dates,
+                "selected_date": selected_date,
+                "selected_mensa": selected_mensa,
+                "mensa_emojis": mensa_emojis,
+                "page_views": current_page_views,
+            },
+            default=str,
+        )  # Use str as fallback for non-serializable objects
+
         return render_template(
             "index.html",
             data=filtered_data,
@@ -1063,11 +1071,17 @@ def index():
     except RecursionError as e:
         logger.error(f"RecursionError in index route: {e}")
         logger.error(f"Data that caused the error: {traceback.format_exc()}")
-        return "Entschuldigung, es gab einen Fehler bei der Verarbeitung der Daten. Bitte versuchen Sie es in ein paar Minuten erneut.", 500
+        return (
+            "Entschuldigung, es gab einen Fehler bei der Verarbeitung der Daten. Bitte versuchen Sie es in ein paar Minuten erneut.",
+            500,
+        )
     except Exception as e:
         logger.error(f"Error in index route: {e}")
         logger.error(traceback.format_exc())
-        return "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.", 500
+        return (
+            "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+            500,
+        )
 
 
 @app.template_filter("format_date")
@@ -1120,7 +1134,11 @@ def extract_kcal(naehrwert_str):
 @app.template_filter("calculate_caner")
 def calculate_caner(kcal, price_student):
     # Input validation for price_student
-    if price_student is None or not isinstance(price_student, str) or price_student.strip() == "":
+    if (
+        price_student is None
+        or not isinstance(price_student, str)
+        or price_student.strip() == ""
+    ):
         logger.warning(
             f"Invalid price_student input in calculate_caner: Received '{price_student}' (type: {type(price_student)}). Treating as 0."
         )
@@ -1140,10 +1158,10 @@ def calculate_caner(kcal, price_student):
 
         # Ensure kcal is a number (it should be from extract_kcal)
         if not isinstance(kcal, (int, float)):
-             logger.warning(
+            logger.warning(
                 f"Invalid kcal input in calculate_caner: Received '{kcal}' (type: {type(kcal)}). Cannot calculate Caner score."
             )
-             return 0
+            return 0
 
         # Calculate and return Caner score
         return round(kcal / price, 2)
@@ -1159,7 +1177,7 @@ def calculate_caner(kcal, price_student):
         logger.error(
             f"An unexpected error occurred in calculate_caner with kcal={kcal}, price_student='{price_student}': {e}"
         )
-        logger.error(traceback.format_exc()) # Log stack trace for unexpected errors
+        logger.error(traceback.format_exc())  # Log stack trace for unexpected errors
         return 0
 
 
@@ -1566,13 +1584,24 @@ def get_bob_recommendation():
 
         # Construct the German prompt for Bob der Baumeister
         prompt = (
-            "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
-            "Erinnere uns daran, einen Helm zu tragen, denn die Decke der Hauptmensa "
-            "könnte jederzeit einstürzen.\n\n"
-            "Verfügbare Gerichte:\n" + meal_list_for_prompt + "\n\n"
-            "Empfiehl in einem kurzen Satz auf Deutsch genau ein Gericht, im Stil von Bob: "
-            "'Ich empfehle [GERICHT], weil [GRUND], vergiss deinen Helm nicht.'"
+            (
+                "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
+                "Erinnere uns daran, einen Helm zu tragen, denn die Decke der Hauptmensa "
+                "könnte jederzeit einstürzen.\n\n"
+                "Verfügbare Gerichte:\n"
+                + meal_list_for_prompt
+                + "\n\n"
+                "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht, "
+                "im Stil von Bob: 'Ich empfehle [GERICHT], weil [GRUND].'"
+            ),
+            (
+                "Weise außerdemd in verschiedenen Variationen daraufhin, dass das Gebäude "
+                "einsturzgefährdet ist, und deswegen ein Helm oder ähnliche "
+                "Schutzausrüstung sinnvoll sein könnte, da einem beim Besuch jederzeitn "
+                "die Decke auf den Kopf fallen könnte."
+            ),
         )
+
 
         api_key = os.environ.get("MISTRAL_API_KEY")
         if not api_key:

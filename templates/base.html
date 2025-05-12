@@ -28,8 +28,11 @@
                 <div class="col-md-8 col-6">
                     <div class="text-container">
                         <h1 class="text-center"><a href="/" class="text-decoration-none text-reset">Das Caner</a></h1>
-                        <p class="header-description text-center">
+                        <p class="header-description text-center d-none d-md-block">
                             Das Caner, auch kurz Cnr, wurde im Zuge einer ausgiebigen Recherche und der drignenden Notwendigkeit zur ressourcenoptimierten Ernährung von Studierenden und wissenschaftlichen Mitarbeitenden im Jahr 2021 eingeführt. Bis zu diesem Zeitpunkt war ein objektiver Vergleich von Mahlzeiten nur schwer möglich und war aufgrund der Betrachtung von Ersatzgrößen häufig irreführend. Das Caner ist nun definiert als Wert für die Energie von Lebensmittel, die pro Euro zu sich genommen werden.
+                        </p>
+                        <p class="header-description text-center d-block d-md-none">
+                            Ein Wert für die Energie von Lebensmitteln pro Euro.
                         </p>
                     </div>
                 </div>
@@ -54,19 +57,23 @@
     <!-- Page view counter -->
     <footer class="page-counter-footer">
         <div class="container text-center">
-            <div class="d-flex justify-content-center align-items-center">
-                <div class="page-view-counter me-3">
+            <div class="d-flex justify-content-center align-items-center gap-3"> <!-- Added gap-3, removed margins below -->
+                <div class="page-view-counter"> <!-- Removed me-3 -->
                     <p class="mb-0">
                         <span class="counter-icon"><i class="fas fa-eye"></i></span>
                         <span class="counter-text">Das Caner wurde {{ page_views }} mal aufgerufen</span>
                     </p>
                 </div>
-                <div class="dark-mode-toggle ms-3">
+                <div class="dark-mode-toggle"> <!-- Removed ms-3 -->
                     <button id="darkModeToggle" class="btn btn-sm">
                         <i class="fas fa-moon"></i>
                         <span class="dark-mode-text">Dark Mode</span>
                     </button>
                 </div>
+                <!-- GitHub Link -->
+                <a href="https://github.com/match-cow/caner" target="_blank" rel="noopener noreferrer" class="github-link" title="View source on GitHub">
+                    <i class="fab fa-github fa-lg"></i> <!-- fa-lg makes the icon slightly larger -->
+                </a>
             </div>
         </div>
     </footer>

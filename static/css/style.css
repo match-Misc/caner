@@ -738,6 +738,7 @@ footer {
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, color 0.3s ease;
+    box-sizing: border-box; /* Added */
 }
 
 #darkModeToggle:hover {
@@ -748,19 +749,52 @@ footer {
     margin-right: 5px;
 }
 
+#darkModeToggle .dark-mode-text {
+    white-space: nowrap;
+}
+
 .page-view-counter {
-    display: inline-block;
+    display: inline-flex; /* Changed from inline-block */
+    align-items: center; /* Added */
+    height: 32px; /* Added */
     background-color: var(--bg-counter);
     color: var(--color-counter);
     border-radius: 20px;
     padding: 5px 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, color 0.3s ease;
+    box-sizing: border-box; /* Added */
 }
 
 [data-theme="dark"] .page-view-counter,
 [data-theme="dark"] #darkModeToggle {
     color: var(--primary-yellow);
+}
+
+/* Style for the anchor tag containing the GitHub link icon */
+a.github-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 5px 15px; /* Consistent padding */
+    background-color: var(--bg-counter);
+    color: var(--color-counter); /* Base color, will be overridden for dark mode */
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none; /* Ensure no underline on the link */
+}
+
+/* Ensure the icon color in dark mode matches other footer elements */
+[data-theme="dark"] a.github-link {
+    color: var(--primary-yellow);
+}
+
+/* Vertically align icon if needed, fa-lg should handle size */
+a.github-link i.fa-github {
+    line-height: 1; /* Helps with precise vertical centering of Font Awesome icons */
 }
 
 .counter-icon {
@@ -1040,6 +1074,18 @@ footer {
 [data-theme="dark"] .btn-info {
     color: #58a6ff;
 }
+
+/* Remove focus ring/border from info button */
+.btn-info:focus,
+.btn-info:active:focus,
+.btn-info.active:focus,
+.btn-info.focus,
+.btn-info:active.focus,
+.btn-info.active.focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 
 .btn-euro {
     color: #198754;
