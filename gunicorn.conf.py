@@ -1,6 +1,8 @@
+import os
+
 # Server Socket
 # Using 127.0.0.1:8000 as a default, adjust if needed
-bind = "127.0.0.1:8000"
+bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 
 # Worker Processes
 workers = 1  # Explicitly set to 1 worker
