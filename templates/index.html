@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="filter-panel">
+            <form action="/" method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="date" class="form-label">Datum</label>
+                    <select name="date" id="date" class="form-select" onchange="this.form.submit()">
+                        {% for date in available_dates %}
+                            <option value="{{ date }}" {% if date == selected_date %}selected{% endif %}>
+                                {{ date|format_date }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="mensa" class="form-label">Mensa</label>
+                    <select name="mensa" id="mensa" class="form-select" onchange="this.form.submit()">
+                        {% for mensa in available_mensen %}
+                            <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                {{ mensa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if data %}
+    {% for mensa, meals in data.items() %}
+        <div class="mensa-section mb-4">
+            <h2 class="mensa-title">
+                {{ mensa }}
+                {% if mensa == "Mensa Garbsen" %}
+                    <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
+                {% elif mensa == "Hauptmensa" %}
+                    <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
+                {% elif mensa == "Contine" %}
+                    <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
+                {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
+                    {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
+                {% else %}
+                    {{ mensa_emojis[mensa] }}
+                {% endif %}
+            </h2>
+
+            {% if mensa == "XXXLutz Hesse Markrestaurant" %}
+                <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
+                <div class="xxxlutz-container">
+                    
+                    <!-- Weekly dishes section -->
+                    <div class="xxxlutz-section mb-4">
+                        <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
+                        <div class="row justify-content-center">
+                            {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="xxxlutz-card">
+                                        {{ meal.description }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Permanent menu section -->
+                    <div class="xxxlutz-section mb-4">
+                        <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
+                        <div class="row justify-content-center">
+                            {% for meal in meals if meal.category == 'Ständiges Angebot' %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="xxxlutz-card">
+                                        {{ meal.description }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- XXXLutz Vouchers Section - Only shown when Mensa Garbsen is selected -->
+                    {% if selected_mensa == "Mensa Garbsen" %}
+                    <div class="xxxlutz-section mb-4">
+                        <h4 class="xxxlutz-section-title">XXXLutz Gutscheine</h4>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <!-- Use d-flex for horizontal layout on larger screens, flex-column for stacking on small screens -->
+                                <div class="voucher-links d-flex flex-column flex-md-row justify-content-center">
+                                    <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="btn btn-primary mb-2 me-md-2"> <!-- Added me-md-2 for margin on medium screens and up -->
+                                        <i class="fas fa-download"></i> Neue Gutscheine
+                                    </a>
+                                    <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="btn btn-secondary mb-2">
+                                        <i class="fas fa-download"></i> Alte Gutscheine
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu HG section REMOVED -->
+                    {#
+                    <div class="xxxlutz-section mb-4">
+                        <h4 class="xxxlutz-section-title">Mensa HG Speiseplan</h4>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="menu-hg-image">
+                                    <img src="{{ url_for('get_menu_hg_image') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                                <div class="voucher-links">
+                                    <a href="{{ url_for('download_menu_hg_pdf') }}" class="btn btn-success mb-2">
+                                        <i class="fas fa-download"></i> Speiseplan als PDF herunterladen
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    #}
+                    {# REMOVED dedicated Marvin section here #}
+                    {% endif %}
+                </div>
+            {% else %}
+                <!-- Regular desktop table view for other mensen -->
+                <div class="table-responsive">
+                    <table class="table meal-table">
+                        <thead>
+                            <tr>
+                                <th>Essen</th>
+                                <th>Preis für Studierende (€)</th>
+                                <th>Preis für Mitarbeiter (€)</th>
+                                <th>Preis für Gäste (€)</th>
+                                <th>Studierende (Cnr)</th>
+                                <th>Mitarbeiter (Cnr)</th>
+                                <th>Gäste (Cnr)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meal in meals %}
+                                {% set kcal = meal.nutritional_values|extract_kcal %}
+                                {% set caner_student = kcal|calculate_caner(meal.price_student) %}
+                                {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
+                                {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
+
+                                <tr>
+                                    <td>
+                                        <strong>{{ meal.description }}</strong>
+                                        <div class="food-markings-row">
+                                            {{ meal.marking|get_dietary_info|safe }}
+                                            <div class="action-buttons">
+                                                <button class="btn btn-circle btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#nutrientInfo{{ loop.index }}" title="Nährwerte anzeigen">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                                <div class="collapse nutrient-card mt-1" id="nutrientInfo{{ loop.index }}">
+                                                    <div class="card card-body py-1 px-2">
+                                                        <small>{{ meal.nutritional_values }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="food-markings-row mt-2">
+                                            <div class="vote-controls" data-meal-id="{{ meal.id }}">
+                                                <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
+                                                    <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
+                                                </button>
+                                                <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
+                                                    <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ meal.price_student }}</td>
+                                    <td>{{ meal.price_employee }}</td>
+                                    <td>{{ meal.price_guest }}</td>
+                                    <td class="caner-score">{{ caner_student|generate_caner_symbols|safe }}</td>
+                                    <td class="caner-score">{{ caner_employee|generate_caner_symbols|safe }}</td>
+                                    <td class="caner-score">{{ caner_guest|generate_caner_symbols|safe }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Regular mobile cards view for other mensen -->
+                <div class="mobile-meal-cards">
+                    {% for meal in meals %}
+                        {% set kcal = meal.nutritional_values|extract_kcal %}
+                        {% set caner_student = kcal|calculate_caner(meal.price_student) %}
+                        {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
+                        {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
+
+                        <div class="mobile-meal-card">
+                            <div class="mobile-meal-description">
+                                {{ meal.description }}
+                                <div class="food-markings-row text-center">
+                                    {{ meal.marking|get_dietary_info|safe }}
+                                    <div class="action-buttons">
+                                        {% if meal.nutritional_values %}
+                                        <button class="btn btn-circle btn-info" data-bs-toggle="collapse" data-bs-target="#mobileNutrientInfo{{ loop.index }}_{{ mensa|replace(' ', '_') }}" aria-expanded="false" title="Nährwerte anzeigen">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        {% endif %}
+                                        <button class="btn btn-circle btn-euro" data-bs-toggle="collapse" data-bs-target="#mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}" aria-expanded="false" title="Preise anzeigen">
+                                            <i class="fas fa-euro-sign"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {% if meal.nutritional_values %}
+                                <div class="collapse nutrient-info-collapse" id="mobileNutrientInfo{{ loop.index }}_{{ mensa|replace(' ', '_') }}">
+                                    <div class="card card-body py-2 px-3 mt-2">
+                                        <small>{{ meal.nutritional_values }}</small>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="collapse" id="mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}">
+                                    <div class="price-info-card mt-2">
+                                        <div class="price-item">
+                                            <span class="price-label">Studierende:</span>
+                                            <span class="price-value">{{ meal.price_student }} €</span>
+                                        </div>
+                                        <div class="price-item">
+                                            <span class="price-label">Mitarbeiter:</span>
+                                            <span class="price-value">{{ meal.price_employee }} €</span>
+                                        </div>
+                                        <div class="price-item">
+                                            <span class="price-label">Gäste:</span>
+                                            <span class="price-value">{{ meal.price_guest }} €</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mobile-caner-info">
+                                <div class="mobile-caner-group">
+                                    <div class="mobile-meal-label">Studierende (Cnr):</div>
+                                    <div>{{ caner_student|generate_caner_symbols|safe }}</div>
+                                </div>
+
+                                <div class="mobile-caner-group">
+                                    <div class="mobile-meal-label">Mitarbeiter (Cnr):</div>
+                                    <div>{{ caner_employee|generate_caner_symbols|safe }}</div>
+                                </div>
+
+                                <div class="mobile-caner-group">
+                                    <div class="mobile-meal-label">Gäste (Cnr):</div>
+                                    <div>{{ caner_guest|generate_caner_symbols|safe }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info">
+        Keine Mahlzeiten für das ausgewählte Datum oder die ausgewählte Mensa gefunden.
+    </div>
+{% endif %}
+
+<!-- AI Recommendation Popup Modal -->
+<div id="recommendationPopupModal" class="modal fade" tabindex="-1" aria-labelledby="recommendationPopupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="recommendationPopupContent" 
+             style="background-size: cover; background-position: center; padding: 0; border: none; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
+            <div id="recommendationPopupOverlay" 
+                 style="position: relative; background-color: rgba(0,0,0,0.65); padding: 1rem; border-radius: 0.3rem;"> 
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="modal-title" id="recommendationPopupModalLabel">AI Empfehlung</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="recommendationPopupBody" 
+                     style="min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
+                    <!-- Content will be injected by JavaScript -->
+                    <p>Empfehlung lädt...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const recommendationModalElement = document.getElementById('recommendationPopupModal');
+    const recommendationModal = recommendationModalElement ? new bootstrap.Modal(recommendationModalElement) : null;
+    const recommendationModalTitle = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupModalLabel') : null;
+    const recommendationModalBody = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupBody') : null;
+    const recommendationModalContent = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupContent') : null;
+    const recommendationModalOverlay = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupOverlay') : null;
+
+
+    function showRecommendationPopup(title, message, backgroundUrl, isError = false) {
+        if (!recommendationModal || !recommendationModalTitle || !recommendationModalBody || !recommendationModalContent || !recommendationModalOverlay) {
+            console.error("Popup modal elements not found"); 
+            return;
+        }
+
+        recommendationModalTitle.textContent = title;
+        recommendationModalBody.innerHTML = message.replace(/\n/g, '<br>');
+        
+        if (backgroundUrl) {
+            recommendationModalContent.style.backgroundImage = `url('${backgroundUrl}')`;
+        } else {
+            recommendationModalContent.style.backgroundImage = 'none'; 
+        }
+        
+        if (isError) {
+            recommendationModalOverlay.style.backgroundColor = "rgba(100,0,0,0.75)"; 
+        } else {
+            recommendationModalOverlay.style.backgroundColor = "rgba(0,0,0,0.65)"; 
+        }
+
+        recommendationModal.show();
+    }
+
+    function getMealsFromMensaSection(mensaName, isXXXLutz = false) {
+        const meals = new Set(); 
+        const mensaSections = document.querySelectorAll('.mensa-section');
+        let mensaFound = false;
+        for (const section of mensaSections) {
+            const titleElement = section.querySelector('h2.mensa-title');
+            if (titleElement && titleElement.textContent && titleElement.textContent.includes(mensaName)) {
+                mensaFound = true;
+                if (isXXXLutz) {
+                    // Specifically target cards within the xxxlutz-container of the correct mensa section
+                    const xxxlutzContainer = section.querySelector('.xxxlutz-container');
+                    if (xxxlutzContainer) {
+                        xxxlutzContainer.querySelectorAll('.xxxlutz-card').forEach(card => {
+                            const mealText = card.textContent.trim();
+                            if (mealText) meals.add(mealText);
+                        });
+                    }
+                } else {
+                    section.querySelectorAll('.meal-table tbody tr').forEach(row => {
+                        const mealDescElement = row.querySelector('td:first-child strong');
+                        if (mealDescElement) meals.add(mealDescElement.textContent.trim());
+                    });
+                    section.querySelectorAll('.mobile-meal-card .mobile-meal-description').forEach(card => {
+                        const strongDesc = card.querySelector('strong');
+                        let mealText = '';
+                        if (strongDesc) {
+                            mealText = strongDesc.textContent.trim();
+                        } else {
+                            let tempText = '';
+                            for (const childNode of card.childNodes) {
+                                if (childNode.nodeType === Node.TEXT_NODE) {
+                                    tempText += childNode.textContent.trim() + ' ';
+                                } else if (childNode.nodeType === Node.ELEMENT_NODE && childNode.tagName === 'STRONG') {
+                                    tempText += childNode.textContent.trim() + ' ';
+                                } else if (childNode.nodeType === Node.ELEMENT_NODE && (childNode.classList.contains('food-markings-row') || childNode.classList.contains('action-buttons'))) {
+                                    break; 
+                                }
+                            }
+                            mealText = tempText.trim();
+                        }
+                        if (mealText && mealText.length > 5) { 
+                           meals.add(mealText);
+                        }
+                    });
+                }
+                break; 
+            }
+        }
+        if (!mensaFound && (mensaName === 'Mensa Garbsen' || mensaName === 'XXXLutz Hesse Markrestaurant')) {
+             console.warn(`Mensa section "${mensaName}" not found for meal collection.`);
+        }
+        return Array.from(meals); 
+    }
+
+    // Marvin Recommendation Trigger
+    const marvinEmojiTrigger = document.getElementById('askMarvinEmojiTrigger');
+    if (marvinEmojiTrigger && recommendationModal) {
+        marvinEmojiTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
+            showRecommendationPopup("Marvin's Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
+
+            const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
+            const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
+            const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
+
+            if (allMealsForMarvin.length === 0) {
+                showRecommendationPopup("Marvin's Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
+                return;
+            }
+
+            fetch('/api/get_marvin_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: allMealsForMarvin })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Marvin's Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
+                } else { 
+                    throw new Error(data.error || "Unbekannter Fehler von Marvin.");
+                }
+            })
+            .catch(error => {
+                console.error('Error asking Marvin:', error);
+                showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
+            });
+        });
+    }
+
+    // Tobias Recommendation Trigger
+    const tobiasEmojiTrigger = document.getElementById('askTobiasEmojiTrigger');
+
+    // Trump Recommendation Trigger
+    const trumpEmojiTrigger = document.getElementById('askTrumpEmojiTrigger');
+    if (trumpEmojiTrigger && recommendationModal) {
+        trumpEmojiTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Donald Trump analyzing Contine menu...';
+            showRecommendationPopup("Trump's Recommendation", loadingMessage, '/static/img/trump.jpg');
+
+            const contineMeals = getMealsFromMensaSection('Contine');
+            if (contineMeals.length === 0) {
+                showRecommendationPopup("Trump Error", "No Contine meals found to recommend.", '/static/img/trump.jpg', true);
+                return;
+            }
+
+            fetch('/api/get_trump_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: contineMeals })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Donald Trump's Recommendation", data.recommendation, '/static/img/trump.jpg');
+                } else {
+                    throw new Error(data.error || "Unknown error from Trump API.");
+                }
+            })
+            .catch(error => {
+                console.error('Error asking Trump:', error);
+                showRecommendationPopup("Trump Error", `Everything is just terrible: ${error.message}`, '/static/img/trump.jpg', true);
+            });
+        });
+    }
+
+    // Bob Recommendation Trigger
+    const bobEmojiTrigger = document.getElementById('askBobEmojiTrigger');
+    if (bobEmojiTrigger && recommendationModal) {
+        bobEmojiTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Bob der Baumeister is building your recommendation...';
+            showRecommendationPopup("Bob's Empfehlung", loadingMessage, '/static/img/bob.png');
+
+            const hauptMeals = getMealsFromMensaSection('Hauptmensa');
+            if (hauptMeals.length === 0) {
+                showRecommendationPopup("Bob Fehler", "Keine Hauptmensa Gerichte gefunden.", '/static/img/bob.png', true);
+                return;
+            }
+
+            fetch('/api/get_bob_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: hauptMeals })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Bob's Empfehlung", data.recommendation, '/static/img/bob.png');
+                } else {
+                    throw new Error(data.error || "Unbekannter Fehler von Bob.");
+                }
+            })
+                .catch(error => {
+                    console.error('Error asking Bob:', error);
+                    showRecommendationPopup("Bob Fehler", `Vergiss nicht deinen Helm! ${error.message}`, '/static/img/bob.png', true);
+                });
+        });
+    }
+    if (tobiasEmojiTrigger && recommendationModal) {
+        tobiasEmojiTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Tobias sucht begeistert nach der besten Option für dich!';
+            showRecommendationPopup("Tobias' Tipp", loadingMessage, '/static/img/tobias.jpg');
+            
+            const xxxLutzMealsForTobias = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
+
+            if (xxxLutzMealsForTobias.length === 0) {
+                showRecommendationPopup("Tobias' Antwort", "Leider keine XXXLutz Gerichte für eine Empfehlung gefunden. Schade!", '/static/img/tobias.jpg', true);
+                return;
+            }
+
+            fetch('/api/get-meal-recommendation', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: xxxLutzMealsForTobias })
+            })
+            .then(response => {
+                if (!response.ok) { 
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Tobias' Empfehlung", data.recommendation, '/static/img/tobias.jpg');
+                } else { 
+                    throw new Error(data.error || "Unbekannter Fehler von Tobias.");
+                }
+            })
+            .catch(error => {
+                console.error('Error asking Tobias:', error);
+                showRecommendationPopup("Tobias Fehler", `Da ist wohl was schiefgelaufen: ${error.message}`, '/static/img/tobias.jpg', true);
+            });
+        });
+    }
+    
+    // Placeholder for existing vote script logic
+    /*
+    const voteControls = document.querySelectorAll('.vote-controls');
+    voteControls.forEach(function(control) {
+        // Ensure this part is correctly integrated with your actual voting script if it was previously in this block
+    });
+    */
+});
+</script>
+{% endblock %}
