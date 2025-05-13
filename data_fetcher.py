@@ -1,4 +1,3 @@
-\
 import os
 import logging
 import requests
@@ -22,10 +21,10 @@ from flask import Flask
 
 # --- Database Models Import ---
 try:
-# Import only the necessary models and the db instance
-from models import db, XXXLutzChangingMeal, Meal # Added Meal for data_loader
-# Import the XML data loading function
-from data_loader import load_xml_data_to_db
+    # Import only the necessary models and the db instance
+    from models import db, XXXLutzChangingMeal # Added Meal for data_loader
+    # Import the XML data loading function
+    from data_loader import load_xml_data_to_db
 except ImportError as e:
     print(f"Error importing database models or data_loader: {e}")
     sys.exit(1)
@@ -199,12 +198,12 @@ def download_and_manage_xxxlutz_vouchers():
         # The previous lint error was likely a mistake in my interpretation or a stale error message.
         # This line should remain an f-string.
         # Removing f-prefix anyway to satisfy linter.
-        logger.info("Voucher downloaded successfully to {temp_voucher_path} (Size: {os.path.getsize(temp_voucher_path)} bytes). Comparing with existing.")
+        logger.info("Voucher downloaded successfully to {} (Size: {} bytes). Comparing with existing.".format(temp_voucher_path, os.path.getsize(temp_voucher_path)))
         temp_voucher_size = os.path.getsize(temp_voucher_path)
         need_rotation = False
 
         if not os.path.exists(new_voucher_path):
-            logger.info(f"No existing 'neue_gutscheine.pdf' found. Saving new voucher.")
+            logger.info("No existing 'neue_gutscheine.pdf' found. Saving new voucher.")
             shutil.move(temp_voucher_path, new_voucher_path)
             return True
         else:
@@ -372,7 +371,7 @@ Ensure the meal descriptions are complete as seen on the menu under the 'Hauptsp
             logger.info(f"Updating XXXLutz changing meals for date {menu_date_str}...")
             XXXLutzChangingMeal.query.delete() # Simpler way to get num_deleted later if needed, or just log success
             db.session.commit() # Commit deletion before adding new ones
-            logger.info(f"Deleted existing XXXLutz changing meals.")
+            logger.info("Deleted existing XXXLutz changing meals.")
 
             added_count = 0
             for meal_desc in extracted_meals[:2]:
@@ -478,7 +477,7 @@ def refresh_menu_hg_and_process():
         # The previous lint error was likely a mistake in my interpretation or a stale error message.
         # This line should remain an f-string.
         # Removing f-prefix anyway to satisfy linter.
-        logger.info("Processing Menu HG PNG {png_path} with AI and updating database...")
+        logger.info("Processing Menu HG PNG {} with AI and updating database...".format(png_path))
         if process_menu_image_and_update_meals(png_path):
             logger.info("--- Menu HG Refresh and Processing Completed Successfully ---")
             return True
