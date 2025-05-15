@@ -1312,13 +1312,17 @@ a.github-link i.fa-github {
 .meal-table .user-price-caner-info {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Align to the start of the cell */
+    align-items: center; /* Center items horizontally in the flex container */
 }
 
 .meal-table .user-price-caner-info .price,
-.meal-table .user-price-caner-info .caner-symbols,
-.meal-table .user-price-caner-info .caner-score-value {
+.meal-table .user-price-caner-info .caner-symbols {
     margin-bottom: 0.25rem; /* Add a little space between items */
+}
+
+/* Make price bold globally */
+.price {
+    font-weight: bold;
 }
 
 .meal-table .user-price-caner-info .caner-symbols img { /* If you use img for symbols */
@@ -1355,8 +1359,9 @@ a.github-link i.fa-github {
     gap: 0.5rem; /* Space between price, symbols, and score */
 }
 
+/* .price is already made bold globally, so this specific rule for mobile is not strictly needed but harmless if kept */
 .mobile-meal-card .user-price-caner-info.mobile-layout .price {
-    font-weight: bold;
+    /* font-weight: bold; */ /* Now handled by the global .price rule */
 }
 
 .mobile-meal-card .user-price-caner-info.mobile-layout .caner-symbols img {
