@@ -1307,3 +1307,78 @@ a.github-link i.fa-github {
         text-align: center;
     }
 }
+
+/* Desktop table: Stack price and Caner info */
+.meal-table .user-price-caner-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align to the start of the cell */
+}
+
+.meal-table .user-price-caner-info .price,
+.meal-table .user-price-caner-info .caner-symbols,
+.meal-table .user-price-caner-info .caner-score-value {
+    margin-bottom: 0.25rem; /* Add a little space between items */
+}
+
+.meal-table .user-price-caner-info .caner-symbols img { /* If you use img for symbols */
+    margin-right: 2px; /* Space out Hektocaner icons */
+}
+
+
+/* Mobile cards: User type label and info row */
+.mobile-user-info-container {
+    width: 100%;
+}
+
+.mobile-user-info-row {
+    display: flex;
+    justify-content: space-between; /* Label on left, info on right */
+    align-items: center; /* Vertically align items in the middle */
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #eee; /* Optional: separator line */
+}
+.mobile-user-info-row:last-child {
+    border-bottom: none; /* No line for the last item */
+}
+
+.mobile-user-label {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Mobile cards: Price and Caner info side-by-side */
+.mobile-meal-card .user-price-caner-info.mobile-layout {
+    display: flex;
+    flex-direction: row; /* Default is row for mobile */
+    align-items: center; /* Align items nicely */
+    gap: 0.5rem; /* Space between price, symbols, and score */
+}
+
+.mobile-meal-card .user-price-caner-info.mobile-layout .price {
+    font-weight: bold;
+}
+
+.mobile-meal-card .user-price-caner-info.mobile-layout .caner-symbols img {
+    margin-right: 1px; /* Slightly less margin for mobile */
+    height: 1.2em; /* Adjust size if needed */
+}
+
+.mobile-meal-card .user-price-caner-info.mobile-layout .caner-score-value {
+    font-size: 0.9em;
+    color: #777;
+}
+
+
+/* Responsive adjustments for table cells if needed for very small screens, although Bootstrap's table-responsive should handle most cases. */
+/* This is an additional refinement if the table content itself needs to be more responsive. */
+@media (max-width: 576px) { /* Example breakpoint, adjust as needed */
+    .meal-table .user-price-caner-info {
+        /* If you want the table cells to also arrange horizontally on very small screens */
+        /* flex-direction: row; 
+           gap: 0.5rem; */
+    }
+    .meal-table th, .meal-table td {
+        font-size: 0.85em; /* Smaller font for table on xs screens */
+    }
+}

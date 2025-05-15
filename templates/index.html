@@ -129,12 +129,9 @@
                         <thead>
                             <tr>
                                 <th>Essen</th>
-                                <th>Preis für Studierende (€)</th>
-                                <th>Preis für Mitarbeiter (€)</th>
-                                <th>Preis für Gäste (€)</th>
-                                <th>Studierende (Cnr)</th>
-                                <th>Mitarbeiter (Cnr)</th>
-                                <th>Gäste (Cnr)</th>
+                                <th>Studierende</th>
+                                <th>Mitarbeiter</th>
+                                <th>Gäste</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -175,12 +172,27 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ meal.price_student }}</td>
-                                    <td>{{ meal.price_employee }}</td>
-                                    <td>{{ meal.price_guest }}</td>
-                                    <td class="caner-score">{{ caner_student|generate_caner_symbols|safe }}</td>
-                                    <td class="caner-score">{{ caner_employee|generate_caner_symbols|safe }}</td>
-                                    <td class="caner-score">{{ caner_guest|generate_caner_symbols|safe }}</td>
+                                    <td>
+                                        <div class="user-price-caner-info">
+                                            <span class="price">{{ meal.price_student }} €</span>
+                                            <span class="caner-symbols">{{ caner_student|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-score-value">({{ caner_student }})</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-price-caner-info">
+                                            <span class="price">{{ meal.price_employee }} €</span>
+                                            <span class="caner-symbols">{{ caner_employee|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-score-value">({{ caner_employee }})</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-price-caner-info">
+                                            <span class="price">{{ meal.price_guest }} €</span>
+                                            <span class="caner-symbols">{{ caner_guest|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-score-value">({{ caner_guest }})</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -213,30 +225,8 @@
                                             <i class="fas fa-info-circle text-info"></i>
                                         </span>
                                         {% endif %}
-                                        <button class="btn btn-circle btn-euro" data-bs-toggle="collapse" data-bs-target="#mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}" aria-expanded="false" title="Preise anzeigen">
-                                            <i class="fas fa-euro-sign"></i>
-                                        </button>
                                     </div>
-                                </div>
-
-                                {# Nutrient info collapse removed #}
-
-                                <div class="collapse" id="mobilePrices{{ loop.index }}_{{ mensa|replace(' ', '_') }}">
-                                    <div class="price-info-card mt-2">
-                                        <div class="price-item">
-                                            <span class="price-label">Studierende:</span>
-                                            <span class="price-value">{{ meal.price_student }} €</span>
-                                        </div>
-                                        <div class="price-item">
-                                            <span class="price-label">Mitarbeiter:</span>
-                                            <span class="price-value">{{ meal.price_employee }} €</span>
-                                        </div>
-                                        <div class="price-item">
-                                            <span class="price-label">Gäste:</span>
-                                            <span class="price-value">{{ meal.price_guest }} €</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                                 <div class="food-markings-row mt-2" style="justify-content: center;">
                                     <div class="vote-controls" data-meal-id="{{ meal.id }}">
                                         <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
@@ -247,22 +237,34 @@
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                                </div> {# This closes .food-markings-row, then .mobile-meal-description needs to be closed #}
+                            </div> {# This was mobile-meal-description, ensure it's correctly placed after fixing above #}
 
-                            <div class="mobile-caner-info">
-                                <div class="mobile-caner-group">
-                                    <div class="mobile-meal-label">Studierende (Cnr):</div>
-                                    <div>{{ caner_student|generate_caner_symbols|safe }}</div>
+
+                            <div class="mobile-user-info-container mt-2">
+                                <div class="mobile-user-info-row">
+                                    <strong class="mobile-user-label">Studierende:</strong>
+                                    <div class="user-price-caner-info mobile-layout">
+                                        <span class="price">{{ meal.price_student }} €</span>
+                                        <span class="caner-symbols">{{ caner_student|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-score-value">({{ caner_student }})</span>
+                                    </div>
                                 </div>
-
-                                <div class="mobile-caner-group">
-                                    <div class="mobile-meal-label">Mitarbeiter (Cnr):</div>
-                                    <div>{{ caner_employee|generate_caner_symbols|safe }}</div>
+                                <div class="mobile-user-info-row">
+                                    <strong class="mobile-user-label">Mitarbeiter:</strong>
+                                    <div class="user-price-caner-info mobile-layout">
+                                        <span class="price">{{ meal.price_employee }} €</span>
+                                        <span class="caner-symbols">{{ caner_employee|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-score-value">({{ caner_employee }})</span>
+                                    </div>
                                 </div>
-
-                                <div class="mobile-caner-group">
-                                    <div class="mobile-meal-label">Gäste (Cnr):</div>
-                                    <div>{{ caner_guest|generate_caner_symbols|safe }}</div>
+                                <div class="mobile-user-info-row">
+                                    <strong class="mobile-user-label">Gäste:</strong>
+                                    <div class="user-price-caner-info mobile-layout">
+                                        <span class="price">{{ meal.price_guest }} €</span>
+                                        <span class="caner-symbols">{{ caner_guest|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-score-value">({{ caner_guest }})</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
