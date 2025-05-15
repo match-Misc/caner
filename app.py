@@ -746,11 +746,19 @@ def format_nutritional_values(value_str):
             value = key_value[1].strip() if len(key_value) > 1 else ""
             
             # Special handling for Brennwert to put (kcal) in small tags
+            # This should be applied before splitting for "davon", so it operates on the full value if Brennwert itself has sub-parts.
             if "Brennwert" in key and "kcal" in value:
                 # Make the (xxx kcal) part smaller and wrap kJ if also present
                 value = re.sub(r'\(([^)]+kcal[^)]*)\)', r'(<small>\1</small>)', value)
+
+            # Handle "davon" constituents for the current nutrient value
+            processed_value = value # Default to original value (after brennwert modification if applicable)
+            if ", davon " in value: # Check in the potentially modified value
+                value_components = value.split(", davon ", 1)
+                # Ensure the "davon" part is not bold, and is on a new line.
+                processed_value = f"{value_components[0].strip()}<br>davon {value_components[1].strip()}"
             
-            html_output += f'<li><strong>{key}:</strong> {value}</li>'
+            html_output += f'<li><strong>{key}:</strong> {processed_value}</li>'
         elif part: # Only add if part is not empty after stripping
             # Fallback for parts not in key=value format (should be less common now)
             html_output += f'<li>{part}</li>' 
