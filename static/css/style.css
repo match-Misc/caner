@@ -1359,7 +1359,7 @@ a.github-link i.fa-github {
     align-items: center; /* Align items nicely */
     gap: 0.5rem; /* Space between price, symbols, and score */
     /* flex-grow: 1; */ /* No longer needed as grid column takes care of space */
-    justify-content: center; /* Center the content (price, symbols) within this div */
+    justify-content: flex-end; /* Align the content (price, symbols) to the right within this div */
 }
 
 /* .price is already made bold globally, so this specific rule for mobile is not strictly needed but harmless if kept */
