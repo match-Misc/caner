@@ -1337,7 +1337,7 @@ a.github-link i.fa-github {
 
 .mobile-user-info-row {
     display: flex;
-    justify-content: space-between; /* Label on left, info on right */
+    /* justify-content: space-between; */ /* Removed to allow centering on the right */
     align-items: center; /* Vertically align items in the middle */
     padding: 0.3rem 0;
     border-bottom: 1px solid #eee; /* Optional: separator line */
@@ -1357,6 +1357,8 @@ a.github-link i.fa-github {
     flex-direction: row; /* Default is row for mobile */
     align-items: center; /* Align items nicely */
     gap: 0.5rem; /* Space between price, symbols, and score */
+    flex-grow: 1; /* Allow this div to take up available space */
+    justify-content: center; /* Center the content (price, symbols) within this div */
 }
 
 /* .price is already made bold globally, so this specific rule for mobile is not strictly needed but harmless if kept */
