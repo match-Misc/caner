@@ -1336,11 +1336,12 @@ a.github-link i.fa-github {
 }
 
 .mobile-user-info-row {
-    display: flex;
-    /* justify-content: space-between; */ /* Removed to allow centering on the right */
+    display: grid; /* Use Grid layout */
+    grid-template-columns: auto 1fr; /* Label column auto, value column takes remaining space */
     align-items: center; /* Vertically align items in the middle */
     padding: 0.3rem 0;
     border-bottom: 1px solid #eee; /* Optional: separator line */
+    gap: 0.5rem; /* Add some gap between label and value block */
 }
 .mobile-user-info-row:last-child {
     border-bottom: none; /* No line for the last item */
@@ -1357,7 +1358,7 @@ a.github-link i.fa-github {
     flex-direction: row; /* Default is row for mobile */
     align-items: center; /* Align items nicely */
     gap: 0.5rem; /* Space between price, symbols, and score */
-    flex-grow: 1; /* Allow this div to take up available space */
+    /* flex-grow: 1; */ /* No longer needed as grid column takes care of space */
     justify-content: center; /* Center the content (price, symbols) within this div */
 }
 
