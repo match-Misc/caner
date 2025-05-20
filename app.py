@@ -27,6 +27,7 @@ import traceback
 import sys
 import re # Added import for regular expressions
 from datetime import datetime, date # Removed timedelta import
+from sqlalchemy import text # Import text for raw SQL expressions
 
 # --- Third-Party Imports ---
 from flask import (
@@ -803,7 +804,7 @@ def health_check():
     """
     try:
         # Perform a simple query to check database connectivity
-        db.session.execute("SELECT 1")
+        db.session.execute(text("SELECT 1"))
         # If the query succeeds, the database is reachable
         return jsonify({"status": "UP", "database": "OK"}), 200
     except Exception as e:
