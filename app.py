@@ -793,6 +793,25 @@ def has_voted_today(meal_id, client_id):
     ).first()
     return vote is not None
 
+# AP health check route
+@app.route("/health", methods=["GET"])
+def health_check():
+    """
+    Health check endpoint.
+    Pings the database to check connectivity.
+    Does NOT count as a page view.
+    """
+    try:
+        # Perform a simple query to check database connectivity
+        db.session.execute("SELECT 1")
+        # If the query succeeds, the database is reachable
+        return jsonify({"status": "UP", "database": "OK"}), 200
+    except Exception as e:
+        # If the query fails, the database is not reachable
+        logger.error(f"Health check failed: Database connection error - {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({"status": "DOWN", "database": "Error", "error": str(e)}), 500
+
 
 # API route to handle meal votes
 @app.route("/api/vote", methods=["POST"])
