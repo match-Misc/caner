@@ -652,7 +652,7 @@ def generate_caner_symbols(caner_score):
         return ""
 
     # Format the caner value with 2 decimal places and comma as decimal separator
-    caner_value_formatted = f"{caner_score:.2f} cnr".replace(".", ",")
+    caner_value_formatted = f"{caner_score:.2f} Cnr".replace(".", ",")
 
     # Calculate full icons (100s) and partial icon percentage
     full_icons = int(
