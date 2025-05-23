@@ -6,17 +6,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const html = document.documentElement;
     const darkModeIcon = darkModeToggle.querySelector('i');
-    const darkModeText = darkModeToggle.querySelector('.dark-mode-text');
     
     // Check if dark mode is already enabled in localStorage
     const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
     
-    // Set initial dark mode state
+    // Set initial dark mode state (icon only, theme is set by inline script)
     if (isDarkMode) {
-        html.setAttribute('data-theme', 'dark');
+        // html.setAttribute('data-theme', 'dark'); // Redundant: This is now handled by the inline script in base.html
         darkModeIcon.classList.remove('fa-moon');
         darkModeIcon.classList.add('fa-sun');
-        darkModeText.textContent = 'Light Mode';
     }
     
     // Add click event listener to the dark mode toggle button
@@ -27,14 +25,12 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('darkMode', 'disabled');
             darkModeIcon.classList.remove('fa-sun');
             darkModeIcon.classList.add('fa-moon');
-            darkModeText.textContent = 'Dark Mode';
         } else {
             // Switch to dark mode
             html.setAttribute('data-theme', 'dark');
             localStorage.setItem('darkMode', 'enabled');
             darkModeIcon.classList.remove('fa-moon');
             darkModeIcon.classList.add('fa-sun');
-            darkModeText.textContent = 'Light Mode';
         }
     });
     
