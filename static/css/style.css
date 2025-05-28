@@ -739,7 +739,7 @@ footer {
 }
 
 #darkModeToggle i {
-    margin-right: 5px;
+    /* margin-right: 5px; */ /* Removed to help center the icon */
 }
 
 #darkModeToggle .dark-mode-text {
