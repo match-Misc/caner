@@ -354,11 +354,13 @@ Ensure the meal descriptions are complete as seen on the menu under the 'Hauptsp
             if existing_meal_count == 0:
                 logger.info("No existing XXXLutz changing meals found. Meals will be updated from menu.")
                 update_meals = True
-            elif menu_date >= date.today():
-                logger.info(f"Menu date {menu_date_str} is current or future. Proceeding to update meals.")
+            # If there are existing meals, update only if the menu date is not in the future (i.e., today or past).
+            elif menu_date <= date.today():
+                logger.info(f"Menu date {menu_date_str} is today or in the past. DB has existing meals. Proceeding to update meals.")
                 update_meals = True
-            else:
-                logger.info(f"Menu date {menu_date_str} is in the past and DB is not empty. Meals will not be updated.")
+            else: # existing_meal_count > 0 AND menu_date > date.today() (menu is for the future)
+                logger.info(f"Menu date {menu_date_str} is in the future and DB is not empty. Meals will not be updated at this time.")
+                update_meals = False # Explicitly set to false, though it's initialized to false.
         except Exception as e:
             logger.error(f"Database error checking existing meals: {e}. Cannot proceed with update check.")
             return False
