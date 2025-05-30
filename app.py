@@ -1050,7 +1050,7 @@ def get_trump_recommendation():
             json={
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
+                "temperature": 1.1,
                 "max_tokens": 200,
             },
         )
@@ -1101,8 +1101,7 @@ def get_bob_recommendation():
             "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
             "Verfügbare Gerichte:\n"
             f"{meal_list_for_prompt}\n\n"
-            "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht, "
-            "im Stil von Bob: 'Ich empfehle [GERICHT], weil [GRUND].' "
+            "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht!\n"
             "Weise in deiner Antwort auch kurz auf die einsturzgefährdete Decke der Hauptmensa hin und "
             "erwähne, dass ein Helm ratsam ist."
         )
@@ -1124,7 +1123,7 @@ def get_bob_recommendation():
             json={
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
+                "temperature": 1.1,
                 "max_tokens": 150,
             },
         )
@@ -1198,7 +1197,7 @@ def get_marvin_recommendation():
             json={
                 "model": "mistral-small-latest",  # Or any other suitable model
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,  # A bit of creativity for Marvin
+                "temperature": 1.1,  # A bit of creativity for Marvin
                 "max_tokens": 200,  # Adjust as needed
             },
         )
