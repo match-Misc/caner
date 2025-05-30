@@ -93,14 +93,17 @@
                     {% if selected_mensa == "Mensa Garbsen" %}
                     <div class="xxxlutz-section mb-4">
                         <h4 class="xxxlutz-section-title">Gutscheine</h4>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <!-- Use d-flex for horizontal layout on larger screens, flex-column for stacking on small screens -->
-                                <div class="voucher-links d-flex flex-column flex-md-row justify-content-center">
-                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'new\') }}" class="btn btn-primary mb-2 me-md-2"> <!-- Added me-md-2 for margin on medium screens and up -->
+                        <div class="row justify-content-center">
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="xxxlutz-card">
+                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'new\') }}" class="text-decoration-none d-block p-3">
                                         <i class="fas fa-download"></i> Neue Gutscheine
                                     </a>
-                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'old\') }}" class="btn btn-secondary mb-2">
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="xxxlutz-card">
+                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'old\') }}" class="text-decoration-none d-block p-3">
                                         <i class="fas fa-download"></i> Alte Gutscheine
                                     </a>
                                 </div>
