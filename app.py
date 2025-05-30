@@ -715,20 +715,29 @@ PENALTY_KEYWORDS = [
 
 @app.template_filter("calculate_rkr_real")
 def calculate_rkr_real(protein_g, price_student, meal_description):
-    rkr_nominal = calculate_rkr_nominal(protein_g, price_student)
+    rkr_value = calculate_rkr_nominal(protein_g, price_student)  # This is already rounded to 2 decimal places
 
-    if rkr_nominal == 0: # No need to apply penalty if nominal is already 0
+    if rkr_value == 0.0:  # If nominal is 0, no point in further processing
         return 0.0
 
-    # Check for penalty keywords in meal description (case-insensitive)
-    # For fuzzy matching, we might need a library like fuzzywuzzy,
-    # but for now, we'll do a simpler substring check.
-    description_lower = meal_description.lower()
+    description_lower = ""
+    # Ensure meal_description is a non-empty string before lowercasing
+    if meal_description and isinstance(meal_description, str):
+        description_lower = meal_description.lower()
+    else:
+        # If meal_description is None or not a string, or empty, no penalties can be applied
+        return rkr_value 
+
+    # Count how many penalty keywords are found for potential future use, not strictly needed for current logic
+    # num_penalties = 0 
     for keyword in PENALTY_KEYWORDS:
         if keyword in description_lower:
-            return -100.0  # Apply penalty
-
-    return rkr_nominal
+            rkr_value /= 2
+            # num_penalties += 1
+    
+    # The result of rkr_value / 2 operations might result in more than 2 decimal places
+    # So we round again at the end.
+    return round(rkr_value, 2)
 
 
 @app.template_filter("generate_caner_symbols")

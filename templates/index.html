@@ -26,10 +26,7 @@
                     </select>
                 </div>
             </form>
-            <div class="form-check form-switch mt-3">
-                <input class="form-check-input" type="checkbox" id="expertModeToggle">
-                <label class="form-check-label" for="expertModeToggle">Expert Mode</label>
-            </div>
+            <!-- Removed Expert Mode Toggle Checkbox -->
         </div>
     </div>
 </div>
@@ -136,8 +133,8 @@
                                 <th>Studierende</th>
                                 <th>Mitarbeitende</th>
                                 <th>Gäste</th>
-                                <th class="expert-mode-col" style="display: none;">Rkr nominal</th>
-                                <th class="expert-mode-col" style="display: none;">RKR real</th>
+                                <th class="expert-mode-col" style="display: none;">Rkr-Rating nominal</th>
+                                <th class="expert-mode-col" style="display: none;">Rkr-Rating real</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -200,14 +197,10 @@
                                         </div>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        {{ "%.2f"|format(rkr_nominal_student) }} P/€
+                                        <strong>{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        {% if rkr_real_student == -100.0 %}
-                                            <span title="Enthält pflanzliche Keywords">-100.00 P/€</span>
-                                        {% else %}
-                                            {{ "%.2f"|format(rkr_real_student) }} P/€
-                                        {% endif %}
+                                        <strong>{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -284,19 +277,15 @@
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                    <strong class="mobile-user-label">Rkr nominal:</strong>
+                                    <strong class="mobile-user-label">Rkr-Rating nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span>{{ "%.2f"|format(rkr_nominal_student) }} P/€</span>
+                                        <span><strong>{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                    <strong class="mobile-user-label">RKR real:</strong>
+                                    <strong class="mobile-user-label">Rkr-Rating real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        {% if rkr_real_student == -100.0 %}
-                                            <span title="Enthält pflanzliche Keywords">-100.00 P/€</span>
-                                        {% else %}
-                                            <span>{{ "%.2f"|format(rkr_real_student) }} P/€</span>
-                                        {% endif %}
+                                        <span><strong>{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -593,28 +582,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }));
 
     // Expert Mode Toggle
-    const expertModeToggle = document.getElementById('expertModeToggle');
+    const expertModeToggleIcon = document.getElementById('expertModeToggleIcon');
     const expertModeCols = document.querySelectorAll('.expert-mode-col');
+    let expertModeEnabled = localStorage.getItem('expertModeEnabled') === 'true';
 
-    if (expertModeToggle) {
-        // Check localStorage for saved state
-        if (localStorage.getItem('expertModeEnabled') === 'true') {
-            expertModeToggle.checked = true;
-            expertModeCols.forEach(col => col.style.display = 'table-cell'); // Or 'block' or 'flex' depending on element type
-             // For mobile view, which uses divs that behave like rows
-            document.querySelectorAll('.mobile-meal-card .expert-mode-col').forEach(row => row.style.display = 'flex');
+    function applyExpertModeStyles() {
+        expertModeCols.forEach(col => {
+            if (col.tagName === 'TH' || col.tagName === 'TD') {
+                col.style.display = expertModeEnabled ? 'table-cell' : 'none';
+            } else { // For mobile view elements (divs behaving as rows/items)
+                col.style.display = expertModeEnabled ? 'flex' : 'none'; 
+            }
+        });
+        if (expertModeToggleIcon) {
+            expertModeToggleIcon.style.opacity = expertModeEnabled ? '1' : '0.5';
         }
+    }
 
-        expertModeToggle.addEventListener('change', function() {
-            const isEnabled = this.checked;
-            localStorage.setItem('expertModeEnabled', isEnabled);
-            expertModeCols.forEach(col => {
-                if (col.tagName === 'TH' || col.tagName === 'TD') {
-                    col.style.display = isEnabled ? 'table-cell' : 'none';
-                } else { // For mobile view elements (divs)
-                    col.style.display = isEnabled ? 'flex' : 'none'; 
-                }
-            });
+    if (expertModeToggleIcon) {
+        applyExpertModeStyles(); // Apply initial state on load
+
+        expertModeToggleIcon.addEventListener('click', function() {
+            expertModeEnabled = !expertModeEnabled; // Toggle the state
+            localStorage.setItem('expertModeEnabled', expertModeEnabled);
+            applyExpertModeStyles();
         });
     }
 });
