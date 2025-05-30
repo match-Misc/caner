@@ -61,11 +61,11 @@
                     
                     <!-- Weekly dishes section -->
                     <div class="xxxlutz-section mb-4">
-                        <a href="{{ url_for('static', filename='menu/menu_hg.pdf') }}" target="_blank" style="text-decoration: none; color: inherit;">
+                        <a href="{{ url_for(\'static\', filename=\'menu/menu_hg.pdf\') }}" target="_blank" style="text-decoration: none; color: inherit;">
                             <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
                         </a>
                         <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
+                            {% for meal in meals if meal.category == \'Wechselnde Gerichte Woche\' %}
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="xxxlutz-card">
                                         {{ meal.description }}
@@ -79,7 +79,7 @@
                     <div class="xxxlutz-section mb-4">
                         <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
                         <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == 'Ständiges Angebot' %}
+                            {% for meal in meals if meal.category == \'Ständiges Angebot\' %}
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="xxxlutz-card">
                                         {{ meal.description }}
@@ -97,10 +97,10 @@
                             <div class="col-md-12 mb-3">
                                 <!-- Use d-flex for horizontal layout on larger screens, flex-column for stacking on small screens -->
                                 <div class="voucher-links d-flex flex-column flex-md-row justify-content-center">
-                                    <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="btn btn-primary mb-2 me-md-2"> <!-- Added me-md-2 for margin on medium screens and up -->
+                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'new\') }}" class="btn btn-primary mb-2 me-md-2"> <!-- Added me-md-2 for margin on medium screens and up -->
                                         <i class="fas fa-download"></i> Neue Gutscheine
                                     </a>
-                                    <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="btn btn-secondary mb-2">
+                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'old\') }}" class="btn btn-secondary mb-2">
                                         <i class="fas fa-download"></i> Alte Gutscheine
                                     </a>
                                 </div>
@@ -115,10 +115,10 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <div class="menu-hg-image">
-                                    <img src="{{ url_for('get_menu_hg_image') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
+                                    <img src="{{ url_for(\'get_menu_hg_image\') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
                                 </div>
                                 <div class="voucher-links">
-                                    <a href="{{ url_for('download_menu_hg_pdf') }}" class="btn btn-success mb-2">
+                                    <a href="{{ url_for(\'download_menu_hg_pdf\') }}" class="btn btn-success mb-2">
                                         <i class="fas fa-download"></i> Speiseplan als PDF herunterladen
                                     </a>
                                 </div>
@@ -139,8 +139,8 @@
                                 <th>Studierende</th>
                                 <th>Mitarbeitende</th>
                                 <th>Gästende</th>
-                                <th class="expert-mode-col" style="display: none;">Rkr-Rating nominal</th>
-                                <th class="expert-mode-col" style="display: none;">Rkr-Rating real</th>
+                                <th class="expert-mode-col" style="display: none;">Rkr nominal</th>
+                                <th class="expert-mode-col" style="display: none;">Rkr real</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,10 +203,10 @@
                                         </div>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace(\'.\', \',\') }} RkrN</strong>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace(\'.\', \',\') }} RkrR</strong>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -257,7 +257,7 @@
                                     </div>
                                 </div>
                                 </div> {# This closes .food-markings-row, then .mobile-meal-description needs to be closed #}
-                            </div> {# This was mobile-meal-description, ensure it's correctly placed after fixing above #}
+                            </div> {# This was mobile-meal-description, ensure it\'s correctly placed after fixing above #}
 
 
                             <div class="mobile-user-info-container mt-2">
@@ -283,15 +283,15 @@
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                    <strong class="mobile-user-label">Rkr-Rating nominal:</strong>
+                                    <strong class="mobile-user-label">Rkr nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace(\'.\', \',\') }} RkrN</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                    <strong class="mobile-user-label">Rkr-Rating real:</strong>
+                                    <strong class="mobile-user-label">Rkr real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace(\'.\', \',\') }} RkrR</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         recommendationModalTitle.textContent = title;
-        recommendationModalBody.innerHTML = message.replace(/\n/g, '<br>');
+        recommendationModalBody.innerHTML = message.replace(/\\n/g, '<br>');
         
         if (backgroundUrl) {
             recommendationModalContent.style.backgroundImage = `url('${backgroundUrl}')`;
@@ -422,14 +422,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (marvinEmojiTrigger && recommendationModal) {
         marvinEmojiTrigger.addEventListener('click', function () {
             const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
-            showRecommendationPopup("Marvin's Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
+            showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
 
             const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
             const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
             const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
 
             if (allMealsForMarvin.length === 0) {
-                showRecommendationPopup("Marvin's Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
+                showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
                 return;
             }
 
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    showRecommendationPopup("Marvin's Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
+                    showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
                 } else { 
                     throw new Error(data.error || "Unbekannter Fehler von Marvin.");
                 }
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (trumpEmojiTrigger && recommendationModal) {
         trumpEmojiTrigger.addEventListener('click', function () {
             const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Donald Trump analyzing Contine menu...';
-            showRecommendationPopup("Trump's Recommendation", loadingMessage, '/static/img/trump.jpg');
+            showRecommendationPopup("Trump\'s Recommendation", loadingMessage, '/static/img/trump.jpg');
 
             const contineMeals = getMealsFromMensaSection('Contine');
             if (contineMeals.length === 0) {
@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    showRecommendationPopup("Donald Trump's Recommendation", data.recommendation, '/static/img/trump.jpg');
+                    showRecommendationPopup("Donald Trump\'s Recommendation", data.recommendation, '/static/img/trump.jpg');
                 } else {
                     throw new Error(data.error || "Unknown error from Trump API.");
                 }
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (bobEmojiTrigger && recommendationModal) {
         bobEmojiTrigger.addEventListener('click', function () {
             const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Bob der Baumeister is building your recommendation...';
-            showRecommendationPopup("Bob's Empfehlung", loadingMessage, '/static/img/bob.png');
+            showRecommendationPopup("Bob\'s Empfehlung", loadingMessage, '/static/img/bob.png');
 
             const hauptMeals = getMealsFromMensaSection('Hauptmensa');
             if (hauptMeals.length === 0) {
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    showRecommendationPopup("Bob's Empfehlung", data.recommendation, '/static/img/bob.png');
+                    showRecommendationPopup("Bob\'s Empfehlung", data.recommendation, '/static/img/bob.png');
                 } else {
                     throw new Error(data.error || "Unbekannter Fehler von Bob.");
                 }
@@ -539,12 +539,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tobiasEmojiTrigger && recommendationModal) {
         tobiasEmojiTrigger.addEventListener('click', function () {
             const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Tobias sucht begeistert nach der besten Option für dich!';
-            showRecommendationPopup("Tobias' Tipp", loadingMessage, '/static/img/tobias.jpg');
+            showRecommendationPopup("Tobias\' Tipp", loadingMessage, '/static/img/tobias.jpg');
             
             const xxxLutzMealsForTobias = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
 
             if (xxxLutzMealsForTobias.length === 0) {
-                showRecommendationPopup("Tobias' Antwort", "Leider keine XXXLutz Gerichte für eine Empfehlung gefunden. Schade!", '/static/img/tobias.jpg', true);
+                showRecommendationPopup("Tobias\' Antwort", "Leider keine XXXLutz Gerichte für eine Empfehlung gefunden. Schade!", '/static/img/tobias.jpg', true);
                 return;
             }
 
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    showRecommendationPopup("Tobias' Empfehlung", data.recommendation, '/static/img/tobias.jpg');
+                    showRecommendationPopup("Tobias\' Empfehlung", data.recommendation, '/static/img/tobias.jpg');
                 } else { 
                     throw new Error(data.error || "Unbekannter Fehler von Tobias.");
                 }
@@ -627,14 +627,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function applyExpertModeStyles() {
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-        let colorNegative, colorPositive;
+        let colorNegative, colorPositive, colorCenter;
 
         if (isDarkMode) {
-            colorNegative = '#ff5555'; // Dark mode Downvote Red (from .downvote-btn.active)
-            colorPositive = '#50fa7b'; // Dark mode Upvote Green (from .upvote-btn.active)
+            colorNegative = '#ff5555'; // Dark mode Downvote Red
+            colorCenter = '#FFB86C';   // Dark mode Center Yellow/Orange
+            colorPositive = '#50fa7b'; // Dark mode Upvote Green
         } else {
-            colorNegative = '#dc3545'; // Light mode Downvote Red (from .downvote-btn.active)
-            colorPositive = '#28a745'; // Light mode Upvote Green (from .upvote-btn.active)
+            colorNegative = '#dc3545'; // Light mode Downvote Red
+            colorCenter = '#ffcc00';   // Light mode Center Yellow
+            colorPositive = '#28a745'; // Light mode Upvote Green
         }
 
         expertModeCols.forEach(col => {
@@ -660,15 +662,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!isNaN(canerValue)) {
                     const scaleMaxCaner = 600; // Max value for pure positive color
                     let finalColor;
+                    const visualMidPointCaner = scaleMaxCaner / 2; // Midpoint for color transition
 
                     if (canerValue <= 0) {
                         finalColor = colorNegative;
                     } else if (canerValue >= scaleMaxCaner) {
                         finalColor = colorPositive;
+                    } else if (canerValue <= visualMidPointCaner) {
+                        // Interpolate from colorNegative (at 0) to colorCenter (at visualMidPointCaner)
+                        const factor = canerValue / visualMidPointCaner;
+                        finalColor = interpolateColor(colorNegative, colorCenter, factor);
                     } else {
-                        // Interpolate between negative and positive colors
-                        const factor = canerValue / scaleMaxCaner; // factor will be in (0, 1)
-                        finalColor = interpolateColor(colorNegative, colorPositive, factor);
+                        // Interpolate from colorCenter (at visualMidPointCaner) to colorPositive (at scaleMaxCaner)
+                        const factor = (canerValue - visualMidPointCaner) / (scaleMaxCaner - visualMidPointCaner);
+                        finalColor = interpolateColor(colorCenter, colorPositive, factor);
                     }
                     el.style.color = finalColor;
                 }
@@ -681,15 +688,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!isNaN(rkrValue)) {
                     const scaleMaxRkr = 20; // Max value for pure positive color
                     let finalColor;
+                    const visualMidPointRkr = scaleMaxRkr / 2; // Midpoint for color transition
 
                     if (rkrValue <= 0) {
                         finalColor = colorNegative;
                     } else if (rkrValue >= scaleMaxRkr) {
                         finalColor = colorPositive;
+                    } else if (rkrValue <= visualMidPointRkr) {
+                        // Interpolate from colorNegative (at 0) to colorCenter (at visualMidPointRkr)
+                        const factor = rkrValue / visualMidPointRkr;
+                        finalColor = interpolateColor(colorNegative, colorCenter, factor);
                     } else {
-                        // Interpolate between negative and positive colors
-                        const factor = rkrValue / scaleMaxRkr; // factor will be in (0, 1)
-                        finalColor = interpolateColor(colorNegative, colorPositive, factor);
+                        // Interpolate from colorCenter (at visualMidPointRkr) to colorPositive (at scaleMaxRkr)
+                        const factor = (rkrValue - visualMidPointRkr) / (scaleMaxRkr - visualMidPointRkr);
+                        finalColor = interpolateColor(colorCenter, colorPositive, factor);
                     }
                     el.style.color = finalColor;
                 }
@@ -720,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const datePickerInputForArrows = document.getElementById('date'); // This is now the input for the datepicker
 
     // availableDatesStrings is defined below for the datepicker, ensure it's accessible here or redefined.
-    // For safety, let's ensure availableDatesStrings is defined before it's used by arrow functions.
+    // For safety, let\'s ensure availableDatesStrings is defined before it\'s used by arrow functions.
     const allAvailableDatesForArrows = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
 
     document.querySelectorAll('.date-nav-arrow').forEach(button => {
@@ -812,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function () {
         availableDatesStrings.forEach(dateStr => {
             const parts = dateStr.split('.'); // dd.mm.yyyy
             if (parts.length === 3) {
-                // Create a UTC date to match how the datepicker's filter function receives dates
+                // Create a UTC date to match how the datepicker\'s filter function receives dates
                 const utcDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
                 availableUtcTimestamps.add(utcDate.getTime());
             }
@@ -844,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // To ensure the arrows update if the initial date is edge case/not in list
-        // which shouldn't happen if server correctly sets selected_date from available_dates
+        // which shouldn\'t happen if server correctly sets selected_date from available_dates
         updateMensaTitleArrowStates();
 
     } else {
