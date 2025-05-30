@@ -61,11 +61,12 @@
                     
                     <!-- Weekly dishes section -->
                     <div class="xxxlutz-section mb-4">
-    <a href="{{ url_for('static', filename='menu/menu_hg.pdf') }}" target="_blank" style="text-decoration: none; color: inherit;">
+                        <!-- <a href="{{ url_for('static', filename='menu/menu_hg.pdf') }}" target="_blank" style="text-decoration: none; color: inherit;">
                             <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                        </a>
+                        </a> -->
+                        <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche (Link entfernt)</h4>
                         <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == \'Wechselnde Gerichte Woche\' %}
+                            {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="xxxlutz-card">
                                         {{ meal.description }}
@@ -79,7 +80,7 @@
                     <div class="xxxlutz-section mb-4">
                         <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
                         <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == \'Ständiges Angebot\' %}
+                            {% for meal in meals if meal.category == 'Ständiges Angebot' %}
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="xxxlutz-card">
                                         {{ meal.description }}
@@ -96,14 +97,14 @@
                         <div class="row justify-content-center">
                             <div class="col-md-6 col-lg-4 mb-3">
                                 <div class="xxxlutz-card">
-                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'new\') }}" class="text-decoration-none d-block p-3">
+                                    <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="text-decoration-none d-block p-3">
                                         <i class="fas fa-download"></i> Neue Gutscheine
                                     </a>
                                 </div>
                             </div>
                             <div class="col-md-6 col-lg-4 mb-3">
                                 <div class="xxxlutz-card">
-                                    <a href="{{ url_for(\'download_voucher\', voucher_type=\'old\') }}" class="text-decoration-none d-block p-3">
+                                    <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="text-decoration-none d-block p-3">
                                         <i class="fas fa-download"></i> Alte Gutscheine
                                     </a>
                                 </div>
@@ -118,10 +119,10 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <div class="menu-hg-image">
-                                    <img src="{{ url_for(\'get_menu_hg_image\') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
+                                    <img src="{{ url_for('get_menu_hg_image') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
                                 </div>
                                 <div class="voucher-links">
-                                    <a href="{{ url_for(\'download_menu_hg_pdf\') }}" class="btn btn-success mb-2">
+                                    <a href="{{ url_for('download_menu_hg_pdf') }}" class="btn btn-success mb-2">
                                         <i class="fas fa-download"></i> Speiseplan als PDF herunterladen
                                     </a>
                                 </div>
@@ -206,10 +207,10 @@
                                         </div>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace(\'.\', \',\') }} RkrN</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace(\'.\', \',\') }} RkrR</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -288,13 +289,13 @@
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                     <strong class="mobile-user-label">Rkr nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace(\'.\', \',\') }} RkrN</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                     <strong class="mobile-user-label">Rkr real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace(\'.\', \',\') }} RkrR</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -735,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const datePickerInputForArrows = document.getElementById('date'); // This is now the input for the datepicker
 
     // availableDatesStrings is defined below for the datepicker, ensure it's accessible here or redefined.
-    // For safety, let\'s ensure availableDatesStrings is defined before it\'s used by arrow functions.
+    // For safety, let's ensure availableDatesStrings is defined before it's used by arrow functions.
     const allAvailableDatesForArrows = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
 
     document.querySelectorAll('.date-nav-arrow').forEach(button => {
@@ -859,7 +860,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // To ensure the arrows update if the initial date is edge case/not in list
-        // which shouldn\'t happen if server correctly sets selected_date from available_dates
+        // which shouldn't happen if server correctly sets selected_date from available_dates
         updateMensaTitleArrowStates();
 
     } else {
