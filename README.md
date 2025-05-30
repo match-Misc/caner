@@ -1,15 +1,16 @@
 # 🍽️ Das Caner Web App
 
-Smart & fun meal value for Leibniz University—pick the best cafeteria food by Caner Score (calories per €), vote, and get AI meal tips!
+Your smart guide to the best meal values at Leibniz University. Features Caner Score (calories/€), meal voting, AI персонажи, and an **Expert Mode** for advanced users.
 
 ---
 
-## ⚡ Highlights
-- **Compare Mensa Meals** at multiple locations (Garbsen, Contine, Hauptmensa, XXXLutz)
-- **Caner Score:** See most calories for your buck!
-- **Emoji Dietary Tags** for quick orientation
-- **AI Food Guides:** Trump 🇺🇸, Bob 👷, Marvin 🤖—with real recommendations
-- **Vote for Meals** & download current menus or vouchers
+## ⚡ Features
+- **Compare Mensa Meals:** Across Garbsen, Contine, Hauptmensa, and XXXLutz.
+- **Caner Score:** Maximize calories per Euro.
+- **Dietary Tags:** Quick view with emojis.
+- **AI Food Guides:** Get recommendations from Trump 🇺🇸, Bob 👷, and Marvin 🤖.
+- **Expert Mode:** For advanced meal analysis and data views.
+- **Interactive:** Vote for meals and download menus/vouchers.
 
 ---
 

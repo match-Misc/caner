@@ -599,6 +599,32 @@ body {
     margin-left: 4px;
 }
 
+/* Color grading for Caner and Recker values */
+/* These classes (.positive-value, .negative-value) should be dynamically added to .caner-value and .recker-value elements */
+/* (e.g., via JavaScript) when expert mode is active and the value meets the criteria. */
+
+/* Light Mode */
+.caner-value.positive-value,
+.recker-value.positive-value { /* Assuming .recker-value class for Recker values */
+    color: #28a745; /* Green from .upvote-btn.active */
+}
+
+.caner-value.negative-value,
+.recker-value.negative-value { /* Assuming .recker-value class for Recker values */
+    color: #dc3545; /* Red from .downvote-btn.active */
+}
+
+/* Dark Mode */
+[data-theme="dark"] .caner-value.positive-value,
+[data-theme="dark"] .recker-value.positive-value {
+    color: #50fa7b; /* Green from [data-theme="dark"] .upvote-btn.active */
+}
+
+[data-theme="dark"] .caner-value.negative-value,
+[data-theme="dark"] .recker-value.negative-value {
+    color: #ff5555; /* Red from [data-theme="dark"] .downvote-btn.active */
+}
+
 /* Food Markings */
 .food-marking {
     display: inline-block;
@@ -674,9 +700,7 @@ body {
     font-weight: bold;
 }
 
-/* .btn-nutrient-toggle, .nutrient-card styles removed */
-
-
+/* Removed empty rule placeholder: .btn-nutrient-toggle, .nutrient-card styles removed */
 
 /* Legend styles */
 .caner-legend {
@@ -745,9 +769,11 @@ footer {
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
+/* Commented out i rule as it was empty or causing lint errors 
 #darkModeToggle i {
-    /* margin-right: 5px; */ /* Removed to help center the icon */
+    Removed to help center the icon 
 }
+*/
 
 #darkModeToggle .dark-mode-text {
     white-space: nowrap;
@@ -1213,7 +1239,7 @@ a.github-link i.fa-github {
     transition: color 0.3s ease;
 }
 
-/* Styles related to .nutrient-info-collapse and dark mode overrides removed */
+/* Removed empty rule placeholder: Styles related to .nutrient-info-collapse and dark mode overrides removed */
 
 /* Caner info section */
 .mobile-caner-info {
@@ -1392,11 +1418,6 @@ a.github-link i.fa-github {
     justify-content: flex-end; /* Align the content (price, symbols) to the right within this div */
 }
 
-/* .price is already made bold globally, so this specific rule for mobile is not strictly needed but harmless if kept */
-.mobile-meal-card .user-price-caner-info.mobile-layout .price {
-    /* font-weight: bold; */ /* Now handled by the global .price rule */
-}
-
 .mobile-meal-card .user-price-caner-info.mobile-layout .caner-symbols img {
     margin-right: 1px; /* Slightly less margin for mobile */
     height: 1.2em; /* Adjust size if needed */
@@ -1417,11 +1438,7 @@ a.github-link i.fa-github {
 /* Responsive adjustments for table cells if needed for very small screens, although Bootstrap's table-responsive should handle most cases. */
 /* This is an additional refinement if the table content itself needs to be more responsive. */
 @media (max-width: 576px) { /* Example breakpoint, adjust as needed */
-    .meal-table .user-price-caner-info {
-        /* If you want the table cells to also arrange horizontally on very small screens */
-        /* flex-direction: row; 
-           gap: 0.5rem; */
-    }
+    /* Removed empty rule for .meal-table .user-price-caner-info */
     .meal-table th, .meal-table td {
         font-size: 0.85em; /* Smaller font for table on xs screens */
     }
