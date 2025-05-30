@@ -646,6 +646,91 @@ def calculate_caner(kcal, price_student):
         return 0
 
 
+@app.template_filter("extract_protein")
+def extract_protein(naehrwert_str):
+    try:
+        # Example: Brennwert=3062 kJ (731 kcal), Eiweiß=25,7g, ...
+        if "Eiweiß" in naehrwert_str:
+            match = re.search(r"Eiweiß=([\d,]+)g", naehrwert_str)
+            if match:
+                return float(match.group(1).replace(",", "."))
+        return 0.0
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred in extract_protein with {naehrwert_str}: {e}"
+        )
+        return 0.0
+
+
+@app.template_filter("calculate_rkr_nominal")
+def calculate_rkr_nominal(protein_g, price_student):
+    if (
+        price_student is None
+        or not isinstance(price_student, str)
+        or price_student.strip() == ""
+    ):
+        logger.warning(
+            f"Invalid price_student input in calculate_rkr_nominal: Received '{price_student}' (type: {type(price_student)}). Treating as 0."
+        )
+        return 0.0
+
+    try:
+        price_str_cleaned = price_student.replace(",", ".").strip()
+        price = float(price_str_cleaned)
+
+        if price <= 0:
+            logger.warning(
+                f"Non-positive price detected in calculate_rkr_nominal: protein_g={protein_g}, price_student='{price_student}' resulted in price={price}. Treating as 0."
+            )
+            return 0.0
+
+        if not isinstance(protein_g, (int, float)):
+            logger.warning(
+                f"Invalid protein_g input in calculate_rkr_nominal: Received '{protein_g}' (type: {type(protein_g)}). Cannot calculate Rkr nominal."
+            )
+            return 0.0
+        
+        if protein_g == 0: # Avoid division by zero if protein is 0
+            return 0.0
+
+        return round(protein_g / price, 2)
+
+    except ValueError:
+        logger.warning(
+            f"Could not convert price_student='{price_student}' to float in calculate_rkr_nominal. Original protein_g={protein_g}. Treating as 0."
+        )
+        return 0.0
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred in calculate_rkr_nominal with protein_g={protein_g}, price_student='{price_student}': {e}"
+        )
+        logger.error(traceback.format_exc())
+        return 0.0
+
+
+PENALTY_KEYWORDS = [
+    "gemüse", "erbsen", "bohnen", "champignons", "pilze",
+    "cremige tomatensauce", "mais", "pflanzlich", "vegan"
+]
+
+@app.template_filter("calculate_rkr_real")
+def calculate_rkr_real(protein_g, price_student, meal_description):
+    rkr_nominal = calculate_rkr_nominal(protein_g, price_student)
+
+    if rkr_nominal == 0: # No need to apply penalty if nominal is already 0
+        return 0.0
+
+    # Check for penalty keywords in meal description (case-insensitive)
+    # For fuzzy matching, we might need a library like fuzzywuzzy,
+    # but for now, we'll do a simpler substring check.
+    description_lower = meal_description.lower()
+    for keyword in PENALTY_KEYWORDS:
+        if keyword in description_lower:
+            return -100.0  # Apply penalty
+
+    return rkr_nominal
+
+
 @app.template_filter("generate_caner_symbols")
 def generate_caner_symbols(caner_score):
     if caner_score <= 0:
