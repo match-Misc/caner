@@ -710,7 +710,8 @@ def calculate_rkr_nominal(protein_g, price_student):
 
 PENALTY_KEYWORDS = [
     "gemüse", "erbsen", "bohnen", "champignons", "pilze",
-    "cremige tomatensauce", "mais", "pflanzlich", "vegan"
+    "cremige tomatensauce", "mais", "pflanzlich", "vegan",
+    "pilz", "spargel", "broccoli", "karotten"
 ]
 
 @app.template_filter("calculate_rkr_real")
