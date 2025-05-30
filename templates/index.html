@@ -30,29 +30,29 @@
         <div class="mensa-section mb-4">
             <h2 class="mensa-title d-flex align-items-center">
                 {% if mensa == selected_mensa %}
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary me-2 date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
                 {% endif %}
 
-                <span class="mensa-name-text">{{ mensa }}</span> {# Mensa name #}
+                <span class="mensa-name-and-emoji-wrapper mx-auto text-center">
+                    <span class="mensa-name-text">{{ mensa }}</span>
+                    <span class="ms-2">
+                        {% if mensa == "Mensa Garbsen" %}
+                            <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
+                        {% elif mensa == "Hauptmensa" %}
+                            <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
+                        {% elif mensa == "Contine" %}
+                            <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
+                        {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
+                            {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
+                        {% else %}
+                            {{ mensa_emojis[mensa] }}
+                        {% endif %}
+                    </span>
+                </span>
 
                 {% if mensa == selected_mensa %}
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary ms-2 date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
                 {% endif %}
-
-                {# Emojis - adjusted margin based on presence of next button #}
-                <span class="ms-2">
-                    {% if mensa == "Mensa Garbsen" %}
-                        <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
-                    {% elif mensa == "Hauptmensa" %}
-                        <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                    {% elif mensa == "Contine" %}
-                        <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                    {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                        {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
-                    {% else %}
-                        {{ mensa_emojis[mensa] }}
-                    {% endif %}
-                </span>
             </h2>
 
             {% if mensa == "XXXLutz Hesse Markrestaurant" %}
@@ -664,41 +664,47 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // New code for date navigation arrows
-    const dateSelectForArrows = document.getElementById('date');
-    const mensaSelectForArrows = document.getElementById('mensa');
+    const mensaSelectForArrows = document.getElementById('mensa'); // Keep this for Mensa value
+    const datePickerInputForArrows = document.getElementById('date'); // This is now the input for the datepicker
+
+    // availableDatesStrings is defined below for the datepicker, ensure it's accessible here or redefined.
+    // For safety, let's ensure availableDatesStrings is defined before it's used by arrow functions.
+    const allAvailableDatesForArrows = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
 
     document.querySelectorAll('.date-nav-arrow').forEach(button => {
         button.addEventListener('click', function(event) {
             event.preventDefault();
-            if (this.classList.contains('disabled')) { // Prevent action if button is disabled
+            if (this.classList.contains('disabled')) {
                 return;
             }
 
             const direction = this.dataset.direction === 'prev' ? -1 : 1;
             
-            if (!dateSelectForArrows || !mensaSelectForArrows) {
-                console.error("Date or Mensa select not found for arrow navigation.");
+            if (!datePickerInputForArrows || !mensaSelectForArrows) {
+                console.error("Date input or Mensa select not found for arrow navigation.");
                 return;
             }
 
             const currentSelectedMensa = mensaSelectForArrows.value;
-            const currentSelectedDate = dateSelectForArrows.value;
-            const allDatesInDropdown = Array.from(dateSelectForArrows.options).map(opt => opt.value);
+            const currentSelectedDate = datePickerInputForArrows.value; // Value from the datepicker input
             
-            const currentIndex = allDatesInDropdown.indexOf(currentSelectedDate);
+            const currentIndex = allAvailableDatesForArrows.indexOf(currentSelectedDate);
 
             if (currentIndex === -1) {
-                console.error('Current selected date not found in available dates for arrow navigation.');
+                console.error('Current selected date not found in available dates for arrow navigation:', currentSelectedDate, allAvailableDatesForArrows);
                 return;
             }
 
             let newIndex = currentIndex + direction;
 
-            // Clamping to bounds. If it results in no change of index, link won't navigate.
-            if (newIndex < 0) newIndex = 0;
-            else if (newIndex >= allDatesInDropdown.length) newIndex = allDatesInDropdown.length - 1;
+            // Ensure newIndex is within bounds
+            if (newIndex < 0) {
+                newIndex = 0;
+            } else if (newIndex >= allAvailableDatesForArrows.length) {
+                newIndex = allAvailableDatesForArrows.length - 1;
+            }
             
-            const newDate = allDatesInDropdown[newIndex];
+            const newDate = allAvailableDatesForArrows[newIndex];
 
             if (newDate && newDate !== currentSelectedDate) { // Only navigate if date actually changes
                 const baseUrl = window.location.pathname; 
@@ -712,92 +718,83 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateMensaTitleArrowStates() {
-        const dateSelectForState = document.getElementById('date');
-        if (!dateSelectForState) return;
+        if (!datePickerInputForArrows || allAvailableDatesForArrows.length === 0) return;
 
-        const options = Array.from(dateSelectForState.options);
-        const currentIndex = dateSelectForState.selectedIndex; 
+        const currentSelectedDate = datePickerInputForArrows.value;
+        const currentIndex = allAvailableDatesForArrows.indexOf(currentSelectedDate);
 
         let onFirst = false;
         let onLast = false;
         
-        if (options.length === 0) { // no dates available
-            onFirst = true;
+        if (currentIndex === -1) { // Should not happen if datepicker enforces selection from available dates
+            onFirst = true; // Disable both if current date is somehow not in the list
             onLast = true;
-        } else if (options.length === 1) { // only one date
+        } else if (allAvailableDatesForArrows.length <= 1) { // Only one or no dates
             onFirst = true;
             onLast = true;
         } else {
-            onFirst = (currentIndex <= 0);
-            onLast = (currentIndex >= options.length - 1);
+            onFirst = (currentIndex === 0);
+            onLast = (currentIndex === allAvailableDatesForArrows.length - 1);
         }
 
         document.querySelectorAll('.date-nav-arrow[data-direction="prev"]').forEach(btn => {
             btn.classList.toggle('disabled', onFirst);
-            if (onFirst) {
-                btn.setAttribute('aria-disabled', 'true');
-            } else {
-                btn.removeAttribute('aria-disabled');
-            }
+            btn.setAttribute('aria-disabled', onFirst ? 'true' : 'false');
         });
         document.querySelectorAll('.date-nav-arrow[data-direction="next"]').forEach(btn => {
             btn.classList.toggle('disabled', onLast);
-             if (onLast) {
-                btn.setAttribute('aria-disabled', 'true');
-            } else {
-                btn.removeAttribute('aria-disabled');
-            }
+            btn.setAttribute('aria-disabled', onLast ? 'true' : 'false');
         });
     }
 
-    if (dateSelectForArrows) { 
-        updateMensaTitleArrowStates();
-    }
+    // Call initially and potentially after date changes (though page reloads anyway for arrows)
+    updateMensaTitleArrowStates();
 
     // Initialize Vanilla JS Datepicker
-    const datepickerEl = document.getElementById('date');
+    const datepickerEl = document.getElementById('date'); // This is the same as datePickerInputForArrows
     if (datepickerEl) {
         const availableDatesStrings = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
         
+        // Convert available date strings to a Set of UTC timestamps for efficient lookup
+        const availableUtcTimestamps = new Set();
+        availableDatesStrings.forEach(dateStr => {
+            const parts = dateStr.split('.'); // dd.mm.yyyy
+            if (parts.length === 3) {
+                // Create a UTC date to match how the datepicker's filter function receives dates
+                const utcDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
+                availableUtcTimestamps.add(utcDate.getTime());
+            }
+        });
+
         const datepicker = new Datepicker(datepickerEl, {
             format: 'dd.mm.yyyy',
             language: 'de',
             autohide: true,
             todayHighlight: true,
-            // Function to enable only specific dates
-            datesDisabled: [], // Initialize, then fill based on available_dates
-            filter: (date) => {
-                const d = new Date(date);
-                d.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
-                
-                // The date object 'date' passed by the filter is already UTC. 
-                // We need to compare it with our available_dates which are strings in 'dd.mm.yyyy' format.
-                // It's generally safer to convert input 'date' to a string in 'dd.mm.yyyy' for comparison if availableDatesStrings are local dates.
-                // Or, convert availableDateStrings to Date objects in UTC for comparison.
-
-                // Create a local date string from the picker's date object using its parts
-                // to avoid timezone issues that arise from direct toISOString() or similar on local-intended dates.
-                const year = d.getFullYear();
-                const month = (d.getMonth() + 1).toString().padStart(2, '0');
-                const day = d.getDate().toString().padStart(2, '0');
-                const currentDateString = `${day}.${month}.${year}`;
-
-                return availableDatesStrings.includes(currentDateString);
+            buttonClass: 'btn', // Ensures Bootstrap buttons for prev/next in calendar
+            // pickLevel: 0, // Can be 0 (days), 1 (months), 2 (years)
+            filter: (dateToFilter) => {
+                // dateToFilter is a Date object, typically midnight UTC for the given day.
+                // We need to check if its timestamp exists in our set of available UTC timestamps.
+                return availableUtcTimestamps.has(dateToFilter.getTime());
             }
         });
 
         datepickerEl.addEventListener('changeDate', function(event) {
-            // When a date is selected from the picker, submit the form.
-            // The 'value' of the input field is automatically updated by the datepicker.
-            // Ensure this.form refers to the correct form containing the date input.
-            // The onchange="this.form.submit()" from the original select is effectively replaced by this.
             const form = datepickerEl.closest('form');
             if (form) {
+                // The datepicker input (datepickerEl) value is already updated to dd.mm.yyyy by the picker
+                // So, we can just submit the form.
                 form.submit();
             } else {
                 console.error("Datepicker could not find parent form to submit.");
             }
         });
+
+        // To ensure the arrows update if the initial date is edge case/not in list
+        // which shouldn't happen if server correctly sets selected_date from available_dates
+        updateMensaTitleArrowStates();
+
     } else {
         console.error("Datepicker input element not found.")
     }

@@ -321,6 +321,93 @@ body {
     }
 }
 
+/* Vanilla JS Datepicker Dark Mode Styles */
+[data-theme="dark"] .datepicker {
+    background-color: var(--bg-card); /* Use Dracula background for the picker itself */
+    border-color: var(--border-color); /* Dracula current line for border */
+}
+
+[data-theme="dark"] .datepicker-picker span {
+    color: var(--text-light); /* Dracula foreground for text */
+}
+
+[data-theme="dark"] .datepicker-picker span.focused,
+[data-theme="dark"] .datepicker-picker span:hover {
+    background-color: #44475a; /* Dracula current line for hover/focus background */
+}
+
+[data-theme="dark"] .datepicker-picker span.selected,
+[data-theme="dark"] .datepicker-picker span.selected:hover,
+[data-theme="dark"] .datepicker-picker span.selected.focused {
+    background-color: var(--primary-red); /* Dracula red for selected date */
+    color: #fff; /* White text for selected date */
+    text-shadow: none;
+}
+
+[data-theme="dark"] .datepicker-picker span.disabled,
+[data-theme="dark"] .datepicker-picker span.disabled:hover {
+    color: #6272a4; /* Dracula comment color for disabled dates */
+    background-color: transparent;
+}
+
+[data-theme="dark"] .datepicker-picker span.prev,
+[data-theme="dark"] .datepicker-picker span.next,
+[data-theme="dark"] .datepicker-picker span.prev-month,
+[data-theme="dark"] .datepicker-picker span.next-month {
+    color: var(--primary-yellow); /* Dracula yellow for nav arrows */
+}
+
+[data-theme="dark"] .datepicker-picker span.prev:hover,
+[data-theme="dark"] .datepicker-picker span.next:hover,
+[data-theme="dark"] .datepicker-picker span.prev-month:hover,
+[data-theme="dark"] .datepicker-picker span.next-month:hover {
+    background-color: #44475a; /* Dracula current line for hover */
+}
+
+[data-theme="dark"] .datepicker-panel ul li {
+    background-color: var(--bg-filter); /* Background for month/year selection list items */
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .datepicker-panel ul li:hover {
+    background-color: #44475a;
+}
+
+[data-theme="dark"] .datepicker-panel ul li.selected,
+[data-theme="dark"] .datepicker-panel ul li.selected:hover {
+    background-color: var(--primary-red);
+    color: #fff;
+}
+
+[data-theme="dark"] .datepicker-button {
+    color: var(--primary-yellow);
+    background-color: transparent;
+}
+
+[data-theme="dark"] .datepicker-button:hover {
+    background-color: #44475a;
+}
+
+[data-theme="dark"] .datepicker-view .weekdays .weekday {
+    color: var(--primary-yellow); /* Adjust weekday header color */
+    background-color: var(--bg-filter); /* Background for weekday headers */
+}
+
+[data-theme="dark"] .datepicker-header .datepicker-title {
+    color: var(--text-light); /* Title in the header (e.g., "Mai 2025") */
+}
+
+/* Ensure Datepicker input itself also respects dark mode text color */
+[data-theme="dark"] input#date.form-control {
+    background-color: var(--bg-filter); /* Match select background from filter panel */
+    color: var(--primary-yellow); /* Match select text color */
+    border-color: var(--primary-yellow); /* Match select border */
+}
+
+[data-theme="dark"] input#date.form-control::placeholder {
+    color: var(--primary-yellow);
+    opacity: 0.7;
+}
 @media (max-width: 576px) {
     .sambalalarm-text {
         font-size: 2rem;
