@@ -215,6 +215,7 @@ body {
     font-weight: bold;
     text-align: center;
     padding: 12px 8px;
+    white-space: nowrap; /* Prevent header text from wrapping */
 }
 
 .meal-table td {
@@ -318,6 +319,25 @@ body {
     letter-spacing: 2px;
     position: relative;
     z-index: 10000;
+}
+
+.meal-table td:first-child {
+    word-break: break-word; /* Allow long meal descriptions to wrap */
+}
+
+/* Ensure price and expert columns have enough space for their headers */
+.meal-table th:nth-child(2),
+.meal-table td:nth-child(2),
+.meal-table th:nth-child(3),
+.meal-table td:nth-child(3),
+.meal-table th:nth-child(4),
+.meal-table td:nth-child(4) {
+    min-width: 130px; /* For Studierende, Mitarbeitende, Gästende */
+}
+
+.meal-table th.expert-mode-col,
+.meal-table td.expert-mode-col {
+    min-width: 110px; /* For Rkr nominal, Rkr real */
 }
 
 /* Media queries for Sambal Alarm responsiveness */
@@ -938,14 +958,14 @@ a.github-link i.fa-github {
     background-color: #383a59;
 }
 
+
 [data-theme="dark"] .voucher-links a {
     background-color: #282a36; /* Dracula background */
-    color: #f1fa8c; /* Dracula yellow */
+    color: var(--primary-yellow); /* Dracula yellow */
     border: 1px solid #44475a; /* Dracula current line as border */
     outline: none; /* Remove outline */
     /* transition and border-radius are inherited */
 }
-
 [data-theme="dark"] .voucher-links a:focus {
     outline: none; /* Remove outline on focus */
     box-shadow: none; /* Remove box-shadow on focus */
@@ -969,7 +989,7 @@ a.github-link i.fa-github {
     border-radius: 5px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     background-color: var(--bg-card); /* Light mode default */
-    color: var(--text-dark);       /* Light mode default - changed to dark text */
+    color: black;       /* Light mode: black text */
     border: 1px solid var(--border-color); /* Light mode default */
 }
 
@@ -978,7 +998,7 @@ a.github-link i.fa-github {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     background-color: #f8f9fa; /* Slightly off-white */
     border-color: var(--primary-red); /* Highlight with primary red */
-    color: var(--text-dark); /* Ensure dark text on light hover background */
+    color: black; /* Ensure dark text on light hover background */
 }
 
 .voucher-links a i {
