@@ -144,12 +144,18 @@ body {
     transition: background-color 0.3s ease;
 }
 
+/* Standardized padding for select and input in filter panel for height consistency */
+.filter-panel select,
+.filter-panel input.form-control { /* Target date input specifically if needed or all form-controls */
+    padding: .375rem .75rem; /* Default Bootstrap form-control padding */
+    /* height: calc(1.5em + .75rem + 2px); Ensure same explicit height if padding alone isn't enough */
+}
+
 .filter-panel select {
     background-color: var(--bg-card);
     color: var(--text-dark);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 8px;
     width: 100%;
     transition: all 0.3s ease;
 }
@@ -162,7 +168,7 @@ body {
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 16px 12px;
-    padding-right: 2.5rem;
+    padding-right: 2.5rem; /* Keep for the SVG arrow */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -173,6 +179,7 @@ body {
     border-color: var(--primary-yellow);
     box-shadow: 0 0 0 2px rgba(241, 250, 140, 0.2);
 }
+
 
 /* Mensa section styles */
 .mensa-section {
@@ -321,93 +328,6 @@ body {
     }
 }
 
-/* Vanilla JS Datepicker Dark Mode Styles */
-[data-theme="dark"] .datepicker {
-    background-color: var(--bg-card); /* Use Dracula background for the picker itself */
-    border-color: var(--border-color); /* Dracula current line for border */
-}
-
-[data-theme="dark"] .datepicker-picker span {
-    color: var(--text-light); /* Dracula foreground for text */
-}
-
-[data-theme="dark"] .datepicker-picker span.focused,
-[data-theme="dark"] .datepicker-picker span:hover {
-    background-color: #44475a; /* Dracula current line for hover/focus background */
-}
-
-[data-theme="dark"] .datepicker-picker span.selected,
-[data-theme="dark"] .datepicker-picker span.selected:hover,
-[data-theme="dark"] .datepicker-picker span.selected.focused {
-    background-color: var(--primary-red); /* Dracula red for selected date */
-    color: #fff; /* White text for selected date */
-    text-shadow: none;
-}
-
-[data-theme="dark"] .datepicker-picker span.disabled,
-[data-theme="dark"] .datepicker-picker span.disabled:hover {
-    color: #6272a4; /* Dracula comment color for disabled dates */
-    background-color: transparent;
-}
-
-[data-theme="dark"] .datepicker-picker span.prev,
-[data-theme="dark"] .datepicker-picker span.next,
-[data-theme="dark"] .datepicker-picker span.prev-month,
-[data-theme="dark"] .datepicker-picker span.next-month {
-    color: var(--primary-yellow); /* Dracula yellow for nav arrows */
-}
-
-[data-theme="dark"] .datepicker-picker span.prev:hover,
-[data-theme="dark"] .datepicker-picker span.next:hover,
-[data-theme="dark"] .datepicker-picker span.prev-month:hover,
-[data-theme="dark"] .datepicker-picker span.next-month:hover {
-    background-color: #44475a; /* Dracula current line for hover */
-}
-
-[data-theme="dark"] .datepicker-panel ul li {
-    background-color: var(--bg-filter); /* Background for month/year selection list items */
-    color: var(--text-light);
-}
-
-[data-theme="dark"] .datepicker-panel ul li:hover {
-    background-color: #44475a;
-}
-
-[data-theme="dark"] .datepicker-panel ul li.selected,
-[data-theme="dark"] .datepicker-panel ul li.selected:hover {
-    background-color: var(--primary-red);
-    color: #fff;
-}
-
-[data-theme="dark"] .datepicker-button {
-    color: var(--primary-yellow);
-    background-color: transparent;
-}
-
-[data-theme="dark"] .datepicker-button:hover {
-    background-color: #44475a;
-}
-
-[data-theme="dark"] .datepicker-view .weekdays .weekday {
-    color: var(--primary-yellow); /* Adjust weekday header color */
-    background-color: var(--bg-filter); /* Background for weekday headers */
-}
-
-[data-theme="dark"] .datepicker-header .datepicker-title {
-    color: var(--text-light); /* Title in the header (e.g., "Mai 2025") */
-}
-
-/* Ensure Datepicker input itself also respects dark mode text color */
-[data-theme="dark"] input#date.form-control {
-    background-color: var(--bg-filter); /* Match select background from filter panel */
-    color: var(--primary-yellow); /* Match select text color */
-    border-color: var(--primary-yellow); /* Match select border */
-}
-
-[data-theme="dark"] input#date.form-control::placeholder {
-    color: var(--primary-yellow);
-    opacity: 0.7;
-}
 @media (max-width: 576px) {
     .sambalalarm-text {
         font-size: 2rem;
@@ -1506,3 +1426,77 @@ a.github-link i.fa-github {
         font-size: 0.85em; /* Smaller font for table on xs screens */
     }
 }
+
+/* Vanilla JS Datepicker Dark Mode Styles - Increased Specificity & Refined */
+html[data-theme="dark"] .datepicker-dropdown,
+html[data-theme="dark"] .datepicker-picker {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .datepicker-picker span {
+    color: var(--text-light) !important;
+}
+
+html[data-theme="dark"] .datepicker-picker span.focused,
+html[data-theme="dark"] .datepicker-picker span:hover {
+    background-color: #44475a !important;
+}
+
+html[data-theme="dark"] .datepicker-picker span.selected,
+html[data-theme="dark"] .datepicker-picker span.selected:hover,
+html[data-theme="dark"] .datepicker-picker span.selected.focused {
+    background-color: var(--primary-red) !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+}
+
+html[data-theme="dark"] .datepicker-picker span.disabled,
+html[data-theme="dark"] .datepicker-picker span.disabled:hover {
+    color: #6272a4 !important;
+    background-color: transparent !important;
+}
+
+html[data-theme="dark"] .datepicker-controls .btn,
+html[data-theme="dark"] .datepicker-header .datepicker-title {
+    color: var(--primary-yellow) !important;
+}
+
+html[data-theme="dark"] .datepicker-controls .btn:hover {
+    background-color: #44475a !important;
+    border-color: #44475a !important;
+}
+
+html[data-theme="dark"] .datepicker-view .weekdays .weekday {
+    color: var(--primary-yellow) !important;
+    background-color: var(--bg-filter) !important;
+    font-weight: bold;
+}
+
+html[data-theme="dark"] .datepicker-panel ul li {
+    background-color: var(--bg-filter) !important;
+    color: var(--text-light) !important;
+}
+
+html[data-theme="dark"] .datepicker-panel ul li:hover {
+    background-color: #44475a !important;
+}
+
+html[data-theme="dark"] .datepicker-panel ul li.selected,
+html[data-theme="dark"] .datepicker-panel ul li.selected:hover {
+    background-color: var(--primary-red) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] input#date.form-control {
+    background-color: #383a59 !important; /* Match Mensa select dropdown */
+    color: var(--primary-yellow) !important;
+    border-color: var(--primary-yellow) !important;
+    /* Padding is now handled by the shared .filter-panel select, .filter-panel input.form-control rule */
+}
+
+html[data-theme="dark"] input#date.form-control::placeholder {
+    color: var(--primary-yellow) !important;
+    opacity: 0.7 !important;
+}
+
