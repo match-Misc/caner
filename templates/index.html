@@ -838,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function () {
             format: 'dd.mm.yyyy',
             language: 'de',
             autohide: true,
-            todayHighlight: true,
+            todayHighlight: false, // Disabled to prevent incorrect highlighting of multiple days
             buttonClass: 'btn', // Ensures Bootstrap buttons for prev/next in calendar
             // pickLevel: 0, // Can be 0 (days), 1 (months), 2 (years)
             filter: (dateToFilter) => {

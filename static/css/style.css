@@ -942,6 +942,24 @@ a.github-link i.fa-github {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Color for Gutscheine links in XXXLutz cards */
+.xxxlutz-section .xxxlutz-card a {
+    color: black; /* Light mode: black text */
+    text-decoration: none; /* Ensure no underline if not desired */
+}
+
+.xxxlutz-section .xxxlutz-card a:hover {
+    color: black; /* Maintain black color on hover for light mode */
+}
+
+[data-theme="dark"] .xxxlutz-section .xxxlutz-card a {
+    color: var(--primary-yellow); /* Dark mode: Dracula yellow */
+}
+
+[data-theme="dark"] .xxxlutz-section .xxxlutz-card a:hover {
+    color: var(--primary-yellow); /* Maintain yellow color on hover for dark mode */
+}
+
 /* XXXLutz voucher links styling */
 .voucher-links {
     display: flex;
