@@ -606,23 +606,23 @@ body {
 /* Light Mode */
 .caner-value.positive-value,
 .recker-value.positive-value { /* Assuming .recker-value class for Recker values */
-    color: #28a745; /* Green from .upvote-btn.active */
+    color: #28a745; /* Ensure green matches upvote button active: #28a745 */
 }
 
 .caner-value.negative-value,
 .recker-value.negative-value { /* Assuming .recker-value class for Recker values */
-    color: #dc3545; /* Red from .downvote-btn.active */
+    color: #dc3545; /* Ensure red matches downvote button active: #dc3545 */
 }
 
 /* Dark Mode */
 [data-theme="dark"] .caner-value.positive-value,
 [data-theme="dark"] .recker-value.positive-value {
-    color: #50fa7b; /* Green from [data-theme="dark"] .upvote-btn.active */
+    color: #50fa7b; /* Ensure green matches dark mode upvote button active: #50fa7b */
 }
 
 [data-theme="dark"] .caner-value.negative-value,
 [data-theme="dark"] .recker-value.negative-value {
-    color: #ff5555; /* Red from [data-theme="dark"] .downvote-btn.active */
+    color: #ff5555; /* Ensure red matches dark mode downvote button active: #ff5555 */
 }
 
 /* Food Markings */
@@ -1476,7 +1476,9 @@ html[data-theme="dark"] .datepicker-picker span.disabled:hover {
 
 html[data-theme="dark"] .datepicker-controls .btn,
 html[data-theme="dark"] .datepicker-header .datepicker-title {
+    background-color: var(--bg-card) !important;
     color: var(--primary-yellow) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 html[data-theme="dark"] .datepicker-controls .btn:hover {
