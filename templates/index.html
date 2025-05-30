@@ -7,13 +7,7 @@
             <form action="/" method="get" class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label for="date" class="form-label">Datum</label>
-                    <select name="date" id="date" class="form-select" onchange="this.form.submit()">
-                        {% for date in available_dates %}
-                            <option value="{{ date }}" {% if date == selected_date %}selected{% endif %}>
-                                {{ date|format_date }}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    <input type="text" name="date" id="date" class="form-control" value="{{ selected_date }}" readonly>
                 </div>
                 <div class="col-md-6">
                     <label for="mensa" class="form-label">Mensa</label>
@@ -34,19 +28,31 @@
 {% if data %}
     {% for mensa, meals in data.items() %}
         <div class="mensa-section mb-4">
-            <h2 class="mensa-title">
-                {{ mensa }}
-                {% if mensa == "Mensa Garbsen" %}
-                    <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
-                {% elif mensa == "Hauptmensa" %}
-                    <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                {% elif mensa == "Contine" %}
-                    <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                    {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
-                {% else %}
-                    {{ mensa_emojis[mensa] }}
+            <h2 class="mensa-title d-flex align-items-center">
+                {% if mensa == selected_mensa %}
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary me-2 date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
                 {% endif %}
+
+                <span class="mensa-name-text">{{ mensa }}</span> {# Mensa name #}
+
+                {% if mensa == selected_mensa %}
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary ms-2 date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                {% endif %}
+
+                {# Emojis - adjusted margin based on presence of next button #}
+                <span class="ms-2">
+                    {% if mensa == "Mensa Garbsen" %}
+                        <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
+                    {% elif mensa == "Hauptmensa" %}
+                        <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
+                    {% elif mensa == "Contine" %}
+                        <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
+                    {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
+                        {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
+                    {% else %}
+                        {{ mensa_emojis[mensa] }}
+                    {% endif %}
+                </span>
             </h2>
 
             {% if mensa == "XXXLutz Hesse Markrestaurant" %}
@@ -132,7 +138,7 @@
                                 <th>Essen</th>
                                 <th>Studierende</th>
                                 <th>Mitarbeitende</th>
-                                <th>Gäste</th>
+                                <th>Gästende</th>
                                 <th class="expert-mode-col" style="display: none;">Rkr-Rating nominal</th>
                                 <th class="expert-mode-col" style="display: none;">Rkr-Rating real</th>
                             </tr>
@@ -181,26 +187,26 @@
                                     <td>
                                         <div class="user-price-caner-info">
                                             <span class="price">{{ meal.price_student }} €</span>
-                                            <span class="caner-symbols">{{ caner_student|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="user-price-caner-info">
                                             <span class="price">{{ meal.price_employee }} €</span>
-                                            <span class="caner-symbols">{{ caner_employee|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="user-price-caner-info">
                                             <span class="price">{{ meal.price_guest }} €</span>
-                                            <span class="caner-symbols">{{ caner_guest|generate_caner_symbols|safe }}</span>
+                                            <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
                                         </div>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong>{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong>
                                     </td>
                                     <td class="expert-mode-col" style="display: none;">
-                                        <strong>{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong>
+                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -259,33 +265,33 @@
                                     <strong class="mobile-user-label">Studierende:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="price">{{ meal.price_student }} €</span>
-                                        <span class="caner-symbols">{{ caner_student|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row">
                                     <strong class="mobile-user-label">Mitarbeitende:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="price">{{ meal.price_employee }} €</span>
-                                        <span class="caner-symbols">{{ caner_employee|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row">
-                                    <strong class="mobile-user-label">Gäste:</strong>
+                                    <strong class="mobile-user-label">Gästende:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="price">{{ meal.price_guest }} €</span>
-                                        <span class="caner-symbols">{{ caner_guest|generate_caner_symbols|safe }}</span>
+                                        <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                     <strong class="mobile-user-label">Rkr-Rating nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span><strong>{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Rkrrn</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                     <strong class="mobile-user-label">Rkr-Rating real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span><strong>{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Rkrrr</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -591,11 +597,59 @@ document.addEventListener('DOMContentLoaded', function () {
             if (col.tagName === 'TH' || col.tagName === 'TD') {
                 col.style.display = expertModeEnabled ? 'table-cell' : 'none';
             } else { // For mobile view elements (divs behaving as rows/items)
-                col.style.display = expertModeEnabled ? 'flex' : 'none'; 
+                col.style.display = expertModeEnabled ? 'flex' : 'none';
             }
         });
         if (expertModeToggleIcon) {
             expertModeToggleIcon.style.opacity = expertModeEnabled ? '1' : '0.5';
+        }
+
+        const canerElements = document.querySelectorAll('.caner-symbols');
+        const rkrElements = document.querySelectorAll('strong.rkr-value');
+
+        if (expertModeEnabled) {
+            canerElements.forEach(el => {
+                const canerValueText = el.dataset.canerValue;
+                if (canerValueText === undefined) return;
+
+                const canerValue = parseFloat(canerValueText);
+                if (!isNaN(canerValue)) {
+                    let hue;
+                    if (canerValue <= 0) {
+                        hue = 0; // Red
+                    } else if (canerValue >= 600) {
+                        hue = 120; // Green
+                    } else {
+                        hue = (Math.max(0, canerValue) / 600) * 120;
+                    }
+                    el.style.color = `hsl(${hue}, 100%, 35%)`; 
+                }
+            });
+
+            rkrElements.forEach(el => {
+                const textValue = el.textContent.replace(',', '.').replace(/[^\d.-]/g, '');
+                const rkrValue = parseFloat(textValue);
+
+                if (!isNaN(rkrValue)) {
+                    let hue;
+                    if (rkrValue <= 0) {
+                        hue = 0; // Red
+                    } else if (rkrValue >= 20) {
+                        hue = 120; // Green
+                    } else {
+                        hue = (Math.max(0, rkrValue) / 20) * 120;
+                    }
+                    el.style.color = `hsl(${hue}, 100%, 35%)`;
+                }
+            });
+
+        } else { // Expert mode disabled
+            canerElements.forEach(el => {
+                el.style.color = ''; // Reset color
+            });
+            rkrElements.forEach(el => {
+                el.style.color = ''; // Reset color
+            });
         }
     }
 
@@ -608,6 +662,146 @@ document.addEventListener('DOMContentLoaded', function () {
             applyExpertModeStyles();
         });
     }
+
+    // New code for date navigation arrows
+    const dateSelectForArrows = document.getElementById('date');
+    const mensaSelectForArrows = document.getElementById('mensa');
+
+    document.querySelectorAll('.date-nav-arrow').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            if (this.classList.contains('disabled')) { // Prevent action if button is disabled
+                return;
+            }
+
+            const direction = this.dataset.direction === 'prev' ? -1 : 1;
+            
+            if (!dateSelectForArrows || !mensaSelectForArrows) {
+                console.error("Date or Mensa select not found for arrow navigation.");
+                return;
+            }
+
+            const currentSelectedMensa = mensaSelectForArrows.value;
+            const currentSelectedDate = dateSelectForArrows.value;
+            const allDatesInDropdown = Array.from(dateSelectForArrows.options).map(opt => opt.value);
+            
+            const currentIndex = allDatesInDropdown.indexOf(currentSelectedDate);
+
+            if (currentIndex === -1) {
+                console.error('Current selected date not found in available dates for arrow navigation.');
+                return;
+            }
+
+            let newIndex = currentIndex + direction;
+
+            // Clamping to bounds. If it results in no change of index, link won't navigate.
+            if (newIndex < 0) newIndex = 0;
+            else if (newIndex >= allDatesInDropdown.length) newIndex = allDatesInDropdown.length - 1;
+            
+            const newDate = allDatesInDropdown[newIndex];
+
+            if (newDate && newDate !== currentSelectedDate) { // Only navigate if date actually changes
+                const baseUrl = window.location.pathname; 
+                const params = new URLSearchParams(window.location.search); 
+                params.set('date', newDate);
+                params.set('mensa', currentSelectedMensa); 
+                
+                window.location.href = `${baseUrl}?${params.toString()}`;
+            }
+        });
+    });
+
+    function updateMensaTitleArrowStates() {
+        const dateSelectForState = document.getElementById('date');
+        if (!dateSelectForState) return;
+
+        const options = Array.from(dateSelectForState.options);
+        const currentIndex = dateSelectForState.selectedIndex; 
+
+        let onFirst = false;
+        let onLast = false;
+        
+        if (options.length === 0) { // no dates available
+            onFirst = true;
+            onLast = true;
+        } else if (options.length === 1) { // only one date
+            onFirst = true;
+            onLast = true;
+        } else {
+            onFirst = (currentIndex <= 0);
+            onLast = (currentIndex >= options.length - 1);
+        }
+
+        document.querySelectorAll('.date-nav-arrow[data-direction="prev"]').forEach(btn => {
+            btn.classList.toggle('disabled', onFirst);
+            if (onFirst) {
+                btn.setAttribute('aria-disabled', 'true');
+            } else {
+                btn.removeAttribute('aria-disabled');
+            }
+        });
+        document.querySelectorAll('.date-nav-arrow[data-direction="next"]').forEach(btn => {
+            btn.classList.toggle('disabled', onLast);
+             if (onLast) {
+                btn.setAttribute('aria-disabled', 'true');
+            } else {
+                btn.removeAttribute('aria-disabled');
+            }
+        });
+    }
+
+    if (dateSelectForArrows) { 
+        updateMensaTitleArrowStates();
+    }
+
+    // Initialize Vanilla JS Datepicker
+    const datepickerEl = document.getElementById('date');
+    if (datepickerEl) {
+        const availableDatesStrings = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+        
+        const datepicker = new Datepicker(datepickerEl, {
+            format: 'dd.mm.yyyy',
+            language: 'de',
+            autohide: true,
+            todayHighlight: true,
+            // Function to enable only specific dates
+            datesDisabled: [], // Initialize, then fill based on available_dates
+            filter: (date) => {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+                
+                // The date object 'date' passed by the filter is already UTC. 
+                // We need to compare it with our available_dates which are strings in 'dd.mm.yyyy' format.
+                // It's generally safer to convert input 'date' to a string in 'dd.mm.yyyy' for comparison if availableDatesStrings are local dates.
+                // Or, convert availableDateStrings to Date objects in UTC for comparison.
+
+                // Create a local date string from the picker's date object using its parts
+                // to avoid timezone issues that arise from direct toISOString() or similar on local-intended dates.
+                const year = d.getFullYear();
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                const day = d.getDate().toString().padStart(2, '0');
+                const currentDateString = `${day}.${month}.${year}`;
+
+                return availableDatesStrings.includes(currentDateString);
+            }
+        });
+
+        datepickerEl.addEventListener('changeDate', function(event) {
+            // When a date is selected from the picker, submit the form.
+            // The 'value' of the input field is automatically updated by the datepicker.
+            // Ensure this.form refers to the correct form containing the date input.
+            // The onchange="this.form.submit()" from the original select is effectively replaced by this.
+            const form = datepickerEl.closest('form');
+            if (form) {
+                form.submit();
+            } else {
+                console.error("Datepicker could not find parent form to submit.");
+            }
+        });
+    } else {
+        console.error("Datepicker input element not found.")
+    }
+
 });
 </script>
 {% endblock %}

@@ -785,6 +785,29 @@ a.github-link {
     color: var(--primary-yellow);
 }
 
+#expertModeToggleIcon {
+    background-color: var(--bg-counter);
+    color: var(--color-counter);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px; /* Match darkModeToggle padding for consistency */
+    height: 32px; /* Match darkModeToggle height */
+    /* display: inline-flex; */ /* Already has d-flex from class attribute */
+    /* align-items: center; */   /* Already has align-items-center from class attribute */
+    /* justify-content: center; */ /* Already has justify-content-center from class attribute */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease; /* Added opacity to transition */
+    box-sizing: border-box;
+}
+
+#expertModeToggleIcon:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] #expertModeToggleIcon {
+    color: var(--primary-yellow); /* Match other footer icons in dark mode */
+}
+
 /* Vertically align icon if needed, fa-lg should handle size */
 a.github-link i.fa-github {
     line-height: 1; /* Helps with precise vertical centering of Font Awesome icons */
@@ -1375,6 +1398,12 @@ a.github-link i.fa-github {
 .mobile-meal-card .user-price-caner-info.mobile-layout .caner-score-value {
     font-size: 0.9em;
     color: #777;
+}
+
+.rkr-value-mobile {
+    display: block; /* Make the span take up available width to allow text-align */
+    width: 100%;
+    text-align: right;
 }
 
 
