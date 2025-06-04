@@ -341,7 +341,7 @@ body {
 }
 
 /* Media queries for Sambal Alarm responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .sambalalarm-text {
         font-size: 3.5rem;
         letter-spacing: 1px;
@@ -577,7 +577,7 @@ body {
     vertical-align: middle;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .caner-symbol {
         display: inline-block;
         margin-bottom: 0;
@@ -1309,7 +1309,7 @@ a.github-link i.fa-github {
 }
 
 /* Responsive styles */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .header-area h1 {
         font-size: 2rem;
     }
@@ -1454,6 +1454,11 @@ a.github-link i.fa-github {
     gap: 0.5rem; /* Space between price, symbols, and score */
     /* flex-grow: 1; */ /* No longer needed as grid column takes care of space */
     justify-content: flex-end; /* Align the content (price, symbols) to the right within this div */
+}
+
+.mobile-user-info-row > *:nth-child(2) { /* Targets the second child (the value
+    block) of the grid row */
+    text-align: right;
 }
 
 .mobile-meal-card .user-price-caner-info.mobile-layout .caner-symbols img {
