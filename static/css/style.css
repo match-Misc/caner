@@ -1421,6 +1421,7 @@ a.github-link i.fa-github {
     gap: 0.5rem; /* Space between price, symbols, and score */
     /* flex-grow: 1; */ /* No longer needed as grid column takes care of space */
     justify-content: flex-end; /* Align the content (price, symbols) to the right within this div */
+    text-align: right; /* Added text-align right */
 }
 
 .mobile-user-info-row > *:nth-child(2) { /* Targets the second child (the value
