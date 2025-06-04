@@ -1438,10 +1438,10 @@ a.github-link i.fa-github {
     color: #777;
 }
 
-.rkr-value-mobile {
+.mobile-meal-card .rkr-value-mobile {
     display: block; /* Make the span take up available width to allow text-align */
     width: 100%;
-    text-align: right;
+    text-align: right !important; /* Added !important to check for specificity issues */
 }
 
 
