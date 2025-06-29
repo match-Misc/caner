@@ -42,10 +42,11 @@ else
 fi
 
 # Command to run Gunicorn
-COMMAND="gunicorn app:app -w 1 -b 0.0.0.0:30823"
+COMMAND="uv run gunicorn app:app -w 1 -b 0.0.0.0:30823"
+PGREP_PATTERN="uv run gunicorn app:app.*30823"
 
 # Check if Gunicorn is already running
-if pgrep -f "gunicorn app:app" > /dev/null; then
+if pgrep -f "$PGREP_PATTERN" > /dev/null; then
     echo "Gunicorn is already running."
 else
     echo "Starting Gunicorn..."
