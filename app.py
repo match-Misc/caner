@@ -729,12 +729,14 @@ def calculate_rkr_real(protein_g, price_student, meal_description):
         # If meal_description is None or not a string, or empty, no penalties can be applied
         return rkr_value 
 
-    # Count how many penalty keywords are found for potential future use, not strictly needed for current logic
-    # num_penalties = 0 
+    # Special handling for "erbsen" - divide by 10
+    if "erbsen" in description_lower:
+        rkr_value /= 10
+    
+    # Apply regular penalties for other keywords (excluding "erbsen")
     for keyword in PENALTY_KEYWORDS:
-        if keyword in description_lower:
+        if keyword != "erbsen" and keyword in description_lower:
             rkr_value /= 2
-            # num_penalties += 1
     
     # The result of rkr_value / 2 operations might result in more than 2 decimal places
     # So we round again at the end.
