@@ -377,11 +377,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 mensaFound = true;
                 if (isXXXLutz) {
                     // Specifically target cards within the xxxlutz-container of the correct mensa section
+                    // Exclude voucher sections by only looking at meal sections
                     const xxxlutzContainer = section.querySelector('.xxxlutz-container');
                     if (xxxlutzContainer) {
-                        xxxlutzContainer.querySelectorAll('.xxxlutz-card').forEach(card => {
-                            const mealText = card.textContent.trim();
-                            if (mealText) meals.add(mealText);
+                        // Only collect meals from actual meal sections, not voucher sections
+                        xxxlutzContainer.querySelectorAll('.xxxlutz-section').forEach(xxxlutzSection => {
+                            const sectionTitle = xxxlutzSection.querySelector('.xxxlutz-section-title');
+                            // Only include sections with meal titles, exclude "Gutscheine" section
+                            if (sectionTitle && sectionTitle.textContent) {
+                                const titleText = sectionTitle.textContent.trim();
+                                if (titleText === 'Wechselnde Gerichte der Woche' || titleText === 'Ständiges Angebot') {
+                                    xxxlutzSection.querySelectorAll('.xxxlutz-card').forEach(card => {
+                                        const mealText = card.textContent.trim();
+                                        if (mealText) meals.add(mealText);
+                                    });
+                                }
+                            }
                         });
                     }
                 } else {
