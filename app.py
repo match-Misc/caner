@@ -1333,3 +1333,78 @@ def get_marvin_recommendation():
         logger.error(f"Error in get_marvin_recommendation: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/get_dark_caner_recommendation", methods=["POST"])
+def get_dark_caner_recommendation():
+    """Get a meal recommendation from the Mistral API as Dark Caner (German)"""
+    try:
+        data = request.json
+        if data is None:
+            return jsonify({"error": "Invalid JSON provided"}), 400
+        available_meals = data.get("meals", [])
+
+        if not available_meals:
+            return jsonify({"error": "Keine Gerichte angegeben"}), 400
+
+        # Format meals for the prompt
+        meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
+
+        # Construct the German prompt for Dark Caner with a sinister food guide personality
+        prompt = (
+            "Du bist Dark Caner, der düstere Essensführer mit geheimnisvollen Kräften. "
+            "Du kennst die verborgenen Geheimnisse der Kalorienwerte und des ultimativen Caner-Scores. "
+            "Deine Aufgabe ist es, das Gericht mit dem besten Preis-Leistungs-Verhältnis zu finden - "
+            "das Gericht, das die meisten Kalorien pro Euro bietet. "
+            "Sprich in einem geheimnisvollen, leicht düsteren Ton, als würdest du alte Weisheiten über Essen preisgeben. "
+            "Erwähne dabei auch den Caner-Score (Kalorien pro Euro) wenn möglich.\n\n"
+            "Verfügbare Gerichte:\n" + meal_list_for_prompt + "\n\n"
+            "Gib deine düstere Empfehlung in einem kurzen, mysteriösen Satz auf Deutsch ab:"
+        )
+
+        api_key = os.environ.get("MISTRAL_API_KEY")
+        if not api_key:
+            logger.error(
+                "MISTRAL_API_KEY not found in environment for Dark Caner recommendation."
+            )
+            return jsonify({"error": "Mistral API key not configured"}), 500
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        }
+
+        response = requests.post(
+            "https://api.mistral.ai/v1/chat/completions",
+            headers=headers,
+            json={
+                "model": "mistral-small-latest",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 1.1,
+                "max_tokens": 150,
+            },
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            recommendation = (
+                result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            )
+            # Remove markdown if present
+            if recommendation.startswith("```"):
+                recommendation = recommendation.strip("`")
+            recommendation = recommendation.strip()
+            return jsonify({"recommendation": recommendation})
+        else:
+            logger.error(
+                f"Dark Caner Mistral API error: {response.status_code} - {response.text}"
+            )
+            return jsonify(
+                {"error": "Error from Mistral API", "details": response.text}
+            ), 500
+
+    except Exception as e:
+        logger.error(f"Error in get_dark_caner_recommendation: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500

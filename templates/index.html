@@ -43,7 +43,7 @@
                         {% elif mensa == "Contine" %}
                             <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
                         {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                            {{ mensa_emojis[mensa] }} <!-- Removed Tobias recommendation trigger -->
+                            <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner zu XXXLutz Empfehlungen">{{ mensa_emojis[mensa] }}</span>
                         {% else %}
                             {{ mensa_emojis[mensa] }}
                         {% endif %}
@@ -473,10 +473,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Tobias Recommendation Trigger
-    const tobiasEmojiTrigger = document.getElementById('askTobiasEmojiTrigger');
+    // Dark Caner Recommendation Trigger
+    const darkCanerEmojiTrigger = document.getElementById('askDarkCanerEmojiTrigger');
+    if (darkCanerEmojiTrigger && recommendationModal) {
+        darkCanerEmojiTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Dark Caner durchsucht die Schatten der Kalorienwerte...';
+            showRecommendationPopup("Dark Caner\'s Düstere Weisheit", loadingMessage, '/static/img/darkcaner.png');
 
-    // Trump Recommendation Trigger
+            const xxxLutzMealsForDarkCaner = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
+
+            if (xxxLutzMealsForDarkCaner.length === 0) {
+                showRecommendationPopup("Dark Caner\'s Antwort", "Die Schatten sind leer... Keine Gerichte für meine dunklen Berechnungen gefunden.", '/static/img/darkcaner.png', true);
+                return;
+            }
+
+            fetch('/api/get_dark_caner_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: xxxLutzMealsForDarkCaner })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Dark Caner\'s Düstere Weisheit", data.recommendation, '/static/img/darkcaner.png');
+                } else {
+                    throw new Error(data.error || "Unbekannter Fehler von Dark Caner.");
+                }
+            })
+            .catch(error => {
+                console.error('Error asking Dark Caner:', error);
+                showRecommendationPopup("Dark Caner Fehler", `Die dunklen Kräfte sind gestört: ${error.message}`, '/static/img/darkcaner.png', true);
+            });
+        });
+    }
     const trumpEmojiTrigger = document.getElementById('askTrumpEmojiTrigger');
     if (trumpEmojiTrigger && recommendationModal) {
         trumpEmojiTrigger.addEventListener('click', function () {
@@ -549,42 +583,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error('Error asking Bob:', error);
                     showRecommendationPopup("Bob Fehler", `Vergiss nicht deinen Helm! ${error.message}`, '/static/img/bob.png', true);
                 });
-        });
-    }
-    if (tobiasEmojiTrigger && recommendationModal) {
-        tobiasEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Tobias sucht begeistert nach der besten Option für dich!';
-            showRecommendationPopup("Tobias\' Tipp", loadingMessage, '/static/img/tobias.jpg');
-            
-            const xxxLutzMealsForTobias = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-
-            if (xxxLutzMealsForTobias.length === 0) {
-                showRecommendationPopup("Tobias\' Antwort", "Leider keine XXXLutz Gerichte für eine Empfehlung gefunden. Schade!", '/static/img/tobias.jpg', true);
-                return;
-            }
-
-            fetch('/api/get-meal-recommendation', { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: xxxLutzMealsForTobias })
-            })
-            .then(response => {
-                if (!response.ok) { 
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Tobias\' Empfehlung", data.recommendation, '/static/img/tobias.jpg');
-                } else { 
-                    throw new Error(data.error || "Unbekannter Fehler von Tobias.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Tobias:', error);
-                showRecommendationPopup("Tobias Fehler", `Da ist wohl was schiefgelaufen: ${error.message}`, '/static/img/tobias.jpg', true);
-            });
         });
     }
     
