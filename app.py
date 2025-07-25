@@ -28,6 +28,7 @@ import sys
 import re # Added import for regular expressions
 from datetime import datetime, date # Removed timedelta import
 from sqlalchemy import text # Import text for raw SQL expressions
+import mistune # Import mistune for markdown to HTML conversion
 
 # --- Third-Party Imports ---
 from flask import (
@@ -65,6 +66,27 @@ else:
     print(
         f"Warning: .secrets file not found at {dotenv_path}. Ensure environment variables are set."
     )
+
+
+# Utility function to convert markdown to HTML
+def markdown_to_html(text):
+    """Convert markdown text to HTML using mistune"""
+    if not text:
+        return text
+    
+    # Create mistune renderer
+    markdown = mistune.create_markdown()
+    
+    # Convert markdown to HTML
+    html = markdown(text)
+    
+    # Remove any wrapping <p> tags and newlines since we're dealing with short snippets
+    # This prevents extra spacing in the modal display
+    html = html.strip()
+    if html.startswith('<p>') and html.endswith('</p>'):
+        html = html[3:-4]
+    
+    return html
 
 
 # Configure logging
@@ -1162,7 +1184,11 @@ def get_trump_recommendation():
                 recommendation = recommendation.strip("`")
             # Trim any leading phrases
             recommendation = recommendation.strip()
-            return jsonify({"recommendation": recommendation})
+            
+            # Convert markdown to HTML for proper formatting
+            recommendation_html = markdown_to_html(recommendation)
+            
+            return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
                 f"Trump Mistral API error: {response.status_code} - {response.text}"
@@ -1234,7 +1260,11 @@ def get_bob_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
-            return jsonify({"recommendation": recommendation})
+            
+            # Convert markdown to HTML for proper formatting
+            recommendation_html = markdown_to_html(recommendation)
+            
+            return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
                 f"Bob Mistral API-Fehler: {response.status_code} - {response.text}"
@@ -1320,7 +1350,10 @@ def get_marvin_recommendation():
                 if recommendation.lower().startswith(phrase.lower()):
                     recommendation = recommendation[len(phrase) :].strip()
 
-            return jsonify({"recommendation": recommendation.strip()})
+            # Convert markdown to HTML for proper formatting
+            recommendation_html = markdown_to_html(recommendation.strip())
+
+            return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
                 f"Marvin Mistral API error: {response.status_code} - {response.text}"
@@ -1396,7 +1429,11 @@ def get_dark_caner_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
-            return jsonify({"recommendation": recommendation})
+            
+            # Convert markdown to HTML for proper formatting
+            recommendation_html = markdown_to_html(recommendation)
+            
+            return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
                 f"Dark Caner Mistral API error: {response.status_code} - {response.text}"
