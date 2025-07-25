@@ -1350,16 +1350,17 @@ def get_dark_caner_recommendation():
         # Format meals for the prompt
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
-        # Construct the German prompt for Dark Caner with a sinister food guide personality
+        # Construct the German prompt for Dark Caner with a gangsta rapper personality
         prompt = (
-            "Du bist Dark Caner, der düstere Essensführer mit geheimnisvollen Kräften. "
-            "Du kennst die verborgenen Geheimnisse der Kalorienwerte und des ultimativen Caner-Scores. "
-            "Deine Aufgabe ist es, das Gericht mit dem besten Preis-Leistungs-Verhältnis zu finden - "
-            "das Gericht, das die meisten Kalorien pro Euro bietet. "
-            "Sprich in einem geheimnisvollen, leicht düsteren Ton, als würdest du alte Weisheiten über Essen preisgeben. "
-            "Erwähne dabei auch den Caner-Score (Kalorien pro Euro) wenn möglich.\n\n"
+            "Du bist Dark Caner, ein Gangsta Rapper aus der Hood, der sich mit Essen auskennt. "
+            "Du sprichst wie ein echter Straßen-Rapper und verwendest Wörter wie: "
+            "Messer, vallah, bruder, schwöre, checkst du, Schattenboxen und tschüsch. "
+            "Deine Aufgabe ist es, das beste Gericht mit dem krassesten Caner-Score zu finden - "
+            "das Gericht, das die meisten Kalorien pro Euro bietet, bruder! "
+            "Sprich in deinem authentischen Gangsta-Rap Style und gib eine knallharte Empfehlung ab. "
+            "Erwähne dabei auch den Caner-Score wenn möglich und sei richtig cool drauf.\n\n"
             "Verfügbare Gerichte:\n" + meal_list_for_prompt + "\n\n"
-            "Gib deine düstere Empfehlung in einem kurzen, mysteriösen Satz auf Deutsch ab:"
+            "Gib deine Gangsta-Empfehlung in einem coolen, streetigen Satz auf Deutsch ab:"
         )
 
         api_key = os.environ.get("MISTRAL_API_KEY")

@@ -43,7 +43,7 @@
                         {% elif mensa == "Contine" %}
                             <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
                         {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                            <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner zu XXXLutz Empfehlungen">{{ mensa_emojis[mensa] }}</span>
+                            <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
                         {% else %}
                             {{ mensa_emojis[mensa] }}
                         {% endif %}
@@ -477,13 +477,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const darkCanerEmojiTrigger = document.getElementById('askDarkCanerEmojiTrigger');
     if (darkCanerEmojiTrigger && recommendationModal) {
         darkCanerEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Dark Caner durchsucht die Schatten der Kalorienwerte...';
-            showRecommendationPopup("Dark Caner\'s Düstere Weisheit", loadingMessage, '/static/img/darkcaner.png');
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Yo, Dark Caner checkt die Gerichte ab, bruder...';
+            showRecommendationPopup("Dark Caner\'s Gangsta Tipp", loadingMessage, '/static/img/darkcaner.png');
 
             const xxxLutzMealsForDarkCaner = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
 
             if (xxxLutzMealsForDarkCaner.length === 0) {
-                showRecommendationPopup("Dark Caner\'s Antwort", "Die Schatten sind leer... Keine Gerichte für meine dunklen Berechnungen gefunden.", '/static/img/darkcaner.png', true);
+                showRecommendationPopup("Dark Caner\'s Antwort", "Vallah bruder, hier gibt\'s nix zu checken... Keine Gerichte für meine krassen Berechnungen gefunden!", '/static/img/darkcaner.png', true);
                 return;
             }
 
@@ -500,14 +500,14 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    showRecommendationPopup("Dark Caner\'s Düstere Weisheit", data.recommendation, '/static/img/darkcaner.png');
+                    showRecommendationPopup("Dark Caner\'s Gangsta Tipp", data.recommendation, '/static/img/darkcaner.png');
                 } else {
                     throw new Error(data.error || "Unbekannter Fehler von Dark Caner.");
                 }
             })
             .catch(error => {
                 console.error('Error asking Dark Caner:', error);
-                showRecommendationPopup("Dark Caner Fehler", `Die dunklen Kräfte sind gestört: ${error.message}`, '/static/img/darkcaner.png', true);
+                showRecommendationPopup("Dark Caner Fehler", `Yo bruder, da ist was schiefgelaufen: ${error.message}`, '/static/img/darkcaner.png', true);
             });
         });
     }
