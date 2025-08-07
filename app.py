@@ -235,6 +235,79 @@ def refresh_mensa_xml_data():
 # Removed process_menu_image_and_update_meals function (now in data_fetcher.py)
 
 
+def get_xxxlutz_meals():
+    """Helper function to get XXXLutz meals from database"""
+    xxxlutz_meals = []
+
+    # Get changing meals
+    changing_meals = XXXLutzChangingMeal.query.all()
+    for meal in changing_meals:
+        xxxlutz_meals.append(
+            {
+                "id": str(meal.id),
+                "description": meal.description,
+                "marking": meal.marking,
+                # Handle potential None values for prices before formatting
+                "price_student": f"{(meal.price_student or 0.0):.2f}".replace(".", ","),
+                "price_employee": f"{(meal.price_employee or 0.0):.2f}".replace(
+                    ".", ","
+                ),
+                "price_guest": f"{(meal.price_guest or 0.0):.2f}".replace(".", ","),
+                "nutritional_values": meal.nutritional_values,
+                "category": "Wechselnde Gerichte Woche",
+            }
+        )
+
+    # Get fixed meals
+    fixed_meals = XXXLutzFixedMeal.query.all()
+    for meal in fixed_meals:
+        xxxlutz_meals.append(
+            {
+                "id": str(meal.id),
+                "description": meal.description,
+                "marking": meal.marking,
+                "price_student": f"{meal.price_student:.2f}".replace(".", ","),
+                "price_employee": f"{meal.price_employee:.2f}".replace(
+                    ".", ","
+                ),
+                "price_guest": f"{meal.price_guest:.2f}".replace(".", ","),
+                "nutritional_values": meal.nutritional_values,
+                "category": "Ständiges Angebot",
+            }
+        )
+
+    # Assign IDs to XXXLutz meals
+    for meal in xxxlutz_meals:
+        # First check if it's a changing meal
+        if meal["category"] == "Wechselnde Gerichte Woche":
+            db_meal = XXXLutzChangingMeal.query.filter_by(
+                description=meal["description"]
+            ).first()
+        else:
+            # Then check if it's a fixed meal
+            db_meal = XXXLutzFixedMeal.query.filter_by(
+                description=meal["description"]
+            ).first()
+
+        if db_meal:
+            meal["id"] = str(db_meal.id)
+        else:
+            # Create a synthetic ID for XXXLutz meals
+            # We'll use a negative number to distinguish them from regular meals
+            # and avoid conflicts with the database
+            meal["id"] = "-1"
+
+    # Sort the meals with the weekly meals first, followed by the static menu
+    sorted_xxxlutz_meals = sorted(
+        xxxlutz_meals,
+        key=lambda meal: 0
+        if meal["category"] == "Wechselnde Gerichte Woche"
+        else 1,
+    )
+
+    return sorted_xxxlutz_meals
+
+
 def perform_initial_app_loads():
     """Performs data loads required *directly* by the app at startup."""
     logger.info("Performing initial application data loads (Mensa XML)...")
@@ -418,77 +491,24 @@ def index():
 
         # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected
         if selected_mensa == "Mensa Garbsen":
-            # Get XXXLutz meals from database
-            xxxlutz_meals = []
-
-            # Get changing meals
-            changing_meals = XXXLutzChangingMeal.query.all()
-            for meal in changing_meals:
-                xxxlutz_meals.append(
-                    {
-                        "id": str(meal.id),
-                        "description": meal.description,
-                        "marking": meal.marking,
-                        # Handle potential None values for prices before formatting
-                        "price_student": f"{(meal.price_student or 0.0):.2f}".replace(".", ","),
-                        "price_employee": f"{(meal.price_employee or 0.0):.2f}".replace(
-                            ".", ","
-                        ),
-                        "price_guest": f"{(meal.price_guest or 0.0):.2f}".replace(".", ","),
-                        "nutritional_values": meal.nutritional_values,
-                        "category": "Wechselnde Gerichte Woche",
-                    }
-                )
-
-            # Get fixed meals
-            fixed_meals = XXXLutzFixedMeal.query.all()
-            for meal in fixed_meals:
-                xxxlutz_meals.append(
-                    {
-                        "id": str(meal.id),
-                        "description": meal.description,
-                        "marking": meal.marking,
-                        "price_student": f"{meal.price_student:.2f}".replace(".", ","),
-                        "price_employee": f"{meal.price_employee:.2f}".replace(
-                            ".", ","
-                        ),
-                        "price_guest": f"{meal.price_guest:.2f}".replace(".", ","),
-                        "nutritional_values": meal.nutritional_values,
-                        "category": "Ständiges Angebot",
-                    }
-                )
-
-            # Assign IDs to XXXLutz meals
-            for meal in xxxlutz_meals:
-                # First check if it's a changing meal
-                if meal["category"] == "Wechselnde Gerichte Woche":
-                    db_meal = XXXLutzChangingMeal.query.filter_by(
-                        description=meal["description"]
-                    ).first()
-                else:
-                    # Then check if it's a fixed meal
-                    db_meal = XXXLutzFixedMeal.query.filter_by(
-                        description=meal["description"]
-                    ).first()
-
-                if db_meal:
-                    meal["id"] = str(db_meal.id)
-                else:
-                    # Create a synthetic ID for XXXLutz meals
-                    # We'll use a negative number to distinguish them from regular meals
-                    # and avoid conflicts with the database
-                    meal["id"] = "-1"
-
-            # Sort the meals with the weekly meals first, followed by the static menu
-            sorted_xxxlutz_meals = sorted(
-                xxxlutz_meals,
-                key=lambda meal: 0
-                if meal["category"] == "Wechselnde Gerichte Woche"
-                else 1,
-            )
-
+            sorted_xxxlutz_meals = get_xxxlutz_meals()
             # Add to filtered data
             filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
+
+    # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected but has no meals on working days
+    if selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data:
+        # Check if it's a working day (Monday=0 to Friday=4)
+        try:
+            selected_date_obj = datetime.strptime(selected_date, "%d.%m.%Y")
+            is_working_day = selected_date_obj.weekday() < 5  # 0-4 are Mon-Fri
+            
+            if is_working_day:
+                sorted_xxxlutz_meals = get_xxxlutz_meals()
+                # Add to filtered data
+                filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
+                
+        except ValueError as e:
+            logger.warning(f"Could not parse selected_date '{selected_date}' for working day check: {e}")
 
     # If no mensa is selected, include others from allowed list
     if not selected_mensa or selected_mensa == "":
