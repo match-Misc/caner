@@ -34,7 +34,11 @@
                 {% endif %}
 
                 <span class="mensa-name-and-emoji-wrapper mx-auto text-center">
-                    <span class="mensa-name-text">{{ mensa }}</span>
+                    {% if mensa == "Mensa Garbsen" %}
+                        <span class="mensa-name-text" id="mensaGarbsenTextTrigger" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa }}</span>
+                    {% else %}
+                        <span class="mensa-name-text">{{ mensa }}</span>
+                    {% endif %}
                     <span class="ms-2">
                         {% if mensa == "Mensa Garbsen" %}
                             <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
@@ -452,6 +456,45 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ meals: allMealsForMarvin })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.recommendation) {
+                    showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
+                } else { 
+                    throw new Error(data.error || "Unbekannter Fehler von Marvin.");
+                }
+            })
+            .catch(error => {
+                console.error('Error asking Marvin:', error);
+                showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
+            });
+        });
+    }
+
+    // Mensa Garbsen Text Trigger (only Mensa meals, not XXXLutz)
+    const mensaGarbsenTextTrigger = document.getElementById('mensaGarbsenTextTrigger');
+    if (mensaGarbsenTextTrigger && recommendationModal) {
+        mensaGarbsenTextTrigger.addEventListener('click', function () {
+            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
+            showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
+
+            const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
+
+            if (garbsenMeals.length === 0) {
+                showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
+                return;
+            }
+
+            fetch('/api/get_marvin_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ meals: garbsenMeals })
             })
             .then(response => {
                 if (!response.ok) {

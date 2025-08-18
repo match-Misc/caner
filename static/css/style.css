@@ -203,6 +203,16 @@ body {
     text-align: center;
 }
 
+/* Clickable mensa text styling */
+#mensaGarbsenTextTrigger {
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+#mensaGarbsenTextTrigger:hover {
+    color: var(--primary-red);
+    text-decoration: underline;
+}
+
 /* Table styles */
 .meal-table {
     width: 100%;
