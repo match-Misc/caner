@@ -6,17 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const html = document.documentElement;
     const darkModeIcon = darkModeToggle.querySelector('i');
-    
+
     // Check if dark mode is already enabled in localStorage
     const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
-    
+
     // Set initial dark mode state (icon only, theme is set by inline script)
     if (isDarkMode) {
         // html.setAttribute('data-theme', 'dark'); // Redundant: This is now handled by the inline script in base.html
         darkModeIcon.classList.remove('fa-moon');
         darkModeIcon.classList.add('fa-sun');
     }
-    
+
     // Add click event listener to the dark mode toggle button
     darkModeToggle.addEventListener('click', function() {
         if (html.getAttribute('data-theme') === 'dark') {
@@ -33,6 +33,35 @@ document.addEventListener('DOMContentLoaded', function() {
             darkModeIcon.classList.add('fa-sun');
         }
     });
+
+    // Dashboard mode functionality
+    const dashboardModeToggle = document.getElementById('dashboardModeToggle');
+    let dashboardModeEnabled = localStorage.getItem('dashboardMode') === 'enabled';
+
+    function applyDashboardModeStyles() {
+        if (dashboardModeToggle) {
+            dashboardModeToggle.style.opacity = dashboardModeEnabled ? '1' : '0.5';
+        }
+    }
+
+    if (dashboardModeToggle) {
+        applyDashboardModeStyles(); // Apply initial state on load
+
+        dashboardModeToggle.addEventListener('click', function() {
+            dashboardModeEnabled = !dashboardModeEnabled; // Toggle the state
+            localStorage.setItem('dashboardMode', dashboardModeEnabled ? 'enabled' : 'disabled');
+            applyDashboardModeStyles();
+
+            // Reload the page with the dashboard parameter to apply the change
+            const url = new URL(window.location);
+            if (dashboardModeEnabled) {
+                url.searchParams.set('dashboard', 'true');
+            } else {
+                url.searchParams.delete('dashboard');
+            }
+            window.location.href = url.toString();
+        });
+    }
     
     // Make table rows clickable to show/hide nutritional information on mobile
     const mealRows = document.querySelectorAll('.meal-table tbody tr');

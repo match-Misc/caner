@@ -13,43 +13,50 @@ except ImportError:
     pass
 
 # --- Standard Library Imports ---
-import os
+import json
 import logging
-import requests
+import os
+import re  # Added import for regular expressions
+
+# import threading # Removed, scheduler moved out
+import sys
+
 # import shutil # Removed, no longer needed
 # import subprocess # Removed, no longer needed
 import time
-import uuid
-import json
+
 # import base64 # Removed, no longer needed
 import traceback
-# import threading # Removed, scheduler moved out
-import sys
-import re # Added import for regular expressions
-from datetime import datetime, date # Removed timedelta import
-from sqlalchemy import text # Import text for raw SQL expressions
-import mistune # Import mistune for markdown to HTML conversion
+import uuid
+from datetime import date, datetime  # Removed timedelta import
 
-# --- Third-Party Imports ---
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify,
-    make_response,
-    send_from_directory,
-)
-from werkzeug.middleware.proxy_fix import ProxyFix
+import mistune  # Import mistune for markdown to HTML conversion
+import requests
+
 # from pdf2image import convert_from_path # Removed, no longer needed
 # from selenium import webdriver # Removed, no longer needed
 # from selenium.webdriver.firefox.options import Options # Removed, no longer needed
 # from selenium.webdriver.firefox.service import Service as FirefoxService # Removed, no longer needed
 from dotenv import load_dotenv
 
-# --- Application-Specific Imports ---
-from utils.xml_parser import parse_mensa_data, get_available_mensen, get_available_dates
-from models import db, Meal, XXXLutzChangingMeal, XXXLutzFixedMeal, MealVote, PageView
+# --- Third-Party Imports ---
+from flask import (
+    Flask,
+    jsonify,
+    make_response,
+    render_template,
+    request,
+    send_from_directory,
+)
+from sqlalchemy import text  # Import text for raw SQL expressions
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from data_loader import load_xml_data_to_db, load_xxxlutz_meals
+from models import Meal, MealVote, PageView, XXXLutzChangingMeal, XXXLutzFixedMeal, db
+
+# --- Application-Specific Imports ---
+from utils.xml_parser import get_available_dates, get_available_mensen, parse_mensa_data
+
 # NOTE: We don't import from data_fetcher here as it's meant to be run separately (e.g., via cron)
 
 # Increase recursion limit (Keep this relatively high up)
@@ -73,19 +80,19 @@ def markdown_to_html(text):
     """Convert markdown text to HTML using mistune"""
     if not text:
         return text
-    
+
     # Create mistune renderer
     markdown = mistune.create_markdown()
-    
+
     # Convert markdown to HTML
     html = markdown(text)
-    
+
     # Remove any wrapping <p> tags and newlines since we're dealing with short snippets
     # This prevents extra spacing in the modal display
     html = html.strip()
-    if html.startswith('<p>') and html.endswith('</p>'):
+    if html.startswith("<p>") and html.endswith("</p>"):
         html = html[3:-4]
-    
+
     return html
 
 
@@ -139,7 +146,7 @@ MIN_MENU_HG_PNG_SIZE_BYTES = 50 * 1024  # Keep for image route check
 
 # --- START: Periodic data refresh settings ---
 # XML refresh is now scheduled for a specific time (11 AM CET), not a fixed interval.
-last_xml_refresh_time = 0 
+last_xml_refresh_time = 0
 # last_vouchers_refresh_time = 0 # Removed, handled externally or via cron
 # last_menu_hg_refresh_time = 0 # Removed, handled externally or via cron
 # --- END: Periodic data refresh settings ---
@@ -177,7 +184,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_POOL_RECYCLE"] = 300 # Recycle connections every 5 minutes
+app.config["SQLALCHEMY_POOL_RECYCLE"] = 300  # Recycle connections every 5 minutes
 
 # Initialize the database - moved db.init_app(app) inside app_context below
 
@@ -226,6 +233,7 @@ def refresh_mensa_xml_data():
         logger.error(traceback.format_exc())
         return False
 
+
 # Removed refresh_xxxlutz_vouchers function (now in data_fetcher.py)
 # Removed refresh_menu_hg_and_process function (now in data_fetcher.py)
 
@@ -233,6 +241,291 @@ def refresh_mensa_xml_data():
 # Removed get_pdf function (now in data_fetcher.py)
 # Removed download_and_manage_xxxlutz_vouchers function (now in data_fetcher.py)
 # Removed process_menu_image_and_update_meals function (now in data_fetcher.py)
+
+
+def calculate_mps_for_meal(meal_description):
+    """Calculate MPS score for a single meal using the API with retry logic"""
+    max_retries = 3
+    base_delay = 2  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            api_key = os.environ.get("MISTRAL_API_KEY")
+            if not api_key:
+                logger.error("MISTRAL_API_KEY not found for MPS calculation")
+                return None
+
+            # Prepare the German prompt for Max's fitness preferences
+            prompt = (
+                "Du bist Max, ein Fitness-Enthusiast, der sich strikt an eine bestimmte Ernährung hält. "
+                "Max meidet konsequent alles, was mit Gemüse oder Obst zu tun hat – das betrifft nicht nur offensichtliche Zutaten wie Zucchini, Paprika oder Äpfel, sondern auch Dinge wie Salat, Zwiebeln, Pilze oder Beeren. Auch Fisch lehnt er komplett ab, unabhängig von der Zubereitungsart. Er bevorzugt klare, einfache Gerichte ohne „grünes Zeug“ oder pflanzliche Komponenten, die im Geschmack dominant sind.\n\n"
+                "Dafür isst Max gerne herzhafte, proteinreiche Speisen wie Fleischgerichte (z. B. Schwein, Rind, Huhn), Käse oder Eier. Aufgrund seines regelmäßigen Trainings im Fitnessstudio legt er zudem Wert auf einen hohen Proteingehalt, weshalb eiweißreiche Mahlzeiten bei ihm besonders gut ankommen. Neutrale Beilagen wie Reis, Kartoffeln oder Pasta sind für ihn in Ordnung, solange sie nicht mit Gemüse kombiniert sind. Süßspeisen ohne Obst sind ebenfalls gern gesehen.\n\n"
+                f"Bewerte das folgende Gericht auf einer Skala von 0 bis 100, wobei 100 die perfekte Übereinstimmung mit Max' Vorlieben darstellt:\n\n"
+                f"Gericht: {meal_description}\n\n"
+                "Gib nur eine Zahl zwischen 0 und 100 zurück, die die Bewertung darstellt. Kein zusätzlicher Text."
+            )
+
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            }
+
+            response = requests.post(
+                "https://api.mistral.ai/v1/chat/completions",
+                headers=headers,
+                json={
+                    "model": "mistral-small-latest",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.3,
+                    "max_tokens": 10,
+                },
+                timeout=30,  # Add timeout
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                mps_text = (
+                    result.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                    .strip()
+                )
+
+                try:
+                    mps_score = float(mps_text)
+                    return max(0, min(100, mps_score))  # Ensure 0-100 range
+                except ValueError:
+                    logger.warning(f"Could not parse MPS score: {mps_text}")
+                    return None
+
+            elif response.status_code == 429:
+                # Rate limit exceeded - wait and retry
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2**attempt)  # Exponential backoff
+                    logger.warning(
+                        f"Rate limit exceeded, retrying in {delay} seconds (attempt {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error(f"Rate limit exceeded after {max_retries} attempts")
+                    return None
+
+            elif response.status_code >= 500:
+                # Server error - wait and retry
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2**attempt)
+                    logger.warning(
+                        f"Server error {response.status_code}, retrying in {delay} seconds (attempt {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error(
+                        f"Server error {response.status_code} after {max_retries} attempts"
+                    )
+                    return None
+
+            else:
+                logger.error(
+                    f"Mistral API error: {response.status_code} - {response.text}"
+                )
+                return None
+
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                delay = base_delay * (2**attempt)
+                logger.warning(
+                    f"Request timeout, retrying in {delay} seconds (attempt {attempt + 1}/{max_retries})"
+                )
+                time.sleep(delay)
+                continue
+            else:
+                logger.error(f"Request timeout after {max_retries} attempts")
+                return None
+
+        except Exception as e:
+            logger.error(f"Error calculating MPS: {str(e)}")
+            if attempt < max_retries - 1:
+                delay = base_delay * (2**attempt)
+                logger.warning(
+                    f"Exception occurred, retrying in {delay} seconds (attempt {attempt + 1}/{max_retries})"
+                )
+                time.sleep(delay)
+                continue
+            else:
+                return None
+
+    return None
+
+
+def batch_calculate_mps_scores():
+    """Calculate MPS scores for meals that don't have them yet"""
+    try:
+        logger.info("Starting batch MPS calculation...")
+
+        # Count total meals missing MPS scores before starting
+        regular_meals_count = Meal.query.filter(Meal.mps_score.is_(None)).count()
+        xxxlutz_changing_count = XXXLutzChangingMeal.query.filter(
+            XXXLutzChangingMeal.mps_score.is_(None)
+        ).count()
+        xxxlutz_fixed_count = XXXLutzFixedMeal.query.filter(
+            XXXLutzFixedMeal.mps_score.is_(None)
+        ).count()
+
+        total_missing = (
+            regular_meals_count + xxxlutz_changing_count + xxxlutz_fixed_count
+        )
+        logger.info(f"Found {total_missing} meals total missing MPS scores:")
+        logger.info(f"  - {regular_meals_count} regular meals")
+        logger.info(f"  - {xxxlutz_changing_count} XXXLutz changing meals")
+        logger.info(f"  - {xxxlutz_fixed_count} XXXLutz fixed meals")
+
+        if total_missing == 0:
+            logger.info("No meals missing MPS scores. Skipping calculation.")
+            return
+
+        total_processed = 0
+        current_progress = 0
+
+        # Calculate for regular meals
+        meals_without_mps = Meal.query.filter(Meal.mps_score.is_(None)).all()
+        logger.info(f"Processing {len(meals_without_mps)} regular meals...")
+
+        for i, meal in enumerate(meals_without_mps, 1):
+            # Double-check that this meal still doesn't have an MPS score
+            # (in case it was calculated by another process or got updated)
+            db.session.refresh(meal)
+            if meal.mps_score is not None:
+                logger.debug(f"Skipping meal {meal.id} - MPS score already exists")
+                continue
+
+            logger.info(
+                f"Processing regular meal {i}/{len(meals_without_mps)} (total: {current_progress + 1}/{total_missing})"
+            )
+            mps_score = calculate_mps_for_meal(meal.description)
+            if mps_score is not None:
+                meal.mps_score = mps_score
+                total_processed += 1
+                # Commit immediately after successful calculation
+                try:
+                    db.session.commit()
+                    logger.info(
+                        f"✓ Calculated and committed MPS {mps_score} for meal: {meal.description[:50]}..."
+                    )
+                except Exception as commit_error:
+                    logger.error(
+                        f"❌ Failed to commit MPS for meal {meal.id}: {commit_error}"
+                    )
+                    db.session.rollback()
+                    continue
+            else:
+                logger.warning(
+                    f"✗ Failed to calculate MPS for meal: {meal.description[:50]}..."
+                )
+            current_progress += 1
+            # Add a small delay between API calls to avoid rate limiting
+            time.sleep(0.5)
+
+        # Calculate for XXXLutz changing meals
+        xxxlutz_changing_without_mps = XXXLutzChangingMeal.query.filter(
+            XXXLutzChangingMeal.mps_score.is_(None)
+        ).all()
+        logger.info(
+            f"Processing {len(xxxlutz_changing_without_mps)} XXXLutz changing meals..."
+        )
+
+        for i, meal in enumerate(xxxlutz_changing_without_mps, 1):
+            # Double-check that this meal still doesn't have an MPS score
+            db.session.refresh(meal)
+            if meal.mps_score is not None:
+                logger.debug(
+                    f"Skipping XXXLutz changing meal {meal.id} - MPS score already exists"
+                )
+                continue
+
+            logger.info(
+                f"Processing XXXLutz changing meal {i}/{len(xxxlutz_changing_without_mps)} (total: {current_progress + 1}/{total_missing})"
+            )
+            mps_score = calculate_mps_for_meal(meal.description)
+            if mps_score is not None:
+                meal.mps_score = mps_score
+                total_processed += 1
+                # Commit immediately after successful calculation
+                try:
+                    db.session.commit()
+                    logger.info(
+                        f"✓ Calculated and committed MPS {mps_score} for XXXLutz changing meal: {meal.description[:50]}..."
+                    )
+                except Exception as commit_error:
+                    logger.error(
+                        f"❌ Failed to commit MPS for XXXLutz changing meal {meal.id}: {commit_error}"
+                    )
+                    db.session.rollback()
+                    continue
+            else:
+                logger.warning(
+                    f"✗ Failed to calculate MPS for XXXLutz changing meal: {meal.description[:50]}..."
+                )
+            current_progress += 1
+            # Add a small delay between API calls to avoid rate limiting
+            time.sleep(0.5)
+
+        # Calculate for XXXLutz fixed meals
+        xxxlutz_fixed_without_mps = XXXLutzFixedMeal.query.filter(
+            XXXLutzFixedMeal.mps_score.is_(None)
+        ).all()
+        logger.info(
+            f"Processing {len(xxxlutz_fixed_without_mps)} XXXLutz fixed meals..."
+        )
+
+        for i, meal in enumerate(xxxlutz_fixed_without_mps, 1):
+            # Double-check that this meal still doesn't have an MPS score
+            db.session.refresh(meal)
+            if meal.mps_score is not None:
+                logger.debug(
+                    f"Skipping XXXLutz fixed meal {meal.id} - MPS score already exists"
+                )
+                continue
+
+            logger.info(
+                f"Processing XXXLutz fixed meal {i}/{len(xxxlutz_fixed_without_mps)} (total: {current_progress + 1}/{total_missing})"
+            )
+            mps_score = calculate_mps_for_meal(meal.description)
+            if mps_score is not None:
+                meal.mps_score = mps_score
+                total_processed += 1
+                # Commit immediately after successful calculation
+                try:
+                    db.session.commit()
+                    logger.info(
+                        f"✓ Calculated and committed MPS {mps_score} for XXXLutz fixed meal: {meal.description[:50]}..."
+                    )
+                except Exception as commit_error:
+                    logger.error(
+                        f"❌ Failed to commit MPS for XXXLutz fixed meal {meal.id}: {commit_error}"
+                    )
+                    db.session.rollback()
+                    continue
+            else:
+                logger.warning(
+                    f"✗ Failed to calculate MPS for XXXLutz fixed meal: {meal.description[:50]}..."
+                )
+            current_progress += 1
+            # Add a small delay between API calls to avoid rate limiting
+            time.sleep(0.5)
+
+        # All commits are done individually above
+        logger.info(f"Batch MPS calculation completed successfully!")
+        logger.info(
+            f"Summary: {total_processed}/{total_missing} meals processed and committed successfully"
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error in batch MPS calculation: {str(e)}")
+        logger.error(traceback.format_exc())
 
 
 def get_xxxlutz_meals():
@@ -267,16 +560,14 @@ def get_xxxlutz_meals():
                 "description": meal.description,
                 "marking": meal.marking,
                 "price_student": f"{meal.price_student:.2f}".replace(".", ","),
-                "price_employee": f"{meal.price_employee:.2f}".replace(
-                    ".", ","
-                ),
+                "price_employee": f"{meal.price_employee:.2f}".replace(".", ","),
                 "price_guest": f"{meal.price_guest:.2f}".replace(".", ","),
                 "nutritional_values": meal.nutritional_values,
                 "category": "Ständiges Angebot",
             }
         )
 
-    # Assign IDs to XXXLutz meals
+    # Assign IDs and MPS scores to XXXLutz meals
     for meal in xxxlutz_meals:
         # First check if it's a changing meal
         if meal["category"] == "Wechselnde Gerichte Woche":
@@ -291,18 +582,18 @@ def get_xxxlutz_meals():
 
         if db_meal:
             meal["id"] = str(db_meal.id)
+            meal["mps_score"] = db_meal.mps_score
         else:
             # Create a synthetic ID for XXXLutz meals
             # We'll use a negative number to distinguish them from regular meals
             # and avoid conflicts with the database
             meal["id"] = "-1"
+            meal["mps_score"] = None
 
     # Sort the meals with the weekly meals first, followed by the static menu
     sorted_xxxlutz_meals = sorted(
         xxxlutz_meals,
-        key=lambda meal: 0
-        if meal["category"] == "Wechselnde Gerichte Woche"
-        else 1,
+        key=lambda meal: 0 if meal["category"] == "Wechselnde Gerichte Woche" else 1,
     )
 
     return sorted_xxxlutz_meals
@@ -322,7 +613,7 @@ def perform_initial_app_loads():
 
 
 # Create tables and load data (Startup Sequence)
-with app.app_context(): # Needed for db.create_all() and initial loads
+with app.app_context():  # Needed for db.create_all() and initial loads
     # Initialize the database within the app context
     db.init_app(app)
     logger.info("SQLAlchemy initialized within app context.")
@@ -331,7 +622,6 @@ with app.app_context(): # Needed for db.create_all() and initial loads
     mensa_data = {}  # Populated by refresh_mensa_xml_data
     available_mensen = []  # Populated by refresh_mensa_xml_data
     available_dates = []  # Populated by refresh_mensa_xml_data
-
 
     # Create database tables and perform initial data loads
     # No longer need a nested context here as db is initialized in the outer one
@@ -348,7 +638,11 @@ with app.app_context(): # Needed for db.create_all() and initial loads
 
     # Perform initial loads needed *by the app* itself
     # Voucher/Menu data is assumed to be populated by the external data_fetcher script (e.g., via cron)
-    perform_initial_app_loads() # This now only loads Mensa XML
+    perform_initial_app_loads()  # This now only loads Mensa XML
+
+    # Calculate MPS scores for any meals that don't have them yet
+    logger.info("Checking for missing MPS scores and calculating them...")
+    batch_calculate_mps_scores()
 
 
 @app.route("/")
@@ -377,6 +671,7 @@ def index():
 
     selected_date = request.args.get("date")
     selected_mensa = request.args.get("mensa")
+    dashboard_mode = request.args.get("dashboard") == "true"
 
     # Get today's date in the format used in the data
     today = datetime.now().strftime("%d.%m.%Y")
@@ -466,19 +761,28 @@ def index():
     if selected_mensa in mensa_data and selected_date in mensa_data[selected_mensa]:
         meals = mensa_data[selected_mensa][selected_date]
 
-        # Look up IDs from the database for each meal with error handling
+        # Look up IDs and MPS scores from the database for each meal with error handling
         for meal in meals:
             try:
                 # Find the meal in the database by description
                 db_meal = Meal.query.filter_by(description=meal["description"]).first()
                 if db_meal:
                     meal["id"] = db_meal.id
+                    meal["mps_score"] = db_meal.mps_score
+                    logger.debug(
+                        f"Found MPS score {db_meal.mps_score} for meal: {meal['description'][:50]}..."
+                    )
                 else:
                     # If not found, use a placeholder ID
                     meal["id"] = 0
+                    meal["mps_score"] = None
+                    logger.warning(
+                        f"Meal not found in database: {meal['description'][:50]}..."
+                    )
             except Exception as e:
                 logger.error(f"Error looking up meal in database: {e}")
                 meal["id"] = 0  # Use placeholder ID in case of error
+                meal["mps_score"] = None
 
         sorted_meals = sorted(
             meals,
@@ -489,26 +793,31 @@ def index():
         )
         filtered_data[selected_mensa] = sorted_meals
 
-        # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected
-        if selected_mensa == "Mensa Garbsen":
+        # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected OR if dashboard mode
+        if selected_mensa == "Mensa Garbsen" or dashboard_mode:
             sorted_xxxlutz_meals = get_xxxlutz_meals()
             # Add to filtered data
             filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
 
     # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected but has no meals on working days
-    if selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data:
-        # Check if it's a working day (Monday=0 to Friday=4)
+    # OR if dashboard mode is enabled
+    if (selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data) or (
+        dashboard_mode and "XXXLutz Hesse Markrestaurant" not in filtered_data
+    ):
+        # Check if it's a working day (Monday=0 to Friday=4) or if dashboard mode
         try:
             selected_date_obj = datetime.strptime(selected_date, "%d.%m.%Y")
             is_working_day = selected_date_obj.weekday() < 5  # 0-4 are Mon-Fri
-            
-            if is_working_day:
+
+            if is_working_day or dashboard_mode:
                 sorted_xxxlutz_meals = get_xxxlutz_meals()
                 # Add to filtered data
                 filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
-                
+
         except ValueError as e:
-            logger.warning(f"Could not parse selected_date '{selected_date}' for working day check: {e}")
+            logger.warning(
+                f"Could not parse selected_date '{selected_date}' for working day check: {e}"
+            )
 
     # If no mensa is selected, include others from allowed list
     if not selected_mensa or selected_mensa == "":
@@ -574,6 +883,7 @@ def index():
             selected_mensa=selected_mensa,
             mensa_emojis=mensa_emojis,
             page_views=current_page_views,
+            dashboard_mode=dashboard_mode,
         )
     except RecursionError as e:
         logger.error(f"RecursionError in index route: {e}")
@@ -731,8 +1041,8 @@ def calculate_rkr_nominal(protein_g, price_student):
                 f"Invalid protein_g input in calculate_rkr_nominal: Received '{protein_g}' (type: {type(protein_g)}). Cannot calculate Rkr nominal."
             )
             return 0.0
-        
-        if protein_g == 0: # Avoid division by zero if protein is 0
+
+        if protein_g == 0:  # Avoid division by zero if protein is 0
             return 0.0
 
         return round(protein_g / price, 2)
@@ -751,14 +1061,104 @@ def calculate_rkr_nominal(protein_g, price_student):
 
 
 PENALTY_KEYWORDS = [
-    "gemüse", "erbsen", "bohnen", "champignons", "pilze",
-    "cremige tomatensauce", "mais", "pflanzlich", "vegan",
-    "pilz", "spargel", "broccoli", "karotten"
+    # Vegetables
+    "zucchini",
+    "paprika",
+    "karotten",
+    "brokkoli",
+    "blumenkohl",
+    "spinat",
+    "aubergine",
+    "erbsen",
+    "bohnen",
+    "spargel",
+    "lauch",
+    "sellerie",
+    "zwiebeln",
+    "knoblauch",
+    "schalotten",
+    "salat",
+    "rucola",
+    "feldsalat",
+    "eisbergsalat",
+    # Mushrooms
+    "champignons",
+    "pfifferlinge",
+    "steinpilze",
+    "pilze",
+    # Fruits
+    "äpfel",
+    "birnen",
+    "quitten",
+    "kirschen",
+    "pflaumen",
+    "aprikosen",
+    "pfirsiche",
+    "nektarinen",
+    "erdbeeren",
+    "himbeeren",
+    "heidelbeeren",
+    "brombeeren",
+    "johannisbeeren",
+    "orangen",
+    "mandarinen",
+    "zitronen",
+    "limetten",
+    "grapefruits",
+    "bananen",
+    "ananas",
+    "mango",
+    "kiwi",
+    "melonen",
+    "rosinen",
+    "getrocknete pflaumen",
+    "datteln",
+    # Fish & Seafood
+    "lachs",
+    "thunfisch",
+    "forelle",
+    "kabeljau",
+    "hering",
+    "garnelen",
+    "krabben",
+    "muscheln",
+    "austern",
+    "tintenfisch",
+    "hummer",
+    # Hidden Vegetables/Fruits
+    "gemüseaufläufe",
+    "gratins mit gemüse",
+    "pizza mit gemüse oder pilzen",
+    "wraps mit salat",
+    "sandwiches mit gemüse",
+    "burger mit tomaten oder gurken",
+    "soßen mit gemüsebasis",
+    "tomatensoße",
+    "ratatouille",
+    "gemüsesuppe",
+    "desserts mit obst",
+    "apfelkuchen",
+    "erdbeertorte",
+    "obstsalat",
+    # Plant-based Components
+    "viel petersilie",
+    "basilikum",
+    "koriander",
+    "dill",
+    "soja-fleischalternativen",
+    "gemüse-fleischalternativen",
+    "gemüsesäfte",
+    "smoothies",
+    "karottensaft",
+    "multivitaminsaft",
 ]
+
 
 @app.template_filter("calculate_rkr_real")
 def calculate_rkr_real(protein_g, price_student, meal_description):
-    rkr_value = calculate_rkr_nominal(protein_g, price_student)  # This is already rounded to 2 decimal places
+    rkr_value = calculate_rkr_nominal(
+        protein_g, price_student
+    )  # This is already rounded to 2 decimal places
 
     if rkr_value == 0.0:  # If nominal is 0, no point in further processing
         return 0.0
@@ -769,17 +1169,17 @@ def calculate_rkr_real(protein_g, price_student, meal_description):
         description_lower = meal_description.lower()
     else:
         # If meal_description is None or not a string, or empty, no penalties can be applied
-        return rkr_value 
+        return rkr_value
 
-    # Special handling for "erbsen" - divide by 10
+    # Special handling for "erbsen" - multiply by -1 (make negative)
     if "erbsen" in description_lower:
-        rkr_value /= 10
-    
+        rkr_value *= -1
+
     # Apply regular penalties for other keywords (excluding "erbsen")
     for keyword in PENALTY_KEYWORDS:
         if keyword != "erbsen" and keyword in description_lower:
             rkr_value /= 2
-    
+
     # The result of rkr_value / 2 operations might result in more than 2 decimal places
     # So we round again at the end.
     return round(rkr_value, 2)
@@ -862,6 +1262,7 @@ def get_dietary_info(marking):
 
     return " ".join(emoji_spans)
 
+
 @app.template_filter("format_nutritional_values")
 def format_nutritional_values(value_str):
     if not value_str or not isinstance(value_str, str):
@@ -870,9 +1271,9 @@ def format_nutritional_values(value_str):
     # Regex to split by comma BUT not if the comma is followed by a digit and then a letter (e.g., "2,9g")
     # This aims to split between "key=value" pairs like "Eiweiß=25,7g, Salz=2,1g"
     # It splits on commas that are likely delimiters between nutrient entries.
-    parts = re.split(r',\s*(?=[A-Za-zÀ-ÖØ-öø-ÿ]+[=])', value_str)
+    parts = re.split(r",\s*(?=[A-Za-zÀ-ÖØ-öø-ÿ]+[=])", value_str)
 
-    if not parts or (len(parts) == 1 and '=' not in parts[0]):
+    if not parts or (len(parts) == 1 and "=" not in parts[0]):
         # If splitting didn't work or only one non-key-value part, return a formatted message
         # This might happen if the format is very different from expected.
         return f"<p class='text-muted'><small>Nährwerte: {value_str}</small></p>"
@@ -881,30 +1282,31 @@ def format_nutritional_values(value_str):
     for part in parts:
         part = part.strip()
         if "=" in part:
-            key_value = part.split('=', 1)
+            key_value = part.split("=", 1)
             key = key_value[0].strip()
             value = key_value[1].strip() if len(key_value) > 1 else ""
-            
+
             # Special handling for Brennwert to put (kcal) in small tags
             # This should be applied before splitting for "davon", so it operates on the full value if Brennwert itself has sub-parts.
             if "Brennwert" in key and "kcal" in value:
                 # Make the (xxx kcal) part smaller and wrap kJ if also present
-                value = re.sub(r'\(([^)]+kcal[^)]*)\)', r'(<small>\1</small>)', value)
+                value = re.sub(r"\(([^)]+kcal[^)]*)\)", r"(<small>\1</small>)", value)
 
             # Handle "davon" constituents for the current nutrient value
-            processed_value = value # Default to original value (after brennwert modification if applicable)
-            if ", davon " in value: # Check in the potentially modified value
+            processed_value = value  # Default to original value (after brennwert modification if applicable)
+            if ", davon " in value:  # Check in the potentially modified value
                 value_components = value.split(", davon ", 1)
                 # Ensure the "davon" part is not bold, and is on a new line.
                 processed_value = f"{value_components[0].strip()}<br>davon {value_components[1].strip()}"
-            
-            html_output += f'<li><strong>{key}:</strong> {processed_value}</li>'
-        elif part: # Only add if part is not empty after stripping
+
+            html_output += f"<li><strong>{key}:</strong> {processed_value}</li>"
+        elif part:  # Only add if part is not empty after stripping
             # Fallback for parts not in key=value format (should be less common now)
-            html_output += f'<li>{part}</li>' 
-            
-    html_output += '</ul>'
+            html_output += f"<li>{part}</li>"
+
+    html_output += "</ul>"
     return html_output
+
 
 # Get or create a client ID from cookie
 def get_client_id():
@@ -932,6 +1334,7 @@ def has_voted_today(meal_id, client_id):
         meal_id=meal_id_int, client_id=client_id, date=today
     ).first()
     return vote is not None
+
 
 # AP health check route
 @app.route("/health", methods=["GET"])
@@ -1051,7 +1454,7 @@ def download_voucher(voucher_type):
     """
     static_folder = app.static_folder if app.static_folder else "static"
     vouchers_dir = os.path.join(static_folder, "vouchers")
-    os.makedirs(vouchers_dir, exist_ok=True) # Ensure directory exists
+    os.makedirs(vouchers_dir, exist_ok=True)  # Ensure directory exists
 
     if voucher_type == "new":
         filename = "neue_gutscheine.pdf"
@@ -1091,13 +1494,14 @@ def download_menu_hg_pdf():
     """
     static_folder = app.static_folder if app.static_folder else "static"
     menu_dir = os.path.join(static_folder, "menu")
-    os.makedirs(menu_dir, exist_ok=True) # Ensure directory exists
+    os.makedirs(menu_dir, exist_ok=True)  # Ensure directory exists
     filename = "menu_hg.pdf"
     pdf_path = os.path.join(menu_dir, filename)
 
     if (
         not os.path.exists(pdf_path)
-        or os.path.getsize(pdf_path) < MIN_MENU_HG_PDF_SIZE_BYTES # Use constant defined in this file
+        or os.path.getsize(pdf_path)
+        < MIN_MENU_HG_PDF_SIZE_BYTES  # Use constant defined in this file
     ):
         logger.warning(
             f"Menu HG PDF ({pdf_path}) not found or too small. It may be updating or the data fetcher script hasn't run."
@@ -1113,7 +1517,7 @@ def download_menu_hg_pdf():
         filename,
         as_attachment=True,
         mimetype="application/pdf",
-        download_name="menu_hg.pdf", # Keep original download name
+        download_name="menu_hg.pdf",  # Keep original download name
     )
 
 
@@ -1125,14 +1529,15 @@ def get_menu_hg_image():
     """
     static_folder = app.static_folder if app.static_folder else "static"
     menu_dir = os.path.join(static_folder, "menu")
-    os.makedirs(menu_dir, exist_ok=True) # Ensure directory exists
+    os.makedirs(menu_dir, exist_ok=True)  # Ensure directory exists
 
     png_filename = "menu_hg.png"
     png_path = os.path.join(menu_dir, png_filename)
 
     if (
         not os.path.exists(png_path)
-        or os.path.getsize(png_path) < MIN_MENU_HG_PNG_SIZE_BYTES # Use constant defined in this file
+        or os.path.getsize(png_path)
+        < MIN_MENU_HG_PNG_SIZE_BYTES  # Use constant defined in this file
     ):
         logger.warning(
             f"Menu HG PNG ({png_path}) not found or too small. It may be updating or the data fetcher script hasn't run/failed conversion."
@@ -1204,10 +1609,10 @@ def get_trump_recommendation():
                 recommendation = recommendation.strip("`")
             # Trim any leading phrases
             recommendation = recommendation.strip()
-            
+
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
-            
+
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
@@ -1280,10 +1685,10 @@ def get_bob_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
-            
+
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
-            
+
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
@@ -1449,10 +1854,10 @@ def get_dark_caner_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
-            
+
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
-            
+
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
@@ -1464,5 +1869,83 @@ def get_dark_caner_recommendation():
 
     except Exception as e:
         logger.error(f"Error in get_dark_caner_recommendation: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/get_mps_score", methods=["POST"])
+def get_mps_score():
+    """Get Max Pumper Score for a meal using Mistral AI"""
+    try:
+        data = request.json
+        if data is None:
+            return jsonify({"error": "Invalid JSON provided"}), 400
+
+        meal_description = data.get("meal_description", "")
+        if not meal_description:
+            return jsonify({"error": "No meal description provided"}), 400
+
+        # Prepare the German prompt for Max's fitness preferences
+        prompt = (
+            "Du bist Max, ein Fitness-Enthusiast, der sich strikt an eine bestimmte Ernährung hält. "
+            "Max meidet konsequent alles, was mit Gemüse oder Obst zu tun hat – das betrifft nicht nur offensichtliche Zutaten wie Zucchini, Paprika oder Äpfel, sondern auch Dinge wie Salat, Zwiebeln, Pilze oder Beeren. Auch Fisch lehnt er komplett ab, unabhängig von der Zubereitungsart. Er bevorzugt klare, einfache Gerichte ohne „grünes Zeug“ oder pflanzliche Komponenten, die im Geschmack dominant sind.\n\n"
+            "Dafür isst Max gerne herzhafte, proteinreiche Speisen wie Fleischgerichte (z. B. Schwein, Rind, Huhn), Käse oder Eier. Aufgrund seines regelmäßigen Trainings im Fitnessstudio legt er zudem Wert auf einen hohen Proteingehalt, weshalb eiweißreiche Mahlzeiten bei ihm besonders gut ankommen. Neutrale Beilagen wie Reis, Kartoffeln oder Pasta sind für ihn in Ordnung, solange sie nicht mit Gemüse kombiniert sind. Süßspeisen ohne Obst sind ebenfalls gern gesehen.\n\n"
+            f"Bewerte das folgende Gericht auf einer Skala von 0 bis 100, wobei 100 die perfekte Übereinstimmung mit Max' Vorlieben darstellt:\n\n"
+            f"Gericht: {meal_description}\n\n"
+            "Gib nur eine Zahl zwischen 0 und 100 zurück, die die Bewertung darstellt. Kein zusätzlicher Text."
+        )
+
+        api_key = os.environ.get("MISTRAL_API_KEY")
+        if not api_key:
+            logger.error(
+                "MISTRAL_API_KEY not found in environment for MPS calculation."
+            )
+            return jsonify({"error": "Mistral API key not configured"}), 500
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        }
+
+        response = requests.post(
+            "https://api.mistral.ai/v1/chat/completions",
+            headers=headers,
+            json={
+                "model": "mistral-small-latest",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3,  # Lower temperature for more consistent scoring
+                "max_tokens": 10,  # Only need a number
+            },
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            mps_text = (
+                result.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+                .strip()
+            )
+
+            # Extract numeric value from response
+            try:
+                mps_score = float(mps_text)
+                # Ensure score is within 0-100 range
+                mps_score = max(0, min(100, mps_score))
+                return jsonify({"mps_score": mps_score})
+            except ValueError:
+                logger.warning(f"Could not parse MPS score from response: {mps_text}")
+                return jsonify({"error": "Invalid MPS score format from AI"}), 500
+        else:
+            logger.error(
+                f"Mistral API error for MPS: {response.status_code} - {response.text}"
+            )
+            return jsonify(
+                {"error": "Error from Mistral API", "details": response.text}
+            ), 500
+
+    except Exception as e:
+        logger.error(f"Error in get_mps_score: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500

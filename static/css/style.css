@@ -871,6 +871,29 @@ a.github-link {
     color: var(--primary-yellow); /* Match other footer icons in dark mode */
 }
 
+#dashboardModeToggle {
+    background-color: var(--bg-counter);
+    color: var(--color-counter);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+    box-sizing: border-box;
+}
+
+#dashboardModeToggle:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] #dashboardModeToggle {
+    color: var(--primary-yellow);
+}
+
 /* Vertically align icon if needed, fa-lg should handle size */
 a.github-link i.fa-github {
     line-height: 1; /* Helps with precise vertical centering of Font Awesome icons */
