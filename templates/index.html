@@ -41,7 +41,7 @@
 
                                 <span class="mensa-name-and-emoji-wrapper mx-auto text-center">
                                     {% if mensa == "Mensa Garbsen" %}
-                                        <span class="mensa-name-text" id="mensaGarbsenTextTrigger" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa }}</span>
+                                        <span class="mensa-name-text">{{ mensa }}</span>
                                     {% else %}
                                         <span class="mensa-name-text">{{ mensa }}</span>
                                     {% endif %}
@@ -343,13 +343,13 @@
 
                 <span class="mensa-name-and-emoji-wrapper mx-auto text-center">
                     {% if mensa == "Mensa Garbsen" %}
-                        <span class="mensa-name-text" id="mensaGarbsenTextTrigger" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa }}</span>
+                        <span class="mensa-name-text">{{ mensa }}</span>
                     {% else %}
                         <span class="mensa-name-text">{{ mensa }}</span>
                     {% endif %}
                     <span class="ms-2">
                         {% if mensa == "Mensa Garbsen" %}
-                            <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
+                            <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa_emojis[mensa] }}</span>
                         {% elif mensa == "Hauptmensa" %}
                             <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
                         {% elif mensa == "Contine" %}
@@ -676,23 +676,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showRecommendationPopup(title, message, backgroundUrl, isError = false) {
         if (!recommendationModal || !recommendationModalTitle || !recommendationModalBody || !recommendationModalContent || !recommendationModalOverlay) {
-            console.error("Popup modal elements not found"); 
+            console.error("Popup modal elements not found");
             return;
         }
 
         recommendationModalTitle.textContent = title;
-        recommendationModalBody.innerHTML = message.replace(/\\n/g, '<br>');
-        
+        recommendationModalBody.innerHTML = message.replace(/\n/g, '<br>');
+
         if (backgroundUrl) {
             recommendationModalContent.style.backgroundImage = `url('${backgroundUrl}')`;
         } else {
-            recommendationModalContent.style.backgroundImage = 'none'; 
+            recommendationModalContent.style.backgroundImage = 'none';
         }
-        
+
         if (isError) {
-            recommendationModalOverlay.style.backgroundColor = "rgba(100,0,0,0.75)"; 
+            recommendationModalOverlay.style.backgroundColor = "rgba(100,0,0,0.75)";
         } else {
-            recommendationModalOverlay.style.backgroundColor = "rgba(0,0,0,0.65)"; 
+            recommendationModalOverlay.style.backgroundColor = "rgba(0,0,0,0.65)";
         }
 
         recommendationModal.show();
@@ -763,51 +763,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return Array.from(meals); 
     }
 
-    // Marvin Recommendation Trigger
+    // Marvin Recommendation Trigger (only Mensa Garbsen)
     const marvinEmojiTrigger = document.getElementById('askMarvinEmojiTrigger');
     if (marvinEmojiTrigger && recommendationModal) {
         marvinEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
-            showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
-
-            const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
-            const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-            const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
-
-            if (allMealsForMarvin.length === 0) {
-                showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
-                return;
-            }
-
-            fetch('/api/get_marvin_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: allMealsForMarvin })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
-                } else { 
-                    throw new Error(data.error || "Unbekannter Fehler von Marvin.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Marvin:', error);
-                showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
-            });
-        });
-    }
-
-    // Mensa Garbsen Text Trigger (only Mensa meals, not XXXLutz)
-    const mensaGarbsenTextTrigger = document.getElementById('mensaGarbsenTextTrigger');
-    if (mensaGarbsenTextTrigger && recommendationModal) {
-        mensaGarbsenTextTrigger.addEventListener('click', function () {
             const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
             showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
 
@@ -832,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.recommendation) {
                     showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
-                } else { 
+                } else {
                     throw new Error(data.error || "Unbekannter Fehler von Marvin.");
                 }
             })
@@ -842,6 +801,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
 
     // Dark Caner Recommendation Trigger
     const darkCanerEmojiTrigger = document.getElementById('askDarkCanerEmojiTrigger');
@@ -988,7 +948,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 if (data.recommendation) {
-                    contentDiv.innerHTML = `<div class="alert alert-info">${data.recommendation}</div>`;
+                    contentDiv.innerHTML = `<div class="alert alert-info">${data.recommendation.replace(/\n/g, '<br>')}</div>`;
                 } else {
                     throw new Error(data.error || "Unbekannter Fehler von Marvin.");
                 }
