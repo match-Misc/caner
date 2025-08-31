@@ -1,8 +1,8 @@
-# 🍽️ Das Caner - Smart Student Dining at LUH
+# 🍽️ Das Caner - Intelligente Essensauswahl für Studenten an der LUH
 
-> **Never overpay for lunch again!** Your intelligent companion for finding the best meal deals at Leibniz University Hannover.
+> Eine Anwendung zur Analyse von Speiseplänen an der Leibniz Universität Hannover.
 
-Das Caner analyzes menus across all university dining halls, calculates value scores, and serves up AI-powered recommendations to help students make the most of their dining budget. Because every Euro counts when you're living the student life! 💸
+Das Caner analysiert Speisepläne aller Universitätsmensen, berechnet Wertscores und bietet KI-gestützte Empfehlungen, um Studenten bei der Optimierung ihres Essensbudgets zu helfen.
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-green.svg)](https://flask.palletsprojects.com)
@@ -10,217 +10,213 @@ Das Caner analyzes menus across all university dining halls, calculates value sc
 
 ---
 
-## 🌟 Why Das Caner?
+## Warum Das Caner?
 
-**Stop guessing, start optimizing!** As a student at LUH, you face the daily dilemma: where to eat for the best value? Das Caner solves this by:
+Als Student an der LUH hilft Das Caner bei der Entscheidung, wo man am besten isst:
 
-- 📊 **Data-driven decisions**: Real-time menu analysis across all campus dining options
-- 💰 **Budget optimization**: Our signature "Caner Score" (calories/€) finds maximum value
-- 🤖 **AI-powered guidance**: Get personalized recommendations from quirky AI personalities
-- 📱 **Mobile-friendly**: Check menus on-the-go between lectures
-- 🔄 **Always fresh**: Automated daily menu updates
-
----
-
-## ⚡ Key Features
-
-### 🎯 Smart Meal Comparison
-- **Multi-venue analysis**: Garbsen, Hauptmensa, Contine, and XXXLutz Markrestaurant
-- **Caner Score algorithm**: Maximize calories per Euro for ultimate value
-- **Dietary filters**: Vegetarian 🌱, Vegan 🥬, Gluten-free options clearly marked
-
-### 🤖 AI Food Personalities
-Meet your digital dining advisors:
-- **🇺🇸 Donald Trump**: "This Contine salad is tremendous, probably the best salad ever!"
-- **👷 Bob the Builder**: Practical recommendations for hearty Hauptmensa meals
-- **🤖 Marvin**: Pessimistic but logical analysis of Garbsen options
-- **🎤 Dark Caner**: Street-smart tips for XXXLutz dining (rap style included!)
-
-### 🔧 Advanced Tools
-- **Expert Mode**: Deep-dive analytics for meal planning nerds
-- **Voting System**: Rate meals and help fellow students
-- **Download Center**: Save menus and vouchers for offline access
-- **Dark Mode**: Easy on the eyes during late-night meal planning
+- 📊 **Datenbasierte Entscheidungen**: Echtzeit-Analyse der Speisepläne aller Campus-Optionen
+- 💰 **Budgetoptimierung**: Der Caner Score (Kalorien/€) findet den besten Wert
+- 🤖 **KI-gestützte Empfehlungen**: Personalisierte Vorschläge von KI-Persönlichkeiten
+- 📱 **Mobilfreundlich**: Speisepläne unterwegs prüfen
+- 🔄 **Immer aktuell**: Automatische tägliche Speiseplan-Updates
 
 ---
 
-## 🚀 Quick Start Guide
+## Hauptfunktionen
 
-### Prerequisites
+### Intelligente Essensvergleiche
+- **Mehrere Standorte**: Garbsen, Hauptmensa, Contine und XXXLutz Markrestaurant
+- **Caner Score Algorithmus**: Maximierung von Kalorien pro Euro
+- **Ernährungsfilter**: Vegetarisch 🌱, Vegan 🥬, Glutenfrei gekennzeichnet
+
+### KI-Essenspersönlichkeiten
+Treffen Sie Ihre digitalen Essensberater:
+- **🇺🇸 Donald Trump**: Empfehlungen für Contine-Gerichte
+- **👷 Bob the Builder**: Praktische Vorschläge für Hauptmensa
+- **🤖 Marvin**: Logische Analyse von Garbsen-Optionen
+- **🎤 Dark Caner**: Tipps für XXXLutz (mit Rap-Stil)
+
+### Erweiterte Tools
+- **Expertenmodus**: Detaillierte Analysen für Essensplanung
+- **Bewertungssystem**: Gerichte bewerten und anderen Studenten helfen
+- **Download-Bereich**: Speisepläne und Gutscheine offline speichern
+- **Dunkler Modus**: Für nächtliche Essensplanung
+
+---
+
+## Schnellstart-Anleitung
+
+### Voraussetzungen
 - Python 3.13+
-- PostgreSQL database
+- PostgreSQL-Datenbank
 - Git
 
-### 1. Clone & Setup
+### 1. Klonen & Einrichten
 ```bash
 git clone https://github.com/match-Misc/caner.git
 cd caner
 
-# Create virtual environment
+# Virtuelle Umgebung erstellen
 python -m venv .venv
 
-# Activate (choose your platform)
+# Aktivieren (je nach Plattform)
 source .venv/bin/activate          # Linux/macOS
 .venv\Scripts\activate            # Windows
 ```
 
-### 2. Install Dependencies
+### 2. Abhängigkeiten installieren
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Environment Configuration
-Create a `.secrets` file in the project root:
+### 3. Umgebungskonfiguration
+Erstelle eine `.secrets`-Datei im Projektverzeichnis:
 
 ```bash
-# Required environment variables
-SESSION_SECRET=your-super-secret-session-key-here
-MISTRAL_API_KEY=your-mistral-api-key-for-ai-features
+# Erforderliche Umgebungsvariablen
+SESSION_SECRET=dein-super-geheimer-session-schluessel-hier
+MISTRAL_API_KEY=dein-mistral-api-schluessel-fuer-ki-features
 
-# Database configuration
-CANER_DB_USER=your-postgres-username
-CANER_DB_PASSWORD=your-postgres-password
+# Datenbankkonfiguration
+CANER_DB_USER=dein-postgres-benutzername
+CANER_DB_PASSWORD=dein-postgres-passwort
 CANER_DB_HOST=localhost
 CANER_DB_NAME=caner_db
 ```
 
-### 4. Database Setup
+### 4. Datenbank einrichten
 ```bash
-# Initialize database (make sure PostgreSQL is running)
+# Datenbank initialisieren (PostgreSQL muss laufen)
 flask db upgrade
 ```
 
-### 5. Launch the App
+### 5. Anwendung starten
 ```bash
 python app.py
 ```
 
-Visit `http://localhost:5000` and start optimizing your dining experience! 🎉
+Besuche `http://localhost:5000` und optimiere dein Essenserlebnis!
 
 ---
 
-## 📖 Usage Guide
+## Benutzerhandbuch
 
-### Finding the Best Deals
-1. **Select your date** using the calendar picker
-2. **Choose a mensa** from the dropdown (or browse all)
-3. **Check the Caner Scores** - higher = better value
-4. **Read dietary tags** for your preferences
-5. **Ask the AI** for personalized recommendations
+### Beste Angebote finden
+1. **Datum auswählen** mit dem Kalender
+2. **Mensa wählen** aus der Dropdown-Liste (oder alle durchsuchen)
+3. **Caner Scores prüfen** - höher = besserer Wert
+4. **Ernährungskennzeichnungen** für deine Vorlieben lesen
+5. **KI nach Empfehlungen fragen**
 
-### Expert Mode Features
-- **Detailed nutritional analysis** per meal
-- **Price trend tracking** over time
-- **Bulk menu downloads** for planning
-- **Advanced filtering options**
+### Expertenmodus-Funktionen
+- **Detaillierte Nährwertanalyse** pro Gericht
+- **Preistrend-Verfolgung** über Zeit
+- **Massen-Downloads** für Planung
+- **Erweiterte Filteroptionen**
 
-### AI Personality Usage
-Click on the emoji characters next to each mensa name to get:
-- Personalized meal recommendations
-- Humorous commentary on daily specials
-- Value assessments in unique styles
-- Tips for navigating each dining hall
-
----
-
-## 🛠️ Technical Stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Backend** | Python 3.13 + Flask | Web application framework |
-| **Database** | PostgreSQL + SQLAlchemy | Data persistence and ORM |
-| **Frontend** | Bootstrap 5 + Vanilla JS | Responsive UI components |
-| **AI Integration** | Mistral API | Personality-driven recommendations |
-| **Data Processing** | pdf2image, Selenium | Menu extraction and parsing |
-| **Deployment** | Gunicorn + Gevent | Production WSGI server |
+### KI-Persönlichkeiten nutzen
+Klicke auf die Emojis neben den Mensanamen für:
+- Personalisierte Gerichtsempfehlungen
+- Kommentare zu Tagesgerichten
+- Wertbewertungen in verschiedenen Stilen
+- Tipps zur Navigation in den Mensas
 
 ---
 
-## 🖥️ Screenshots
+## Technischer Stack
 
-### Main Dashboard
+| Komponente | Technologie | Zweck |
+|------------|-------------|-------|
+| **Backend** | Python 3.13 + Flask | Web-Framework |
+| **Datenbank** | PostgreSQL + SQLAlchemy | Datenpersistenz und ORM |
+| **Frontend** | Bootstrap 5 + Vanilla JS | Responsive UI-Komponenten |
+| **KI-Integration** | Mistral API | Persönlichkeitsbasierte Empfehlungen |
+| **Datenverarbeitung** | pdf2image, Selenium | Speiseplan-Extraktion und -Parsing |
+| **Deployment** | Gunicorn + Gevent | Produktions-WSGI-Server |
+
+---
+
+## Screenshots
+
+### Haupt-Dashboard
 ![Caner Dashboard](static/img/caner.png)
-*Smart meal comparison with real-time Caner Scores*
+*Intelligenter Essensvergleich mit Echtzeit-Caner Scores*
 
-### AI Personality Interface
-*Get recommendations from your favorite digital dining advisor*
+### KI-Persönlichkeiten-Schnittstelle
+*Empfehlungen von deinem Lieblings-KI-Essensberater*
 
-### Expert Mode Analytics
-*Deep-dive into nutritional data and pricing trends*
+### Expertenmodus-Analysen
+*Tiefgehende Nährwert- und Preistrend-Daten*
 
 ---
 
-## 🤝 Contributing
+## Mitwirken
 
-We welcome contributions from the LUH community! Here's how you can help:
+Beiträge von der LUH-Community sind willkommen! So kannst du helfen:
 
-### Development Setup
+### Entwicklungs-Setup
 ```bash
-# Fork the repository and clone your fork
+# Repository forken und klonen
 git clone https://github.com/YOUR-USERNAME/caner.git
 cd caner
 
-# Set up development environment
+# Entwicklungs-Umgebung einrichten
 python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate  # oder .venv\Scripts\activate auf Windows
 pip install -r requirements.txt
 
-# Create your feature branch
-git checkout -b feature/amazing-new-feature
+# Feature-Branch erstellen
+git checkout -b feature/tolles-neues-feature
 ```
 
-### Contributing Guidelines
-- 🐛 **Bug reports**: Use the issue tracker with detailed reproduction steps
-- ✨ **Feature requests**: Describe your use case and proposed solution
-- 🔧 **Code contributions**: Follow PEP 8, add tests, update documentation
-- 📝 **Documentation**: Help make the project more accessible
+### Mitwirkungsrichtlinien
+- 🐛 **Bug-Reports**: Issue-Tracker mit detaillierten Reproduktionsschritten
+- ✨ **Feature-Anfragen**: Beschreibe deinen Anwendungsfall und Vorschlag
+- 🔧 **Code-Beiträge**: PEP 8 folgen, Tests hinzufügen, Dokumentation aktualisieren
+- 📝 **Dokumentation**: Das Projekt zugänglicher machen
 
-### Development Commands
+### Entwicklungs-Befehle
 ```bash
-# Run in development mode
+# Im Entwicklungsmodus laufen lassen
 python app.py
 
-# Run tests
+# Tests ausführen
 python -m pytest test_downloads.py
 
-# Data fetching (run periodically)
+# Daten abrufen (regelmäßig ausführen)
 ./run_data_fecher.sh
 ```
 
 ---
 
-## 📚 Additional Resources
+## Zusätzliche Ressourcen
 
-### Troubleshooting
-- **Database connection issues**: Ensure PostgreSQL is running and credentials are correct
-- **Missing AI responses**: Check your Mistral API key in `.secrets`
-- **Menu data not updating**: Verify the data fetcher cron job is running
+### Fehlerbehebung
+- **Datenbankverbindungsprobleme**: PostgreSQL läuft und Zugangsdaten korrekt
+- **Fehlende KI-Antworten**: Mistral API-Schlüssel in `.secrets` prüfen
+- **Speiseplandaten nicht aktualisiert**: Cron-Job für Datenabruf prüfen
 
-### Related Projects
-- [Studentenwerk Hannover](https://www.studentenwerk-hannover.de/) - Official meal data source
-- [LUH Campus Info](https://www.uni-hannover.de/) - University information
-
----
-
-## 🏆 Acknowledgments
-
-- **Data Source**: Studentenwerk Hannover for providing comprehensive meal information
-- **AI Power**: Mistral for enabling our personality-driven recommendations
-- **Campus Partner**: XXXLutz Hesse for expanding dining options
-- **Community**: LUH students for feedback and feature suggestions
+### Verwandte Projekte
+- [Studentenwerk Hannover](https://www.studentenwerk-hannover.de/) - Offizielle Essensdatenquelle
+- [LUH Campus Info](https://www.uni-hannover.de/) - Universitätsinformationen
 
 ---
 
-## 📄 License
+## Danksagungen
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Datenquelle**: Studentenwerk Hannover für umfassende Essensinformationen
+- **KI-Unterstützung**: Mistral für persönlichkeitsbasierte Empfehlungen
+- **Campus-Partner**: XXXLutz Hesse für erweiterte Essensoptionen
+- **Community**: LUH-Studenten für Feedback und Feature-Vorschläge
 
 ---
 
-> 🍴 **Hungry for more?** 
-> 
-> Star this repo if Das Caner helped you save money on meals! 
-> 
-> Have questions or suggestions? [Open an issue](../../issues) or contribute to make campus dining better for everyone! 
+## Lizenz
 
-**Made with ❤️ by students, for students at Leibniz University Hannover**
+Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe [LICENSE](LICENSE) für Details.
+
+---
+
+Fragen oder Vorschläge? [Eröffne ein Issue](../../issues) oder trage bei, um das Campus-Essen für alle zu verbessern!
+
+Erstellt von Studenten für Studenten an der Leibniz Universität Hannover
