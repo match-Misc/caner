@@ -13,9 +13,12 @@
                                             <div class="mensa-section mb-4">
                                                 <h2 class="mensa-title" style="display: grid; grid-template-columns: auto 1fr auto; align-items: center;">
                                                     {% if mensa == selected_mensa %}
-                                                        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                                                        <div class="d-flex align-items-center">
+                                                            <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                                                            <input type="text" name="date" id="date" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
+                                                        </div>
                                                     {% endif %}
-                    
+
                                                     <span class="mensa-name-and-emoji-wrapper text-center{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
                                     {% if mensa == "Mensa Garbsen" %}
                                         <span class="mensa-name-text">{{ mensa }}</span>
@@ -36,18 +39,16 @@
                                         {% endif %}
                                     </span>
                                 </span>
-                            
+
                                 {% if mensa == selected_mensa %}
-                                    <div class="d-flex align-items-center ms-auto">
-                                        <div class="me-2">
-                                            <select name="mensa" id="mensa" class="form-select form-select-sm" onchange="const params = new URLSearchParams(); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
-                                                {% for mensa in available_mensen %}
-                                                    <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                                        {{ mensa }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
+                                    <div class="d-flex align-items-center">
+                                        <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
+                                            {% for mensa in available_mensen %}
+                                                <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                                    {{ mensa }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
                                         <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
                                     </div>
                                 {% endif %}
@@ -332,17 +333,14 @@
                     {% endfor %}
 
                     <!-- Marvin Recommendation Section -->
-                    <div class="marvin-recommendation-section card mb-4">
-                        <div class="card-header bg-primary text-white d-flex align-items-center">
-                            <img src="/static/img/marvin.jpg" alt="Marvin" class="rounded-circle me-2" style="width: 40px; height: 40px;">
-                            <h5 class="mb-0">Marvin's Empfehlung</h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="marvin-recommendation-content" class="text-center">
+                    <div class="mensa-section mb-4" style="position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('/static/img/marvin.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0.2; z-index: 0;"></div>
+                        <div style="position: relative; z-index: 1;">
+                            <h2 class="mensa-title mb-0" style="color: var(--primary-red);">
+                                Marvin's Empfehlung
+                            </h2>
+                            <div id="marvin-recommendation-content" class="text-center" style="margin-top: 15px;">
                                 <p class="text-muted">Lade Marvin's deprimierende Einsicht...</p>
-                                <button id="load-marvin-recommendation" class="btn btn-outline-primary">
-                                    <i class="fas fa-brain"></i> Marvin fragen
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -965,46 +963,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Dashboard Marvin Recommendation Trigger
-    const loadMarvinBtn = document.getElementById('load-marvin-recommendation');
-    if (loadMarvinBtn) {
-        loadMarvinBtn.addEventListener('click', function () {
-            const contentDiv = document.getElementById('marvin-recommendation-content');
-            if (!contentDiv) return;
+    const marvinContent = document.getElementById('marvin-recommendation-content');
+    if (marvinContent) {
+        // Automatically load Marvin's recommendation
+        const contentDiv = marvinContent;
 
-            // Show loading state
-            contentDiv.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...</p>';
+        // Show loading state
+        contentDiv.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...</p>';
 
-            const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
-            const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-            const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
+        const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
+        const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
+        const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
 
-            if (allMealsForMarvin.length === 0) {
-                contentDiv.innerHTML = '<p class="text-danger">Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.</p>';
-                return;
+        if (allMealsForMarvin.length === 0) {
+            contentDiv.innerHTML = '<p class="text-danger">Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.</p>';
+            return;
+        }
+
+        fetch('/api/get_marvin_recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meals: allMealsForMarvin })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
             }
-
-            fetch('/api/get_marvin_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: allMealsForMarvin })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    contentDiv.innerHTML = `<div class="alert alert-info">${data.recommendation.replace(/\n/g, '<br>')}</div>`;
-                } else {
-                    throw new Error(data.error || "Unbekannter Fehler von Marvin.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Marvin:', error);
-                contentDiv.innerHTML = `<div class="alert alert-danger">Selbst die Technik ist deprimierend: ${error.message}</div>`;
-            });
+            return response.json();
+        })
+        .then(data => {
+            if (data.recommendation) {
+                contentDiv.innerHTML = `<strong class="text-dark">${data.recommendation.replace(/\n/g, '<br>')}</strong>`;
+            } else {
+                throw new Error(data.error || "Unbekannter Fehler von Marvin.");
+            }
+        })
+        .catch(error => {
+            console.error('Error asking Marvin:', error);
+            contentDiv.innerHTML = `<div class="alert alert-danger">Selbst die Technik ist deprimierend: ${error.message}</div>`;
         });
     }
     
@@ -1025,6 +1021,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Expert Mode Toggle
     const expertModeToggleIcon = document.getElementById('expertModeToggleIcon');
     const expertModeCols = document.querySelectorAll('.expert-mode-col');
+    // Ensure expert mode is deactivated by default on first visit
+    if (localStorage.getItem('expertModeEnabled') === null) {
+        localStorage.setItem('expertModeEnabled', 'false');
+    }
     let expertModeEnabled = localStorage.getItem('expertModeEnabled') === 'true';
 
     // Helper functions for color interpolation
@@ -1117,6 +1117,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
+            // Reorder spans for expert mode: caner-value first, then caner-symbol
+            canerElements.forEach(el => {
+                const canerValueSpan = el.querySelector('.caner-value');
+                const canerSymbolSpan = el.querySelector('.caner-symbol');
+                if (canerValueSpan && canerSymbolSpan) {
+                    el.insertBefore(canerValueSpan, canerSymbolSpan);
+                }
+            });
+
             rkrElements.forEach(el => {
                 const textValue = el.textContent.replace(',', '.').replace(/[^\d.-]/g, '');
                 const rkrValue = parseFloat(textValue);
@@ -1178,6 +1187,15 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             mpsElements.forEach(el => {
                 el.style.color = ''; // Reset color
+            });
+
+            // Reorder spans for non-expert mode: caner-symbol first, then caner-value
+            canerElements.forEach(el => {
+                const canerValueSpan = el.querySelector('.caner-value');
+                const canerSymbolSpan = el.querySelector('.caner-symbol');
+                if (canerValueSpan && canerSymbolSpan) {
+                    el.insertBefore(canerSymbolSpan, canerValueSpan);
+                }
             });
         }
     }

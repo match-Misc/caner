@@ -1243,7 +1243,7 @@ def generate_caner_symbols(caner_score):
         )
 
     icons_html = "".join(icons_html_parts)
-    return f'<span class="caner-symbol">{icons_html}</span><span class="caner-value">{caner_value_formatted}</span>'
+    return f'<span class="caner-value">{caner_value_formatted}</span><span class="caner-symbol">{icons_html}</span>'
 
 
 @app.template_filter("get_dietary_info")

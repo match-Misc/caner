@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Dashboard mode functionality
     const dashboardModeToggle = document.getElementById('dashboardModeToggle');
+    // Ensure dashboard mode is deactivated by default on first visit
+    if (localStorage.getItem('dashboardMode') === null) {
+        localStorage.setItem('dashboardMode', 'disabled');
+    }
     let dashboardModeEnabled = localStorage.getItem('dashboardMode') === 'enabled';
 
     function applyDashboardModeStyles() {

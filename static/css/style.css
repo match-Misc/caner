@@ -43,6 +43,11 @@
     --bg-nutrient-card: #383a59; /* Dracula selection (modified) */
 }
 
+/* Override Bootstrap's text-dark class in dark mode to use dracula yellow */
+[data-theme="dark"] .text-dark {
+    color: var(--text-dark) !important;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background-color: var(--bg-light);
@@ -185,7 +190,7 @@ body {
 .mensa-section {
     background-color: var(--bg-card);
     border-radius: 8px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: background-color 0.3s ease;
 }
@@ -348,6 +353,10 @@ body {
 .meal-table th.expert-mode-col,
 .meal-table td.expert-mode-col {
     min-width: 110px; /* For Rkr nominal, Rkr real */
+}
+
+.meal-table td.expert-mode-col {
+    padding-top: 0.5rem; /* Add top padding to align RKR/MPS values with Caner values */
 }
 
 /* Media queries for Sambal Alarm responsiveness */
@@ -751,6 +760,24 @@ body {
     width: 24px;
     height: 24px;
     margin-right: 10px;
+}
+
+/* Dashboard container styles for full width */
+.dashboard-container {
+    max-width: 100% !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+.dashboard-container .row {
+    --bs-gutter-x: 10px !important;
+}
+
+/* Override Bootstrap container for dashboard mode */
+.content-area .container.dashboard-mode {
+    max-width: 100% !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
 }
 
 /* Footer styles */
