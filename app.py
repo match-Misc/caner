@@ -807,6 +807,47 @@ def index():
         )
         filtered_data[selected_mensa] = sorted_meals
 
+    # In dashboard mode, also include Garbsen meals for Marvin's recommendation
+    if (
+        dashboard_mode
+        and "Mensa Garbsen" in mensa_data
+        and selected_date in mensa_data["Mensa Garbsen"]
+        and "Mensa Garbsen" not in filtered_data
+    ):
+        garbsen_meals = mensa_data["Mensa Garbsen"][selected_date]
+
+        # Look up IDs and MPS scores from the database for each meal with error handling
+        for meal in garbsen_meals:
+            try:
+                # Find the meal in the database by description
+                db_meal = Meal.query.filter_by(description=meal["description"]).first()
+                if db_meal:
+                    meal["id"] = db_meal.id
+                    meal["mps_score"] = db_meal.mps_score
+                    logger.debug(
+                        f"Found MPS score {db_meal.mps_score} for Garbsen meal: {meal['description'][:50]}..."
+                    )
+                else:
+                    # If not found, use a placeholder ID
+                    meal["id"] = 0
+                    meal["mps_score"] = None
+                    logger.warning(
+                        f"Garbsen meal not found in database: {meal['description'][:50]}..."
+                    )
+            except Exception as e:
+                logger.error(f"Error looking up Garbsen meal in database: {e}")
+                meal["id"] = 0  # Use placeholder ID in case of error
+                meal["mps_score"] = None
+
+        sorted_garbsen_meals = sorted(
+            garbsen_meals,
+            key=lambda meal: calculate_caner(
+                extract_kcal(meal["nutritional_values"]), meal["price_student"]
+            ),
+            reverse=True,
+        )
+        filtered_data["Mensa Garbsen"] = sorted_garbsen_meals
+
         # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected OR if dashboard mode
         if selected_mensa == "Mensa Garbsen" or dashboard_mode:
             sorted_xxxlutz_meals = get_xxxlutz_meals()
