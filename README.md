@@ -1,8 +1,10 @@
-# 🍽️ Das Caner - Intelligente Essensauswahl für Studenten an der LUH
+# 🍽️ Das Caner - Intelligente Essensauswahl für Studierende an der LUH
 
 > Eine Anwendung zur Analyse von Speiseplänen an der Leibniz Universität Hannover.
 
-Das Caner analysiert Speisepläne aller Universitätsmensen, berechnet Wertscores und bietet KI-gestützte Empfehlungen, um Studenten bei der Optimierung ihres Essensbudgets zu helfen.
+![Screenshot](static/img/screenshot.png)
+
+Das Caner analysiert Speisepläne aller Universitätsmensen, berechnet Wertscores und bietet KI-gestützte Empfehlungen, um Studierenden bei der Optimierung ihres Essensbudgets zu helfen.
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-green.svg)](https://flask.palletsprojects.com)
@@ -12,7 +14,7 @@ Das Caner analysiert Speisepläne aller Universitätsmensen, berechnet Wertscore
 
 ## Warum Das Caner?
 
-Als Student an der LUH hilft Das Caner bei der Entscheidung, wo man am besten isst:
+Als Studierende*r an der LUH hilft Das Caner bei der Entscheidung, wo man am besten isst:
 
 - 📊 **Datenbasierte Entscheidungen**: Echtzeit-Analyse der Speisepläne aller Campus-Optionen
 - 💰 **Budgetoptimierung**: Der Caner Score (Kalorien/€) findet den besten Wert
@@ -38,7 +40,7 @@ Treffen Sie Ihre digitalen Essensberater:
 
 ### Erweiterte Tools
 - **Expertenmodus**: Detaillierte Analysen für Essensplanung
-- **Bewertungssystem**: Gerichte bewerten und anderen Studenten helfen
+- **Bewertungssystem**: Gerichte bewerten und anderen Studierenden helfen
 - **Download-Bereich**: Speisepläne und Gutscheine offline speichern
 - **Dunkler Modus**: Für nächtliche Essensplanung
 
@@ -207,7 +209,7 @@ python -m pytest test_downloads.py
 - **Datenquelle**: Studentenwerk Hannover für umfassende Essensinformationen
 - **KI-Unterstützung**: Mistral für persönlichkeitsbasierte Empfehlungen
 - **Campus-Partner**: XXXLutz Hesse für erweiterte Essensoptionen
-- **Community**: LUH-Studenten für Feedback und Feature-Vorschläge
+- **Community**: LUH-Studierende für Feedback und Feature-Vorschläge
 
 ---
 
@@ -219,4 +221,4 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe [LICENSE](LICENSE) f�
 
 Fragen oder Vorschläge? [Eröffne ein Issue](../../issues) oder trage bei, um das Campus-Essen für alle zu verbessern!
 
-Erstellt von Studenten für Studenten an der Leibniz Universität Hannover
+Erstellt von Studierenden für Studierende an der Leibniz Universität Hannover
