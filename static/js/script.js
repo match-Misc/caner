@@ -319,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+
     // Removed initMealRecommendation() and getMealRecommendation() functions as they are deprecated
-    
+
 });

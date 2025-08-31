@@ -1563,3 +1563,108 @@ html[data-theme="dark"] input#date.form-control::placeholder {
     opacity: 0.7 !important;
 }
 
+/* Datepicker popup font size */
+.datepicker {
+    font-size: 0.875rem;
+}
+
+.datepicker .datepicker-cell {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Selected day highlight - yellow background with red text */
+.datepicker-picker span.selected,
+.datepicker-picker span.selected:hover,
+.datepicker-picker span.selected.focused {
+    background-color: var(--primary-yellow) !important;
+    color: var(--primary-red) !important;
+    text-shadow: none !important;
+}
+
+/* Disabled days (no menu items) - grey text */
+.datepicker-picker span.disabled,
+.datepicker-picker span.disabled:hover {
+    color: #6c757d !important;
+    background-color: transparent !important;
+}
+
+/* Highlighted selected option in dropdown menus */
+.form-select option {
+    background: var(--bg-card);
+    color: var(--text-dark);
+}
+
+.form-select option[selected] {
+    background: var(--primary-yellow) !important;
+    color: var(--primary-red) !important;
+}
+
+[data-theme="dark"] .form-select option {
+    background: #383a59;
+    color: var(--primary-yellow);
+}
+
+[data-theme="dark"] .form-select option[selected] {
+    background: var(--primary-yellow) !important;
+    color: var(--primary-red) !important;
+}
+
+/* Dark mode styles for form-select elements (including mensa dropdown) */
+[data-theme="dark"] .form-select {
+    background-color: #383a59;
+    color: var(--primary-yellow);
+    border: 1px solid var(--primary-yellow);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f1fa8c' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+[data-theme="dark"] .form-select:focus {
+    outline: none;
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 2px rgba(241, 250, 140, 0.2);
+}
+
+.xxxlutz-title {
+    flex: 1;
+}
+
+#mensa, #date {
+    width: 250px;
+}
+
+@media (max-width: 576px) {
+    #mensa, #date {
+        width: 150px;
+    }
+
+    .mensa-title {
+        display: grid;
+        grid-template-rows: auto auto;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .mensa-title > div:first-child {
+        grid-row: 1;
+        grid-column: 1;
+    }
+
+    .mensa-title > .mensa-name-and-emoji-wrapper {
+        grid-row: 2;
+        grid-column: 1 / -1;
+        text-align: center;
+    }
+
+    .mensa-title > div:last-child {
+        grid-row: 1;
+        grid-column: 2;
+    }
+}
+

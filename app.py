@@ -151,6 +151,20 @@ last_xml_refresh_time = 0
 # last_menu_hg_refresh_time = 0 # Removed, handled externally or via cron
 # --- END: Periodic data refresh settings ---
 
+# Global marking info for dietary markings legend
+marking_info = {
+    "v": {"emoji": "🥕", "title": "Vegetarisch"},
+    "x": {"emoji": "🥦", "title": "Vegan"},
+    "g": {"emoji": "🐔", "title": "Geflügel"},
+    "s": {"emoji": "🐷", "title": "Schwein"},
+    "f": {"emoji": "🐟", "title": "Fisch"},
+    "r": {"emoji": "🐮", "title": "Rind"},
+    "a": {"emoji": "🍺", "title": "Alkohol"},
+    "26": {"emoji": "🥛", "title": "Milch"},
+    "22": {"emoji": "🥚", "title": "Ei"},
+    "20a": {"emoji": "🌾", "title": "Weizen"},
+}
+
 # Create Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default_secret_key")
@@ -884,6 +898,7 @@ def index():
             mensa_emojis=mensa_emojis,
             page_views=current_page_views,
             dashboard_mode=dashboard_mode,
+            marking_info=marking_info,
         )
     except RecursionError as e:
         logger.error(f"RecursionError in index route: {e}")
@@ -1151,6 +1166,8 @@ PENALTY_KEYWORDS = [
     "smoothies",
     "karottensaft",
     "multivitaminsaft",
+    "vegan",
+    "cremige Tomatensauce",
 ]
 
 
@@ -1236,20 +1253,6 @@ def get_dietary_info(marking):
         return ""
 
     markings = marking.lower().replace(" ", "").split(",")
-
-    # Define mapping of codes to emojis and descriptions
-    marking_info = {
-        "v": {"emoji": "🥕", "title": "Vegetarisch"},
-        "x": {"emoji": "🥦", "title": "Vegan"},
-        "g": {"emoji": "🐔", "title": "Geflügel"},
-        "s": {"emoji": "🐷", "title": "Schwein"},
-        "f": {"emoji": "🐟", "title": "Fisch"},
-        "r": {"emoji": "🐮", "title": "Rind"},
-        "a": {"emoji": "🍺", "title": "Alkohol"},
-        "26": {"emoji": "🥛", "title": "Milch"},
-        "22": {"emoji": "🥚", "title": "Ei"},
-        "20a": {"emoji": "🌾", "title": "Weizen"},
-    }
 
     emoji_spans = []
     for code in markings:
