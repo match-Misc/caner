@@ -639,6 +639,10 @@ body {
     margin-left: 4px;
 }
 
+.rkr-value {
+    text-align: right;
+}
+
 /* Color grading for Caner and Recker values */
 /* These classes (.positive-value, .negative-value) should be dynamically added to .caner-value and .recker-value elements */
 /* (e.g., via JavaScript) when expert mode is active and the value meets the criteria. */
@@ -1489,6 +1493,11 @@ a.github-link i.fa-github {
     text-align: right; /* Added text-align right */
 }
 
+.mobile-user-info-row.expert-mode-col .user-price-caner-info {
+    text-align: right;
+    justify-content: flex-start;
+}
+
 .mobile-user-info-row > *:nth-child(2) { /* Targets the second child (the value
     block) of the grid row */
     text-align: right;
@@ -1505,9 +1514,10 @@ a.github-link i.fa-github {
 }
 
 .mobile-meal-card .rkr-value-mobile {
-    display: block; /* Make the span take up available width to allow text-align */
-    width: 100%;
-    text-align: right !important; /* Added !important to check for specificity issues */
+    display: block;
+    width: auto;
+    margin-left: auto;
+    text-align: right;
 }
 
 

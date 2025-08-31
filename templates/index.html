@@ -1255,12 +1255,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // Reorder spans for expert mode: caner-value first, then caner-symbol
+            // Reorder spans for expert mode: caner-value first for desktop, caner-symbol first for mobile
             canerElements.forEach(el => {
                 const canerValueSpan = el.querySelector('.caner-value');
                 const canerSymbolSpan = el.querySelector('.caner-symbol');
                 if (canerValueSpan && canerSymbolSpan) {
-                    el.insertBefore(canerValueSpan, canerSymbolSpan);
+                    if (el.parentElement.classList.contains('mobile-layout')) {
+                        // For mobile expert, caner-symbol first, then caner-value
+                        el.insertBefore(canerSymbolSpan, canerValueSpan);
+                    } else {
+                        // For desktop expert, caner-value first
+                        el.insertBefore(canerValueSpan, canerSymbolSpan);
+                    }
                 }
             });
 
