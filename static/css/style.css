@@ -1670,33 +1670,102 @@ html[data-theme="dark"] input#date.form-control::placeholder {
     width: 250px;
 }
 
-@media (max-width: 576px) {
+/* Desktop layout (default) */
+.mensa-title-desktop {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.8rem;
+    color: var(--primary-red);
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--primary-yellow);
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.mensa-title-mobile {
+    font-size: 1.8rem;
+    color: var(--primary-red);
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--primary-yellow);
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.mensa-title-mobile,
+.selectors-row-mobile {
+    display: none !important;
+}
+
+/* Tablet layout */
+@media (max-width: 1000px) {
     #mensa, #date {
-        width: 150px;
+        width: 180px;
+        font-size: 0.9rem;
     }
 
-    .mensa-title {
-        display: grid;
-        grid-template-rows: auto auto;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+    .selectors-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .selectors-row > div {
+        flex: 1;
+        min-width: 200px;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+    /* Hide desktop elements */
+    .mensa-title-desktop {
+        display: none !important;
+    }
+
+    /* Show mobile elements */
+    .mensa-title-mobile,
+    .selectors-row-mobile {
+        display: block !important;
+    }
+
+    /* Mobile selectors styling */
+    .selectors-row-mobile {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .selectors-row-mobile > div {
+        display: flex !important;
         align-items: center;
+        flex: 1;
     }
 
-    .mensa-title > div:first-child {
-        grid-row: 1;
-        grid-column: 1;
+    .selectors-row-mobile > div:first-child {
+        justify-content: flex-start;
     }
 
-    .mensa-title > .mensa-name-and-emoji-wrapper {
-        grid-row: 2;
-        grid-column: 1 / -1;
-        text-align: center;
+    .selectors-row-mobile > div:last-child {
+        justify-content: flex-end;
     }
 
-    .mensa-title > div:last-child {
-        grid-row: 1;
-        grid-column: 2;
+    .selectors-row-mobile .form-control,
+    .selectors-row-mobile .form-select {
+        width: 140px;
+        font-size: 0.8rem;
+    }
+
+    .selectors-row-mobile .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    #mensa-mobile, #date-mobile {
+        width: 120px;
+        font-size: 0.85rem;
     }
 }
 
