@@ -1493,9 +1493,15 @@ a.github-link i.fa-github {
     text-align: right; /* Added text-align right */
 }
 
+.mobile-user-info-row.expert-mode-col {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .mobile-user-info-row.expert-mode-col .user-price-caner-info {
     text-align: right;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 
 .mobile-user-info-row > *:nth-child(2) { /* Targets the second child (the value
