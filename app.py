@@ -686,6 +686,7 @@ def index():
     selected_date = request.args.get("date")
     selected_mensa = request.args.get("mensa")
     dashboard_mode = request.args.get("dashboard") == "true"
+    expert_mode = request.args.get("expert") == "true"
 
     # Get today's date in the format used in the data
     today = datetime.now().strftime("%d.%m.%Y")
@@ -939,6 +940,7 @@ def index():
             mensa_emojis=mensa_emojis,
             page_views=current_page_views,
             dashboard_mode=dashboard_mode,
+            expert_mode=expert_mode,
             marking_info=marking_info,
         )
     except RecursionError as e:

@@ -19,7 +19,7 @@
                                                          <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
                                                      </div>
                                                      <div class="d-flex align-items-center">
-                                                         <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile = new URLSearchParams(); paramsMobile.set('mensa', this.value); paramsMobile.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile.toString()}`;">
+                                                         <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile = new URLSearchParams(window.location.search); paramsMobile.set('mensa', this.value); paramsMobile.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile.toString()}`;">
                                                              {% for mensa in available_mensen %}
                                                                  <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
                                                                      {{ mensa }}
@@ -63,7 +63,7 @@
 
                              {% if mensa == selected_mensa %}
                                  <div class="d-flex align-items-center">
-                                     <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
+                                     <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
                                          {% for mensa in available_mensen %}
                                              <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
                                                  {{ mensa }}
@@ -349,7 +349,7 @@
                                         <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile3 = new URLSearchParams(); paramsMobile3.set('mensa', this.value); paramsMobile3.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile3.toString()}`;">
+                                        <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile3 = new URLSearchParams(window.location.search); paramsMobile3.set('mensa', this.value); paramsMobile3.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile3.toString()}`;">
                                             {% for mensa in available_mensen %}
                                                 <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
                                                     {{ mensa }}
@@ -453,7 +453,7 @@
                                  <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
                              </div>
                              <div class="d-flex align-items-center">
-                                 <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile2 = new URLSearchParams(); paramsMobile2.set('mensa', this.value); paramsMobile2.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile2.toString()}`;">
+                                 <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile2 = new URLSearchParams(window.location.search); paramsMobile2.set('mensa', this.value); paramsMobile2.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile2.toString()}`;">
                                      {% for mensa in available_mensen %}
                                          <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
                                              {{ mensa }}
@@ -497,7 +497,7 @@
 
                          {% if mensa == selected_mensa %}
                              <div class="d-flex align-items-center">
-                                 <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
+                                 <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
                                      {% for mensa in available_mensen %}
                                          <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
                                              {{ mensa }}
@@ -621,9 +621,9 @@
                                 <th>Studierende</th>
                                 <th>Mitarbeitende</th>
                                 <th>Gästende</th>
-                                <th class="expert-mode-col" style="display: none;">Rkr nominal</th>
-                                <th class="expert-mode-col" style="display: none;">Rkr real</th>
-                                <th class="expert-mode-col" style="display: none;">MPS</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">Rkr nominal</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">Rkr real</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">MPS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -685,13 +685,13 @@
                                             <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
                                         </div>
                                     </td>
-                                    <td class="expert-mode-col" style="display: none;">
+                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                     </td>
-                                    <td class="expert-mode-col" style="display: none;">
+                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                     </td>
-                                    <td class="expert-mode-col" style="display: none;">
+                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if meal.mps_score is not none %}
                                             <strong class="mps-value">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
                                         {% else %}
@@ -772,19 +772,19 @@
                                         <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
                                     </div>
                                 </div>
-                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
+                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                     <strong class="mobile-user-label">Rkr nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                     </div>
                                 </div>
-                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
+                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                     <strong class="mobile-user-label">Rkr real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                     </div>
                                 </div>
-                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
+                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                     <strong class="mobile-user-label">MPS:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         {% if meal.mps_score is not none %}
@@ -1303,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', function () {
         datepickerEl.addEventListener('changeDate', function(event) {
             const dateValue = datepickerEl.value;
             const mensaValue = document.getElementById('mensa').value;
-            const params = new URLSearchParams();
+            const params = new URLSearchParams(window.location.search);
             params.set('date', dateValue);
             params.set('mensa', mensaValue);
             window.location.href = `/?${params.toString()}`;

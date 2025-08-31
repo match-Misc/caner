@@ -331,7 +331,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('expertModeEnabled') === null) {
         localStorage.setItem('expertModeEnabled', 'false');
     }
-    let expertModeEnabled = localStorage.getItem('expertModeEnabled') === 'true';
+
+    // Check URL parameter for expert mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const expertModeFromUrl = urlParams.get('expert') === 'true';
+
+    let expertModeEnabled = expertModeFromUrl || (localStorage.getItem('expertModeEnabled') === 'true');
 
     // Helper functions for color interpolation
     function hexToRgb(hex) {
@@ -519,6 +524,15 @@ document.addEventListener('DOMContentLoaded', function() {
             expertModeEnabled = !expertModeEnabled; // Toggle the state
             localStorage.setItem('expertModeEnabled', expertModeEnabled.toString());
             applyExpertModeStyles();
+
+            // Reload the page with the expert parameter to apply the change
+            const url = new URL(window.location);
+            if (expertModeEnabled) {
+                url.searchParams.set('expert', 'true');
+            } else {
+                url.searchParams.delete('expert');
+            }
+            window.location.href = url.toString();
         });
     }
 
