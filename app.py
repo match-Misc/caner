@@ -808,6 +808,11 @@ def index():
         )
         filtered_data[selected_mensa] = sorted_meals
 
+    # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected
+    if selected_mensa == "Mensa Garbsen":
+        sorted_xxxlutz_meals = get_xxxlutz_meals()
+        filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
+
     # In dashboard mode, also include Garbsen meals for Marvin's recommendation
     if (
         dashboard_mode
@@ -849,14 +854,14 @@ def index():
         )
         filtered_data["Mensa Garbsen"] = sorted_garbsen_meals
 
-        # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected OR if dashboard mode
-        if selected_mensa == "Mensa Garbsen" or dashboard_mode:
+        # Add XXXLutz Hesse Markrestaurant menu if dashboard mode (and not already added)
+        if dashboard_mode and "XXXLutz Hesse Markrestaurant" not in filtered_data:
             sorted_xxxlutz_meals = get_xxxlutz_meals()
             # Add to filtered data
             filtered_data["XXXLutz Hesse Markrestaurant"] = sorted_xxxlutz_meals
 
     # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected but has no meals on working days
-    # OR if dashboard mode is enabled
+    # OR if dashboard mode is enabled (and not already added)
     if (selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data) or (
         dashboard_mode and "XXXLutz Hesse Markrestaurant" not in filtered_data
     ):
