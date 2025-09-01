@@ -54,6 +54,10 @@ body {
     color: var(--text-dark);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* Sticky footer layout */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header styles */
@@ -136,7 +140,8 @@ body {
 .content-area {
     background-color: var(--bg-content);
     padding: 20px 0;
-    min-height: calc(100vh - 280px);
+    /* Use flex to fill remaining space for sticky footer */
+    flex: 1;
     transition: background-color 0.3s ease;
 }
 
