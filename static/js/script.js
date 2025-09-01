@@ -36,11 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Dashboard mode functionality
     const dashboardModeToggle = document.getElementById('dashboardModeToggle');
-    // Ensure dashboard mode is deactivated by default on first visit
-    if (localStorage.getItem('dashboardMode') === null) {
-        localStorage.setItem('dashboardMode', 'disabled');
-    }
-    let dashboardModeEnabled = localStorage.getItem('dashboardMode') === 'enabled';
+    
+    // Check current URL parameter to determine actual dashboard state
+    const url = new URL(window.location);
+    const isDashboardModeActiveInURL = url.searchParams.get('dashboard') === 'true';
+    
+    // Synchronize localStorage with the actual URL state
+    localStorage.setItem('dashboardMode', isDashboardModeActiveInURL ? 'enabled' : 'disabled');
+    let dashboardModeEnabled = isDashboardModeActiveInURL;
 
     function applyDashboardModeStyles() {
         if (dashboardModeToggle) {
