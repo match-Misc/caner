@@ -1136,10 +1136,8 @@ document.addEventListener('DOMContentLoaded', function () {
         contentDiv.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...</p>';
 
         const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
-        const xxxLutzMealsForMarvin = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-        const allMealsForMarvin = [...new Set([...garbsenMeals, ...xxxLutzMealsForMarvin].filter(m => m))];
 
-        if (allMealsForMarvin.length === 0) {
+        if (garbsenMeals.length === 0) {
             contentDiv.innerHTML = '<p class="text-danger">Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.</p>';
             return;
         }
@@ -1147,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/get_marvin_recommendation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: allMealsForMarvin })
+            body: JSON.stringify({ meals: garbsenMeals })
         })
         .then(response => {
             if (!response.ok) {
