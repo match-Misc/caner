@@ -1605,14 +1605,16 @@ html[data-theme="dark"] .datepicker-panel ul li.selected:hover {
     color: #ffffff !important;
 }
 
-html[data-theme="dark"] input#date.form-control {
+html[data-theme="dark"] input#date.form-control,
+html[data-theme="dark"] input#date-mobile.form-control {
     background-color: #383a59 !important; /* Match Mensa select dropdown */
     color: var(--primary-yellow) !important;
     border-color: var(--primary-yellow) !important;
     /* Padding is now handled by the shared .filter-panel select, .filter-panel input.form-control rule */
 }
 
-html[data-theme="dark"] input#date.form-control::placeholder {
+html[data-theme="dark"] input#date.form-control::placeholder,
+html[data-theme="dark"] input#date-mobile.form-control::placeholder {
     color: var(--primary-yellow) !important;
     opacity: 0.7 !important;
 }
