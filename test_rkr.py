@@ -96,6 +96,8 @@ PENALTY_KEYWORDS = [
     "smoothies",
     "karottensaft",
     "multivitaminsaft",
+    "vegan",
+    "cremige tomatensauce",
 ]
 
 
@@ -108,20 +110,23 @@ def calculate_rkr_real(protein_g, price_student, meal_description):
 
     description_lower = meal_description.lower() if meal_description else ""
 
-    # Special handling for "erbsen" - multiply by -1
-    if "erbsen" in description_lower:
+    # Special handling for "erbsen" and "cremige/cremiger tomatensauce" - multiply by -1
+    if "erbsen" in description_lower or "cremige tomatensauce" in description_lower or "cremiger tomatensauce" in description_lower:
         rkr_value *= -1
-        print(f"  -> Erbsen detected! Multiplied by -1: {rkr_value}")
+        if "erbsen" in description_lower:
+            print(f"  -> Erbsen detected! Multiplied by -1: {rkr_value}")
+        if "cremige tomatensauce" in description_lower or "cremiger tomatensauce" in description_lower:
+            print(f"  -> Cremige/Cremiger Tomatensauce detected! Multiplied by -1: {rkr_value}")
 
-    # Apply regular penalties for other keywords (excluding "erbsen")
+    # Apply regular penalties for other keywords (excluding "erbsen" and "cremige tomatensauce")
     penalty_applied = False
     for keyword in PENALTY_KEYWORDS:
-        if keyword != "erbsen" and keyword in description_lower:
+        if keyword not in ["erbsen", "cremige tomatensauce"] and keyword in description_lower:
             rkr_value /= 2
             print(f"  -> Penalty applied for '{keyword}': divided by 2 = {rkr_value}")
             penalty_applied = True
 
-    if not penalty_applied and "erbsen" not in description_lower:
+    if not penalty_applied and "erbsen" not in description_lower and "cremige tomatensauce" not in description_lower and "cremiger tomatensauce" not in description_lower:
         print("  -> No penalties applied")
 
     return round(rkr_value, 2)
@@ -175,6 +180,22 @@ test_cases = [
     },
     # Fish test
     {"description": "Lachs mit Reis", "protein": 20.0, "price": 8.0, "expected": 1.25},
+    # Cremige Tomatensauce test - should become negative (like erbsen)
+    {"description": "Pasta mit cremiger Tomatensauce", "protein": 12.0, "price": 4.0, "expected": -3.0},
+    # Cremige Tomatensauce with other penalties
+    {
+        "description": "Gemüse mit cremiger Tomatensauce",
+        "protein": 8.0,
+        "price": 2.0,
+        "expected": -2.0,
+    },
+    # Both erbsen and cremige tomatensauce (should still be negative)
+    {
+        "description": "Erbsen mit cremiger Tomatensauce",
+        "protein": 10.0,
+        "price": 5.0,
+        "expected": -2.0,
+    },
 ]
 
 print("Testing RKR Penalty System")
@@ -198,7 +219,7 @@ print("RKR Testing Complete!")
 
 # Test keyword matching
 print("\nTesting keyword detection:")
-test_keywords = ["erbsen", "paprika", "lachs", "gemüse", "zwiebeln", "bananen"]
+test_keywords = ["erbsen", "paprika", "lachs", "gemüse", "zwiebeln", "bananen", "cremige tomatensauce"]
 for keyword in test_keywords:
     found = keyword in PENALTY_KEYWORDS
     print(f"'{keyword}' in penalty list: {found}")
