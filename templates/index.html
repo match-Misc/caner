@@ -143,15 +143,15 @@
                                                 <th class="expert-mode-col" style="display: none;" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal</th>
+                                                    title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal</th>
                                                 <th class="expert-mode-col" style="display: none;"
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real</th>
+                                                    title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real</th>
                                                 <th class="expert-mode-col" style="display: none;"
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS</th>
+                                                    title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -217,20 +217,20 @@
                                                         <strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
+                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         <strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         {% if meal.mps_score is not none %}
                                                             <strong class="mps-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
+                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -311,37 +311,37 @@
                                                     <strong class="mobile-user-label" 
                                                             data-bs-toggle="tooltip" 
                                                             data-bs-placement="top" 
-                                                            title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal:</strong>
+                                                            title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
+                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                                     <strong class="mobile-user-label" 
                                                             data-bs-toggle="tooltip" 
                                                             data-bs-placement="top" 
-                                                            title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real:</strong>
+                                                            title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
                                                     <strong class="mobile-user-label" 
                                                             data-bs-toggle="tooltip" 
                                                             data-bs-placement="top" 
-                                                            title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS:</strong>
+                                                            title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         {% if meal.mps_score is not none %}
                                                             <span class="mps-value-mobile"><strong class="mps-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -660,15 +660,15 @@
                                 <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="top" 
-                                    title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal</th>
+                                    title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal</th>
                                 <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="top" 
-                                    title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real</th>
+                                    title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real</th>
                                 <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="top" 
-                                    title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS</th>
+                                    title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -734,20 +734,20 @@
                                         <strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
+                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         <strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if meal.mps_score is not none %}
                                             <strong class="mps-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
+                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
@@ -830,37 +830,37 @@
                                     <strong class="mobile-user-label" 
                                             data-bs-toggle="tooltip" 
                                             data-bs-placement="top" 
-                                            title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal:</strong>
+                                            title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
+                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                     <strong class="mobile-user-label" 
                                             data-bs-toggle="tooltip" 
                                             data-bs-placement="top" 
-                                            title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real:</strong>
+                                            title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                     <strong class="mobile-user-label" 
                                             data-bs-toggle="tooltip" 
                                             data-bs-placement="top" 
-                                            title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS:</strong>
+                                            title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         {% if meal.mps_score is not none %}
                                             <span class="mps-value-mobile"><strong class="mps-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
