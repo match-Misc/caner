@@ -140,9 +140,18 @@
                                                 <th>Studierende</th>
                                                 <th>Mitarbeitende</th>
                                                 <th>Gästende</th>
-                                                <th class="expert-mode-col" style="display: none;">Rkr nominal</th>
-                                                <th class="expert-mode-col" style="display: none;">Rkr real</th>
-                                                <th class="expert-mode-col" style="display: none;">MPS</th>
+                                                <th class="expert-mode-col" style="display: none;" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal</th>
+                                                <th class="expert-mode-col" style="display: none;"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real</th>
+                                                <th class="expert-mode-col" style="display: none;"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -205,14 +214,23 @@
                                                         </div>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
-                                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
+                                                        <strong class="rkr-value" 
+                                                                data-bs-toggle="tooltip" 
+                                                                data-bs-placement="top" 
+                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
-                                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                                        <strong class="rkr-value" 
+                                                                data-bs-toggle="tooltip" 
+                                                                data-bs-placement="top" 
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         {% if meal.mps_score is not none %}
-                                                            <strong class="mps-value">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
+                                                            <strong class="mps-value" 
+                                                                    data-bs-toggle="tooltip" 
+                                                                    data-bs-placement="top" 
+                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -290,22 +308,40 @@
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label">Rkr nominal:</strong>
+                                                    <strong class="mobile-user-label" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-placement="top" 
+                                                            title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
-                                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
+                                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
+                                                                data-bs-toggle="tooltip" 
+                                                                data-bs-placement="top" 
+                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label">Rkr real:</strong>
+                                                    <strong class="mobile-user-label" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-placement="top" 
+                                                            title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
-                                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
+                                                                data-bs-toggle="tooltip" 
+                                                                data-bs-placement="top" 
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label">MPS:</strong>
+                                                    <strong class="mobile-user-label" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-placement="top" 
+                                                            title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         {% if meal.mps_score is not none %}
-                                                            <span class="mps-value-mobile"><strong class="mps-value">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                                            <span class="mps-value-mobile"><strong class="mps-value" 
+                                                                    data-bs-toggle="tooltip" 
+                                                                    data-bs-placement="top" 
+                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -621,9 +657,18 @@
                                 <th>Studierende</th>
                                 <th>Mitarbeitende</th>
                                 <th>Gästende</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">Rkr nominal</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">Rkr real</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">MPS</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -686,14 +731,23 @@
                                         </div>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
+                                        <strong class="rkr-value" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        <strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                        <strong class="rkr-value" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if meal.mps_score is not none %}
-                                            <strong class="mps-value">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
+                                            <strong class="mps-value" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
@@ -773,22 +827,40 @@
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label">Rkr nominal:</strong>
+                                    <strong class="mobile-user-label" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="RKR Score (Nominal): Protein per Euro analysis - theoretical value without penalties">Rkr nominal:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} protein per Euro (theoretical value)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label">Rkr real:</strong>
+                                    <strong class="mobile-user-label" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="RKR Score (Real): Protein per Euro analysis - adjusted for meal content penalties">Rkr real:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} protein per Euro (adjusted for content penalties)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label">MPS:</strong>
+                                    <strong class="mobile-user-label" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="MPS (Max Pumper Score): AI fitness evaluation based on protein content, calorie density, and dietary preferences">MPS:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         {% if meal.mps_score is not none %}
-                                            <span class="mps-value-mobile"><strong class="mps-value">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                            <span class="mps-value-mobile"><strong class="mps-value" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} AI fitness evaluation">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
@@ -1178,6 +1250,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"].nutrient-info-trigger');
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
         container: 'body' // Attach popover to body to avoid table/card clipping issues
+    }));
+
+    // Initialize Bootstrap Tooltips for abbreviation definitions
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
+        container: 'body' // Attach tooltip to body to avoid clipping issues
     }));
 
 
