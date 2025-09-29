@@ -194,9 +194,14 @@ if not all([db_user, db_password, db_host, db_name]):
     # For now, we'll let it try to connect, which will fail informatively.
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
-)
+# Use SQLite for testing if specified
+use_sqlite = os.environ.get("USE_SQLITE", "false").lower() == "true"
+if use_sqlite:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_caner.db"
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
+    )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 300  # Recycle connections every 5 minutes
 
@@ -751,7 +756,8 @@ def index():
                 logger.warning(
                     "No dates available in filtered_dates to select any default."
                 )
-                # selected_date remains None or its previous value if any
+                # Fallback to today's date if no date could be selected
+                selected_date = today
 
     # Set default mensa to "Mensa Garbsen" if not selected
     if not selected_mensa:
@@ -862,6 +868,10 @@ def index():
 
     # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected but has no meals on working days
     # OR if dashboard mode is enabled (and not already added)
+    # Ensure selected_date is not None before strptime operations
+    if not selected_date:
+        selected_date = today
+        
     if (selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data) or (
         dashboard_mode and "XXXLutz Hesse Markrestaurant" not in filtered_data
     ):
