@@ -1215,7 +1215,7 @@ PENALTY_KEYWORDS = [
     "karottensaft",
     "multivitaminsaft",
     "vegan",
-    "cremige Tomatensauce",
+    "cremige tomatensauce",
 ]
 
 
@@ -1236,13 +1236,13 @@ def calculate_rkr_real(protein_g, price_student, meal_description):
         # If meal_description is None or not a string, or empty, no penalties can be applied
         return rkr_value
 
-    # Special handling for "erbsen" - multiply by -1 (make negative)
-    if "erbsen" in description_lower:
+    # Special handling for "erbsen" and "cremige/cremiger tomatensauce" - multiply by -1 (make negative)
+    if "erbsen" in description_lower or "cremige tomatensauce" in description_lower or "cremiger tomatensauce" in description_lower:
         rkr_value *= -1
 
-    # Apply regular penalties for other keywords (excluding "erbsen")
+    # Apply regular penalties for other keywords (excluding "erbsen" and "cremige/cremiger tomatensauce")
     for keyword in PENALTY_KEYWORDS:
-        if keyword != "erbsen" and keyword in description_lower:
+        if keyword not in ["erbsen", "cremige tomatensauce"] and keyword in description_lower:
             rkr_value /= 2
 
     # The result of rkr_value / 2 operations might result in more than 2 decimal places
