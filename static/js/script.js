@@ -330,16 +330,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expert Mode Toggle
     const expertModeToggleIcon = document.getElementById('expertModeToggleIcon');
     const expertModeCols = document.querySelectorAll('.expert-mode-col');
-    // Ensure expert mode is deactivated by default on first visit
-    if (localStorage.getItem('expertModeEnabled') === null) {
-        localStorage.setItem('expertModeEnabled', 'false');
-    }
-
-    // Check URL parameter for expert mode
+    
+    // Check URL parameter for expert mode - URL is the source of truth
     const urlParams = new URLSearchParams(window.location.search);
     const expertModeFromUrl = urlParams.get('expert') === 'true';
 
-    let expertModeEnabled = expertModeFromUrl || (localStorage.getItem('expertModeEnabled') === 'true');
+    // Set expertModeEnabled based on URL parameter (backend controls the state)
+    // When URL has ?expert=true, enable expert mode
+    // Otherwise, expert mode is OFF by default
+    let expertModeEnabled = expertModeFromUrl;
+    
+    // Sync localStorage with the URL state to maintain consistency
+    localStorage.setItem('expertModeEnabled', expertModeEnabled.toString());
 
     // Helper functions for color interpolation
     function hexToRgb(hex) {
