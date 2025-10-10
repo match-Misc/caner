@@ -124,6 +124,11 @@ def parse_mensa_data(xml_source):
                 'rainforest': row.get('EXTINFO_REGENWALD', '')
             }
             
+            # Skip meals with empty description
+            if not meal_data['description'] or not meal_data['description'].strip():
+                logger.debug(f"Skipping meal with empty description at {mensa_name} on {date}")
+                continue
+            
             # Add the meal data to the corresponding mensa and date
             mensa_data[mensa_name][date].append(meal_data)
         
