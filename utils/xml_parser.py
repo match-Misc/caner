@@ -129,8 +129,17 @@ def parse_mensa_data(xml_source):
                 logger.debug(f"Skipping meal with empty description at {mensa_name} on {date}")
                 continue
             
-            # Add the meal data to the corresponding mensa and date
-            mensa_data[mensa_name][date].append(meal_data)
+            # Check if this meal already exists for this mensa and date (filter duplicates)
+            is_duplicate = False
+            for existing_meal in mensa_data[mensa_name][date]:
+                if existing_meal['description'] == meal_data['description']:
+                    is_duplicate = True
+                    logger.debug(f"Skipping duplicate meal '{meal_data['description']}' at {mensa_name} on {date}")
+                    break
+            
+            # Add the meal data to the corresponding mensa and date only if not a duplicate
+            if not is_duplicate:
+                mensa_data[mensa_name][date].append(meal_data)
         
         return mensa_data
     
