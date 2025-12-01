@@ -207,16 +207,26 @@ document.addEventListener('DOMContentLoaded', function() {
         container.appendChild(text);
         sambalalarm.appendChild(container);
         
+        // Shared function to dismiss the sambalalarm with fade-out
+        function dismissSambalalarm() {
+            if (document.body.contains(sambalalarm)) {
+                sambalalarm.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(sambalalarm)) {
+                        document.body.removeChild(sambalalarm);
+                    }
+                }, 500);
+            }
+        }
+        
         // Add click event to dismiss the alarm
-        sambalalarm.addEventListener('click', function() {
-            sambalalarm.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(sambalalarm);
-            }, 500);
-        });
+        sambalalarm.addEventListener('click', dismissSambalalarm);
         
         // Add to DOM
         document.body.appendChild(sambalalarm);
+        
+        // Auto fade out after 8 seconds
+        setTimeout(dismissSambalalarm, 8000);
         
         // Sound removed as requested
     }
