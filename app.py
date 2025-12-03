@@ -81,6 +81,9 @@ def markdown_to_html(text):
     if not text:
         return text
 
+    # Remove line breaks to prevent unwanted formatting
+    text = text.replace("\n", " ").replace("\r", " ")
+
     # Create mistune renderer
     markdown = mistune.create_markdown()
 
@@ -536,7 +539,7 @@ def batch_calculate_mps_scores():
             time.sleep(0.5)
 
         # All commits are done individually above
-        logger.info(f"Batch MPS calculation completed successfully!")
+        logger.info("Batch MPS calculation completed successfully!")
         logger.info(
             f"Summary: {total_processed}/{total_missing} meals processed and committed successfully"
         )
@@ -1680,6 +1683,7 @@ def get_trump_recommendation():
 
             # Normalize whitespace to remove line breaks
             recommendation = " ".join(recommendation.split())
+            recommendation = recommendation.replace("\n", " ").replace("\r", " ")
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
