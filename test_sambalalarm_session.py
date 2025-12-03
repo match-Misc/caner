@@ -55,10 +55,12 @@ def test_sambalalarm_session_logic():
         print(f"  Should show fullscreen alarm: {behavior['should_show_alarm']}")
         print(f"  sessionStorage['sambalalarmShown'] after: {behavior['sambalalarmShown_after']}")
         
-        # Verify logic
+        # Verify logic (matching JavaScript behavior)
         if behavior['sambal_found']:
             alarmShown = behavior['sambalalarmShown_before']
-            should_create_alarm = not alarmShown
+            # In JavaScript: sessionStorage.getItem() returns null when key doesn't exist
+            # We check alarmShown === null to determine if we should show the alarm
+            should_create_alarm = (alarmShown is None)
             assert should_create_alarm == behavior['should_show_alarm'], \
                 f"Logic error in {behavior['scenario']}"
         else:

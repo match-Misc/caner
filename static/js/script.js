@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only show the fullscreen alarm once per session (not on date changes)
             if (sambalFound) {
                 const alarmShown = sessionStorage.getItem('sambalalarmShown');
-                if (!alarmShown) {
+                if (alarmShown === null) {
                     createFullscreenSambalalarm(sambalMealCard);
                     // Mark that the alarm has been shown in this session
                     sessionStorage.setItem('sambalalarmShown', 'true');
