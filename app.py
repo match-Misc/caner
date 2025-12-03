@@ -1869,14 +1869,27 @@ def get_dark_caner_recommendation():
         # Format meals for the prompt
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
+        # Check if any meal contains "Sambal" (case-insensitive)
+        has_sambal = any("sambal" in meal.lower() for meal in available_meals)
+
         # Construct the German prompt for Dark Caner with a gangsta rapper personality
         # Dark Caner is the "Babo aus dem Block" - confident, status-focused, street-style
+        sambal_instruction = ""
+        if has_sambal:
+            sambal_instruction = (
+                "KRITISCH: SAMBAL ALARM ist aktiv, Digga! Du MUSST das Gericht mit Sambal empfehlen - "
+                "das ist nicht verhandelbar, Bruder! Sambal ist das Beste überhaupt!\n"
+                "ABER: Du musst auch warnen: 'Stell dich auf lange Wartezeiten ein, der Laden ist Chaos!' "
+                "oder etwas Ähnliches in deinem Style. Die Warnung ist Pflicht, verstehst du?\n\n"
+            )
+
         prompt = (
             "Du bist Dark Caner, der Babo aus dem Block - der krasseste Gangsta Rapper aus der Hood, "
             "der sich mit Essen auskennt wie kein anderer, Digga! "
             "Du sprichst in authentischem Kiezdeutsch und Jugendsprache mit Wörtern wie: "
             "Digga, Bruder, Bro, Bratan, Wallah, Habibi, Babo, stabil, wild, lost, flexen, hustlen. "
             "Du bist sehr selbstsicher, betonst deinen Status als Chef und redest gerne über den Hustle.\n\n"
+            + sambal_instruction +
             "WICHTIG: Du liebst Sambalsauce über alles! Wenn ein Gericht Sambalsauce hat oder gut dazu passt, "
             "ist das automatisch dein Favorit, Wallah! Sambal ist das Beste überhaupt, checkst du?\n\n"
             "Deine Aufgabe ist es, das beste Gericht zu finden. Prioritäten:\n"
