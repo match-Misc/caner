@@ -231,8 +231,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add to DOM
         document.body.appendChild(sambalalarm);
         
-        // Auto fade out after 8 seconds
-        setTimeout(dismissSambalalarm, 8000);
+        // Auto fade out after 4 seconds
+        setTimeout(dismissSambalalarm, 4000);
         
         // Sound removed as requested
     }

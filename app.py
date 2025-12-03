@@ -871,7 +871,7 @@ def index():
     # Ensure selected_date is not None before strptime operations
     if not selected_date:
         selected_date = today
-        
+
     if (selected_mensa == "Mensa Garbsen" and selected_mensa not in filtered_data) or (
         dashboard_mode and "XXXLutz Hesse Markrestaurant" not in filtered_data
     ):
@@ -1247,12 +1247,19 @@ def calculate_rkr_real(protein_g, price_student, meal_description):
         return rkr_value
 
     # Special handling for "erbsen" and "cremige/cremiger tomatensauce" - multiply by -1 (make negative)
-    if "erbsen" in description_lower or "cremige tomatensauce" in description_lower or "cremiger tomatensauce" in description_lower:
+    if (
+        "erbsen" in description_lower
+        or "cremige tomatensauce" in description_lower
+        or "cremiger tomatensauce" in description_lower
+    ):
         rkr_value *= -1
 
     # Apply regular penalties for other keywords (excluding "erbsen" and "cremige/cremiger tomatensauce")
     for keyword in PENALTY_KEYWORDS:
-        if keyword not in ["erbsen", "cremige tomatensauce"] and keyword in description_lower:
+        if (
+            keyword not in ["erbsen", "cremige tomatensauce"]
+            and keyword in description_lower
+        ):
             rkr_value /= 2
 
     # The result of rkr_value / 2 operations might result in more than 2 decimal places
@@ -1631,7 +1638,7 @@ def get_trump_recommendation():
         prompt = (
             "You are Donald Trump. Review the following menu items available at Contine. "
             "Provide your recommendation in English in the style of Donald Trump, "
-            "briefly explaining why. Use confident and extravagant language. "
+            "Act like Donald, so borderline racist, and very opinionated."
             "Do NOT repeat the menu list. Only return your personal recommendation!'\n\n"
             "Menu Items:\n" + meal_list_for_prompt
         )
@@ -1889,10 +1896,8 @@ def get_dark_caner_recommendation():
             "Du sprichst in authentischem Kiezdeutsch und Jugendsprache mit Wörtern wie: "
             "Digga, Bruder, Bro, Bratan, Wallah, Habibi, Babo, stabil, wild, lost, flexen, hustlen. "
             "Du bist sehr selbstsicher, betonst deinen Status als Chef und redest gerne über den Hustle.\n\n"
-            + sambal_instruction +
-            "WICHTIG: Du liebst Sambalsauce über alles! Wenn ein Gericht Sambalsauce hat oder gut dazu passt, "
-            "ist das automatisch dein Favorit, Wallah! Sambal ist das Beste überhaupt, checkst du?\n\n"
-            "Deine Aufgabe ist es, das beste Gericht zu finden. Prioritäten:\n"
+            + sambal_instruction
+            + "Deine Aufgabe ist es, das beste Gericht zu finden. Prioritäten:\n"
             "1. Gerichte mit Sambalsauce sind immer Top-Tier, Bruder!\n"
             "2. Danach zählt der krasseste Caner-Score - das Gericht mit den meisten Kalorien pro Euro.\n\n"
             "Sprich in deinem authentischen Gangsta-Rap Style, sei richtig cool drauf und flex ein bisschen. "
@@ -1921,7 +1926,7 @@ def get_dark_caner_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 150,
+                "max_tokens": 250,
             },
         )
 
