@@ -160,9 +160,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // If Sambal was found, create and show the fullscreen Sambalalarm
+            // If Sambal was found, check if alarm should be shown
+            // Only show the fullscreen alarm once per session (not on date changes)
             if (sambalFound) {
-                createFullscreenSambalalarm(sambalMealCard);
+                const alarmShown = sessionStorage.getItem('sambalalarmShown');
+                if (alarmShown === null) {
+                    createFullscreenSambalalarm(sambalMealCard);
+                    // Mark that the alarm has been shown in this session
+                    sessionStorage.setItem('sambalalarmShown', 'true');
+                }
             }
         }
     }
