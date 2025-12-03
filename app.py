@@ -1663,7 +1663,7 @@ def get_trump_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 200,
+                "max_tokens": 2000,
             },
         )
 
@@ -1677,6 +1677,9 @@ def get_trump_recommendation():
                 recommendation = recommendation.strip("`")
             # Trim any leading phrases
             recommendation = recommendation.strip()
+
+            # Normalize whitespace to remove line breaks
+            recommendation = " ".join(recommendation.split())
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
@@ -1740,7 +1743,7 @@ def get_bob_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 150,
+                "max_tokens": 2000,
             },
         )
 
@@ -1753,6 +1756,9 @@ def get_bob_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
+
+            # Normalize whitespace to remove line breaks
+            recommendation = " ".join(recommendation.split())
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
@@ -1818,7 +1824,7 @@ def get_marvin_recommendation():
                 "model": "mistral-small-latest",  # Or any other suitable model
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,  # A bit of creativity for Marvin
-                "max_tokens": 200,  # Adjust as needed
+                "max_tokens": 2000,  # Adjust as needed
             },
         )
 
@@ -1842,6 +1848,9 @@ def get_marvin_recommendation():
             for phrase in common_phrases_to_remove:
                 if recommendation.lower().startswith(phrase.lower()):
                     recommendation = recommendation[len(phrase) :].strip()
+
+            # Normalize whitespace to remove line breaks
+            recommendation = " ".join(recommendation.split())
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation.strip())
@@ -1926,7 +1935,7 @@ def get_dark_caner_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 250,
+                "max_tokens": 2000,
             },
         )
 
@@ -1939,6 +1948,9 @@ def get_dark_caner_recommendation():
             if recommendation.startswith("```"):
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
+
+            # Normalize whitespace to remove line breaks
+            recommendation = " ".join(recommendation.split())
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
