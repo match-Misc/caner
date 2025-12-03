@@ -1667,7 +1667,7 @@ def get_trump_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 2000,
+                "max_tokens": 500,
             },
         )
 
@@ -1748,7 +1748,7 @@ def get_bob_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 2000,
+                "max_tokens": 500,
             },
         )
 
@@ -1829,7 +1829,7 @@ def get_marvin_recommendation():
                 "model": "mistral-small-latest",  # Or any other suitable model
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,  # A bit of creativity for Marvin
-                "max_tokens": 2000,  # Adjust as needed
+                "max_tokens": 500,  # Adjust as needed
             },
         )
 
@@ -1938,7 +1938,7 @@ def get_dark_caner_recommendation():
                 "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 2000,
+                "max_tokens": 500,
             },
         )
 
