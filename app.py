@@ -30,7 +30,7 @@ import traceback
 import uuid
 from datetime import date, datetime  # Removed timedelta import
 
-import mistune  # Import mistune for markdown to HTML conversion
+import markdown  # Import markdown for markdown to HTML conversion
 import requests
 
 # from pdf2image import convert_from_path # Removed, no longer needed
@@ -77,24 +77,25 @@ else:
 
 # Utility function to convert markdown to HTML
 def markdown_to_html(text):
-    """Convert markdown text to HTML using mistune"""
+    """Convert markdown text to HTML using the standard markdown library"""
     if not text:
         return text
 
     # Remove line breaks to prevent unwanted formatting
     text = text.replace("\n", " ").replace("\r", " ")
 
-    # Create mistune renderer
-    markdown = mistune.create_markdown()
-
-    # Convert markdown to HTML
-    html = markdown(text)
+    # Convert markdown to HTML using standard markdown library
+    html = markdown.markdown(text)
 
     # Remove any wrapping <p> tags and newlines since we're dealing with short snippets
     # This prevents extra spacing in the modal display
     html = html.strip()
     if html.startswith("<p>") and html.endswith("</p>"):
         html = html[3:-4]
+
+    # Remove any <br> tags and collapse whitespace to prevent line breaks in output
+    html = html.replace("<br>", " ").replace("<br/>", " ").replace("<br />", " ")
+    html = re.sub(r"\s+", " ", html).strip()
 
     return html
 
@@ -1641,7 +1642,7 @@ def get_trump_recommendation():
         prompt = (
             "You are Donald Trump. Review the following menu items available at Contine. "
             "Provide your recommendation in English in the style of Donald Trump, "
-            "Act like Donald, so borderline racist, and very opinionated."
+            "Act like Donald, so borderline racist, sexist, very opinionated."
             "Do NOT repeat the menu list. Only return your personal recommendation!'\n\n"
             "Menu Items:\n" + meal_list_for_prompt
         )
@@ -1910,9 +1911,7 @@ def get_dark_caner_recommendation():
             "Digga, Bruder, Bro, Bratan, Wallah, Habibi, Babo, stabil, wild, lost, flexen, hustlen. "
             "Du bist sehr selbstsicher, betonst deinen Status als Chef und redest gerne über den Hustle.\n\n"
             + sambal_instruction
-            + "Deine Aufgabe ist es, das beste Gericht zu finden. Prioritäten:\n"
-            "1. Gerichte mit Sambalsauce sind immer Top-Tier, Bruder!\n"
-            "2. Danach zählt der krasseste Caner-Score - das Gericht mit den meisten Kalorien pro Euro.\n\n"
+            + "Deine Aufgabe ist es, das beste Gericht zu finden!"
             "Sprich in deinem authentischen Gangsta-Rap Style, sei richtig cool drauf und flex ein bisschen. "
             "Kurze Sätze, viel 'Digga', 'Bruder', 'Wallah', dazu ein bisschen Prahlerei.\n\n"
             "Verfügbare Gerichte:\n" + meal_list_for_prompt + "\n\n"
