@@ -30,7 +30,7 @@ import traceback
 import uuid
 from datetime import date, datetime  # Removed timedelta import
 
-import markdown  # Import markdown for markdown to HTML conversion
+import markdown2  # Import markdown2 for markdown to HTML conversion
 import requests
 
 # from pdf2image import convert_from_path # Removed, no longer needed
@@ -77,7 +77,7 @@ else:
 
 # Utility function to convert markdown to HTML
 def markdown_to_html(text):
-    """Convert markdown text to HTML using the standard markdown library"""
+    """Convert markdown text to HTML using the markdown2 library"""
     if not text:
         return text
 
@@ -85,7 +85,7 @@ def markdown_to_html(text):
     text = text.replace("\n", " ").replace("\r", " ")
 
     # Convert markdown to HTML using standard markdown library
-    html = markdown.markdown(text)
+    html = markdown2.markdown(text)
 
     # Remove any wrapping <p> tags and newlines since we're dealing with short snippets
     # This prevents extra spacing in the modal display
