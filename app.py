@@ -81,21 +81,18 @@ def markdown_to_html(text):
     if not text:
         return text
 
-    # Remove line breaks to prevent unwanted formatting
-    text = text.replace("\n", " ").replace("\r", " ")
+    # Convert markdown to HTML using markdown2 with break-on-newline extra
+    html = markdown2.markdown(text, extras=["break-on-newline"])
 
-    # Convert markdown to HTML using standard markdown library
-    html = markdown2.markdown(text)
-
-    # Remove any wrapping <p> tags and newlines since we're dealing with short snippets
-    # This prevents extra spacing in the modal display
-    html = html.strip()
-    if html.startswith("<p>") and html.endswith("</p>"):
-        html = html[3:-4]
+    # Remove all <p> tags to keep everything inline
+    html = html.replace("<p>", "").replace("</p>", "")
 
     # Remove any <br> tags and collapse whitespace to prevent line breaks in output
     html = html.replace("<br>", " ").replace("<br/>", " ").replace("<br />", " ")
     html = re.sub(r"\s+", " ", html).strip()
+
+    # Ensure no line breaks remain in the final HTML output
+    html = html.replace("\n", "").replace("\r", "")
 
     return html
 
@@ -1682,9 +1679,8 @@ def get_trump_recommendation():
             # Trim any leading phrases
             recommendation = recommendation.strip()
 
-            # Normalize whitespace to remove line breaks
-            recommendation = " ".join(recommendation.split())
-            recommendation = recommendation.replace("\n", " ").replace("\r", " ")
+            # Trim whitespace
+            recommendation = recommendation.strip()
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
@@ -1762,8 +1758,8 @@ def get_bob_recommendation():
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
 
-            # Normalize whitespace to remove line breaks
-            recommendation = " ".join(recommendation.split())
+            # Trim whitespace
+            recommendation = recommendation.strip()
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
@@ -1854,8 +1850,8 @@ def get_marvin_recommendation():
                 if recommendation.lower().startswith(phrase.lower()):
                     recommendation = recommendation[len(phrase) :].strip()
 
-            # Normalize whitespace to remove line breaks
-            recommendation = " ".join(recommendation.split())
+            # Trim whitespace
+            recommendation = recommendation.strip()
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation.strip())
@@ -1952,8 +1948,8 @@ def get_dark_caner_recommendation():
                 recommendation = recommendation.strip("`")
             recommendation = recommendation.strip()
 
-            # Normalize whitespace to remove line breaks
-            recommendation = " ".join(recommendation.split())
+            # Trim whitespace
+            recommendation = recommendation.strip()
 
             # Convert markdown to HTML for proper formatting
             recommendation_html = markdown_to_html(recommendation)
