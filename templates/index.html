@@ -1047,155 +1047,184 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Marvin Recommendation Trigger (only Mensa Garbsen)
     const marvinEmojiTrigger = document.getElementById('askMarvinEmojiTrigger');
-    if (marvinEmojiTrigger && recommendationModal) {
-        marvinEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
-            showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
+    const marvinEmojiTriggerMobile = document.getElementById('askMarvinEmojiTrigger-mobile');
+    
+    const marvinClickHandler = function () {
+        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
+        showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
 
-            const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
+        const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
 
-            if (garbsenMeals.length === 0) {
-                showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
-                return;
+        if (garbsenMeals.length === 0) {
+            showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
+            return;
+        }
+
+        fetch('/api/get_marvin_recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meals: garbsenMeals })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
             }
-
-            fetch('/api/get_marvin_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: garbsenMeals })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
-                } else {
-                    throw new Error(data.error || "Unbekannter Fehler von Marvin.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Marvin:', error);
-                showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
-            });
+            return response.json();
+        })
+        .then(data => {
+            if (data.recommendation) {
+                showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
+            } else {
+                throw new Error(data.error || "Unbekannter Fehler von Marvin.");
+            }
+        })
+        .catch(error => {
+            console.error('Error asking Marvin:', error);
+            showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
         });
+    };
+    
+    if (marvinEmojiTrigger && recommendationModal) {
+        marvinEmojiTrigger.addEventListener('click', marvinClickHandler);
+    }
+    if (marvinEmojiTriggerMobile && recommendationModal) {
+        marvinEmojiTriggerMobile.addEventListener('click', marvinClickHandler);
     }
 
 
     // Dark Caner Recommendation Trigger
     const darkCanerEmojiTrigger = document.getElementById('askDarkCanerEmojiTrigger');
+    const darkCanerEmojiTriggerMobile = document.getElementById('askDarkCanerEmojiTrigger-mobile');
+    
+    const darkCanerClickHandler = function () {
+        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Yo, Dark Caner checkt die Gerichte ab, bruder...';
+        showRecommendationPopup("Dark Caner\'s Gangsta Tipp", loadingMessage, '/static/img/darkcaner.png');
+
+        const xxxLutzMealsForDarkCaner = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
+
+        if (xxxLutzMealsForDarkCaner.length === 0) {
+            showRecommendationPopup("Dark Caner\'s Antwort", "Vallah bruder, hier gibt\'s nix zu checken... Keine Gerichte für meine krassen Berechnungen gefunden!", '/static/img/darkcaner.png', true);
+            return;
+        }
+
+        fetch('/api/get_dark_caner_recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meals: xxxLutzMealsForDarkCaner })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.recommendation) {
+                showRecommendationPopup("Dark Caner\'s Gangsta Tipp", data.recommendation, '/static/img/darkcaner.png');
+            } else {
+                throw new Error(data.error || "Unbekannter Fehler von Dark Caner.");
+            }
+        })
+        .catch(error => {
+            console.error('Error asking Dark Caner:', error);
+            showRecommendationPopup("Dark Caner Fehler", `Yo bruder, da ist was schiefgelaufen: ${error.message}`, '/static/img/darkcaner.png', true);
+        });
+    };
+    
     if (darkCanerEmojiTrigger && recommendationModal) {
-        darkCanerEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Yo, Dark Caner checkt die Gerichte ab, bruder...';
-            showRecommendationPopup("Dark Caner\'s Gangsta Tipp", loadingMessage, '/static/img/darkcaner.png');
-
-            const xxxLutzMealsForDarkCaner = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-
-            if (xxxLutzMealsForDarkCaner.length === 0) {
-                showRecommendationPopup("Dark Caner\'s Antwort", "Vallah bruder, hier gibt\'s nix zu checken... Keine Gerichte für meine krassen Berechnungen gefunden!", '/static/img/darkcaner.png', true);
-                return;
-            }
-
-            fetch('/api/get_dark_caner_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: xxxLutzMealsForDarkCaner })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Dark Caner\'s Gangsta Tipp", data.recommendation, '/static/img/darkcaner.png');
-                } else {
-                    throw new Error(data.error || "Unbekannter Fehler von Dark Caner.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Dark Caner:', error);
-                showRecommendationPopup("Dark Caner Fehler", `Yo bruder, da ist was schiefgelaufen: ${error.message}`, '/static/img/darkcaner.png', true);
-            });
-        });
+        darkCanerEmojiTrigger.addEventListener('click', darkCanerClickHandler);
     }
+    if (darkCanerEmojiTriggerMobile && recommendationModal) {
+        darkCanerEmojiTriggerMobile.addEventListener('click', darkCanerClickHandler);
+    }
+    // Trump Recommendation Trigger
     const trumpEmojiTrigger = document.getElementById('askTrumpEmojiTrigger');
-    if (trumpEmojiTrigger && recommendationModal) {
-        trumpEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Donald Trump analyzing Contine menu...';
-            showRecommendationPopup("Trump\'s Recommendation", loadingMessage, '/static/img/trump.jpg');
+    const trumpEmojiTriggerMobile = document.getElementById('askTrumpEmojiTrigger-mobile');
+    
+    const trumpClickHandler = function () {
+        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Donald Trump analyzing Contine menu...';
+        showRecommendationPopup("Trump\'s Recommendation", loadingMessage, '/static/img/trump.jpg');
 
-            const contineMeals = getMealsFromMensaSection('Contine');
-            if (contineMeals.length === 0) {
-                showRecommendationPopup("Trump Error", "No Contine meals found to recommend.", '/static/img/trump.jpg', true);
-                return;
+        const contineMeals = getMealsFromMensaSection('Contine');
+        if (contineMeals.length === 0) {
+            showRecommendationPopup("Trump Error", "No Contine meals found to recommend.", '/static/img/trump.jpg', true);
+            return;
+        }
+
+        fetch('/api/get_trump_recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meals: contineMeals })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
             }
-
-            fetch('/api/get_trump_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: contineMeals })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Donald Trump\'s Recommendation", data.recommendation, '/static/img/trump.jpg');
-                } else {
-                    throw new Error(data.error || "Unknown error from Trump API.");
-                }
-            })
-            .catch(error => {
-                console.error('Error asking Trump:', error);
-                showRecommendationPopup("Trump Error", `Everything is just terrible: ${error.message}`, '/static/img/trump.jpg', true);
-            });
+            return response.json();
+        })
+        .then(data => {
+            if (data.recommendation) {
+                showRecommendationPopup("Donald Trump\'s Recommendation", data.recommendation, '/static/img/trump.jpg');
+            } else {
+                throw new Error(data.error || "Unknown error from Trump API.");
+            }
+        })
+        .catch(error => {
+            console.error('Error asking Trump:', error);
+            showRecommendationPopup("Trump Error", `Everything is just terrible: ${error.message}`, '/static/img/trump.jpg', true);
         });
+    };
+    
+    if (trumpEmojiTrigger && recommendationModal) {
+        trumpEmojiTrigger.addEventListener('click', trumpClickHandler);
+    }
+    if (trumpEmojiTriggerMobile && recommendationModal) {
+        trumpEmojiTriggerMobile.addEventListener('click', trumpClickHandler);
     }
 
     // Bob Recommendation Trigger
     const bobEmojiTrigger = document.getElementById('askBobEmojiTrigger');
-    if (bobEmojiTrigger && recommendationModal) {
-        bobEmojiTrigger.addEventListener('click', function () {
-            const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Bob der Baumeister is building your recommendation...';
-            showRecommendationPopup("Bob\'s Empfehlung", loadingMessage, '/static/img/bob.png');
+    const bobEmojiTriggerMobile = document.getElementById('askBobEmojiTrigger-mobile');
+    
+    const bobClickHandler = function () {
+        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Bob der Baumeister is building your recommendation...';
+        showRecommendationPopup("Bob\'s Empfehlung", loadingMessage, '/static/img/bob.png');
 
-            const hauptMeals = getMealsFromMensaSection('Hauptmensa');
-            if (hauptMeals.length === 0) {
-                showRecommendationPopup("Bob Fehler", "Keine Hauptmensa Gerichte gefunden.", '/static/img/bob.png', true);
-                return;
+        const hauptMeals = getMealsFromMensaSection('Hauptmensa');
+        if (hauptMeals.length === 0) {
+            showRecommendationPopup("Bob Fehler", "Keine Hauptmensa Gerichte gefunden.", '/static/img/bob.png', true);
+            return;
+        }
+
+        fetch('/api/get_bob_recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meals: hauptMeals })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
             }
-
-            fetch('/api/get_bob_recommendation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meals: hauptMeals })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.recommendation) {
-                    showRecommendationPopup("Bob\'s Empfehlung", data.recommendation, '/static/img/bob.png');
-                } else {
-                    throw new Error(data.error || "Unbekannter Fehler von Bob.");
-                }
-            })
-                .catch(error => {
-                    console.error('Error asking Bob:', error);
-                    showRecommendationPopup("Bob Fehler", `Vergiss nicht deinen Helm! ${error.message}`, '/static/img/bob.png', true);
-                });
+            return response.json();
+        })
+        .then(data => {
+            if (data.recommendation) {
+                showRecommendationPopup("Bob\'s Empfehlung", data.recommendation, '/static/img/bob.png');
+            } else {
+                throw new Error(data.error || "Unbekannter Fehler von Bob.");
+            }
+        })
+        .catch(error => {
+            console.error('Error asking Bob:', error);
+            showRecommendationPopup("Bob Fehler", `Vergiss nicht deinen Helm! ${error.message}`, '/static/img/bob.png', true);
         });
+    };
+    
+    if (bobEmojiTrigger && recommendationModal) {
+        bobEmojiTrigger.addEventListener('click', bobClickHandler);
+    }
+    if (bobEmojiTriggerMobile && recommendationModal) {
+        bobEmojiTriggerMobile.addEventListener('click', bobClickHandler);
     }
 
     // Dashboard Marvin Recommendation Trigger
