@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         recommendationModalTitle.textContent = title;
-        recommendationModalBody.innerHTML = message.replace(/\n/g, '<br>');
+        recommendationModalBody.innerHTML = message;
 
         if (backgroundUrl) {
             recommendationModalContent.style.backgroundImage = `url('${backgroundUrl}')`;
@@ -1256,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             if (data.recommendation) {
-                contentDiv.innerHTML = `<strong class="text-dark">${data.recommendation.replace(/\n/g, '<br>')}</strong>`;
+                contentDiv.innerHTML = `<strong class="text-dark">${data.recommendation}</strong>`;
             } else {
                 throw new Error(data.error || "Unbekannter Fehler von Marvin.");
             }
