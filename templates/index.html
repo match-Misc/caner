@@ -223,7 +223,7 @@
                                                         <strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong>
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         {% if meal.mps_score is not none %}
@@ -328,7 +328,7 @@
                                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                                 data-bs-toggle="tooltip" 
                                                                 data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong></span>
                                                     </div>
                                                 </div>
                                                 <div class="mobile-user-info-row expert-mode-col" style="display: none;">
@@ -740,7 +740,7 @@
                                         <strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong>
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong>
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if meal.mps_score is not none %}
@@ -847,7 +847,7 @@
                                         <span class="rkr-value-mobile"><strong class="rkr-value" 
                                                 data-bs-toggle="tooltip" 
                                                 data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR</strong></span>
+                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong></span>
                                     </div>
                                 </div>
                                 <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
