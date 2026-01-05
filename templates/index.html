@@ -812,7 +812,6 @@
                 <div class="mobile-meal-cards">
                     {% for meal in meals %}
                         {% set kcal = meal.nutritional_values|extract_kcal %}
-                        {% set kcal = meal.nutritional_values|extract_kcal %}
                         {% set protein_g = meal.nutritional_values|extract_protein %}
                         {% set total_grams = meal.nutritional_values|extract_total_grams %}
                         {% set caner_student = kcal|calculate_caner(meal.price_student) %}
