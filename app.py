@@ -1088,6 +1088,79 @@ def extract_protein(naehrwert_str):
         return 0.0
 
 
+@app.template_filter("extract_total_grams")
+def extract_total_grams(naehrwert_str):
+    """
+    Extract total grams from nutritional values.
+    Total = Fett + Kohlenhydrate + Zucker + Eiweiß + Salz
+    """
+    try:
+        if not naehrwert_str:
+            return 0.0
+        
+        total_grams = 0.0
+        
+        # Extract Fett (Fat)
+        fett_match = re.search(r"Fett=([\d,]+)g", naehrwert_str)
+        if fett_match:
+            total_grams += float(fett_match.group(1).replace(",", "."))
+        
+        # Extract Kohlenhydrate (Carbohydrates)
+        kohlenhydrate_match = re.search(r"Kohlenhydrate=([\d,]+)g", naehrwert_str)
+        if kohlenhydrate_match:
+            total_grams += float(kohlenhydrate_match.group(1).replace(",", "."))
+        
+        # Extract Zucker (Sugar) - note it's "davon Zucker"
+        zucker_match = re.search(r"davon Zucker=([\d,]+)g", naehrwert_str)
+        if zucker_match:
+            total_grams += float(zucker_match.group(1).replace(",", "."))
+        
+        # Extract Eiweiß (Protein)
+        eiweiss_match = re.search(r"Eiweiß=([\d,]+)g", naehrwert_str)
+        if eiweiss_match:
+            total_grams += float(eiweiss_match.group(1).replace(",", "."))
+        
+        # Extract Salz (Salt)
+        salz_match = re.search(r"Salz=([\d,]+)g", naehrwert_str)
+        if salz_match:
+            total_grams += float(salz_match.group(1).replace(",", "."))
+        
+        return total_grams
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred in extract_total_grams with {naehrwert_str}: {e}"
+        )
+        return 0.0
+
+
+@app.template_filter("calculate_weight_loss_score")
+def calculate_weight_loss_score(kcal, total_grams):
+    """
+    Calculate weight loss score as kcal / total_grams.
+    Lower values are better for weight loss (lower calorie density).
+    """
+    try:
+        if not isinstance(kcal, (int, float)) or not isinstance(total_grams, (int, float)):
+            logger.warning(
+                f"Invalid input in calculate_weight_loss_score: kcal={kcal} (type: {type(kcal)}), total_grams={total_grams} (type: {type(total_grams)})"
+            )
+            return 0.0
+        
+        if total_grams <= 0:
+            return 0.0
+        
+        if kcal <= 0:
+            return 0.0
+        
+        return round(kcal / total_grams, 2)
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred in calculate_weight_loss_score with kcal={kcal}, total_grams={total_grams}: {e}"
+        )
+        logger.error(traceback.format_exc())
+        return 0.0
+
+
 @app.template_filter("calculate_rkr_nominal")
 def calculate_rkr_nominal(protein_g, price_student):
     if (
