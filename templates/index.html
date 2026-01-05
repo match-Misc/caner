@@ -152,17 +152,23 @@
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
                                                     title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
+                                                <th class="expert-mode-col" style="display: none;"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for meal in meals %}
                                                 {% set kcal = meal.nutritional_values|extract_kcal %}
                                                 {% set protein_g = meal.nutritional_values|extract_protein %}
+                                                {% set total_grams = meal.nutritional_values|extract_total_grams %}
                                                 {% set caner_student = kcal|calculate_caner(meal.price_student) %}
                                                 {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
                                                 {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
                                                 {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
                                                 {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
+                                                {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
 
                                                 <tr>
                                                     <td>
@@ -235,6 +241,16 @@
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
                                                     </td>
+                                                    <td class="expert-mode-col" style="display: none;">
+                                                        {% if weight_loss_score > 0 %}
+                                                            <strong class="weight-loss-value" 
+                                                                    data-bs-toggle="tooltip" 
+                                                                    data-bs-placement="top" 
+                                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong>
+                                                        {% else %}
+                                                            <span class="text-muted">N/A</span>
+                                                        {% endif %}
+                                                    </td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>
@@ -246,11 +262,13 @@
                                     {% for meal in meals %}
                                         {% set kcal = meal.nutritional_values|extract_kcal %}
                                         {% set protein_g = meal.nutritional_values|extract_protein %}
+                                        {% set total_grams = meal.nutritional_values|extract_total_grams %}
                                         {% set caner_student = kcal|calculate_caner(meal.price_student) %}
                                         {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
                                         {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
                                         {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
                                         {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
+                                        {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
 
                                         <div class="mobile-meal-card">
                                             <div class="mobile-meal-description">
@@ -342,6 +360,22 @@
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
                                                                     title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                                        {% else %}
+                                                            <span class="text-muted">N/A</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
+                                                    <strong class="mobile-user-label" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-placement="top" 
+                                                            title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g:</strong>
+                                                    <div class="user-price-caner-info mobile-layout">
+                                                        {% if weight_loss_score > 0 %}
+                                                            <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
+                                                                    data-bs-toggle="tooltip" 
+                                                                    data-bs-placement="top" 
+                                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong></span>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -669,17 +703,23 @@
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="top" 
                                     title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
+                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for meal in meals %}
                                 {% set kcal = meal.nutritional_values|extract_kcal %}
                                 {% set protein_g = meal.nutritional_values|extract_protein %}
+                                {% set total_grams = meal.nutritional_values|extract_total_grams %}
                                 {% set caner_student = kcal|calculate_caner(meal.price_student) %}
                                 {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
                                 {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
                                 {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
                                 {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
+                                {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
 
                                 <tr>
                                     <td>
@@ -752,6 +792,16 @@
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
                                     </td>
+                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+                                        {% if weight_loss_score > 0 %}
+                                            <strong class="weight-loss-value" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -762,13 +812,14 @@
                 <div class="mobile-meal-cards">
                     {% for meal in meals %}
                         {% set kcal = meal.nutritional_values|extract_kcal %}
-                        {% set kcal = meal.nutritional_values|extract_kcal %}
                         {% set protein_g = meal.nutritional_values|extract_protein %}
+                        {% set total_grams = meal.nutritional_values|extract_total_grams %}
                         {% set caner_student = kcal|calculate_caner(meal.price_student) %}
                         {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
                         {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
                         {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
                         {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
+                        {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
 
                         <div class="mobile-meal-card">
                             <div class="mobile-meal-description">
@@ -861,6 +912,22 @@
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
                                                     title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+                                    <strong class="mobile-user-label" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g:</strong>
+                                    <div class="user-price-caner-info mobile-layout">
+                                        {% if weight_loss_score > 0 %}
+                                            <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong></span>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}

@@ -420,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const canerElements = document.querySelectorAll('.caner-symbols');
         const rkrElements = document.querySelectorAll('strong.rkr-value');
         const mpsElements = document.querySelectorAll('strong.mps-value');
+        const weightLossElements = document.querySelectorAll('strong.weight-loss-value');
 
         if (expertModeEnabled) {
             canerElements.forEach(el => {
@@ -516,6 +517,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            // Color weight loss scores (inverted: lower is better for weight loss)
+            weightLossElements.forEach(el => {
+                const textValue = el.textContent.replace(',', '.').replace(/[^\d.-]/g, '');
+                const weightLossValue = parseFloat(textValue);
+
+                if (!isNaN(weightLossValue) && weightLossValue > 0) {
+                    // For weight loss: lower values are better (less calorie-dense)
+                    // Typical range: ~1.0 (soups, salads) to ~9.0 (dense foods)
+                    // We'll use 1.0-5.0 as the scale range
+                    const scaleMinWL = 1.0;  // Best (low calorie density) - green
+                    const scaleMaxWL = 5.0;  // Worst (high calorie density) - red
+                    const visualMidPointWL = (scaleMinWL + scaleMaxWL) / 2;
+                    let finalColor;
+
+                    if (weightLossValue <= scaleMinWL) {
+                        finalColor = colorPositive; // Green for low calorie density
+                    } else if (weightLossValue >= scaleMaxWL) {
+                        finalColor = colorNegative; // Red for high calorie density
+                    } else if (weightLossValue <= visualMidPointWL) {
+                        // Interpolate from colorPositive (at scaleMinWL) to colorCenter (at midpoint)
+                        const factor = (weightLossValue - scaleMinWL) / (visualMidPointWL - scaleMinWL);
+                        finalColor = interpolateColor(colorPositive, colorCenter, factor);
+                    } else {
+                        // Interpolate from colorCenter (at midpoint) to colorNegative (at scaleMaxWL)
+                        const factor = (weightLossValue - visualMidPointWL) / (scaleMaxWL - visualMidPointWL);
+                        finalColor = interpolateColor(colorCenter, colorNegative, factor);
+                    }
+                    el.style.color = finalColor;
+                }
+            });
+
         } else { // Expert mode disabled
             canerElements.forEach(el => {
                 el.style.color = ''; // Reset color
@@ -524,6 +556,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.style.color = ''; // Reset color
             });
             mpsElements.forEach(el => {
+                el.style.color = ''; // Reset color
+            });
+            weightLossElements.forEach(el => {
                 el.style.color = ''; // Reset color
             });
 
