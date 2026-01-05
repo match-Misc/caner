@@ -155,7 +155,7 @@
                                                 <th class="expert-mode-col" style="display: none;"
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g</th>
+                                                    title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -243,10 +243,17 @@
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         {% if weight_loss_score > 0 %}
+                                                            {% if weight_loss_score <= 2.0 %}
+                                                                {% set syringes = '💉' %}
+                                                            {% elif weight_loss_score <= 3.5 %}
+                                                                {% set syringes = '💉💉' %}
+                                                            {% else %}
+                                                                {% set syringes = '💉💉💉' %}
+                                                            {% endif %}
                                                             <strong class="weight-loss-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong>
+                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -369,13 +376,20 @@
                                                     <strong class="mobile-user-label" 
                                                             data-bs-toggle="tooltip" 
                                                             data-bs-placement="top" 
-                                                            title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g:</strong>
+                                                            title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         {% if weight_loss_score > 0 %}
+                                                            {% if weight_loss_score <= 2.0 %}
+                                                                {% set syringes = '💉' %}
+                                                            {% elif weight_loss_score <= 3.5 %}
+                                                                {% set syringes = '💉💉' %}
+                                                            {% else %}
+                                                                {% set syringes = '💉💉💉' %}
+                                                            {% endif %}
                                                             <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong></span>
+                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong></span>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -706,7 +720,7 @@
                                 <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="top" 
-                                    title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g</th>
+                                    title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -794,10 +808,17 @@
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if weight_loss_score > 0 %}
+                                            {% if weight_loss_score <= 2.0 %}
+                                                {% set syringes = '💉' %}
+                                            {% elif weight_loss_score <= 3.5 %}
+                                                {% set syringes = '💉💉' %}
+                                            {% else %}
+                                                {% set syringes = '💉💉💉' %}
+                                            {% endif %}
                                             <strong class="weight-loss-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong>
+                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
@@ -921,13 +942,20 @@
                                     <strong class="mobile-user-label" 
                                             data-bs-toggle="tooltip" 
                                             data-bs-placement="top" 
-                                            title="Kaloriendichte (kcal/g): Verhältnis von Kalorien zu Gramm - niedrigere Werte sind besser zum Abnehmen">Kcal/g:</strong>
+                                            title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         {% if weight_loss_score > 0 %}
+                                            {% if weight_loss_score <= 2.0 %}
+                                                {% set syringes = '💉' %}
+                                            {% elif weight_loss_score <= 3.5 %}
+                                                {% set syringes = '💉💉' %}
+                                            {% else %}
+                                                {% set syringes = '💉💉💉' %}
+                                            {% endif %}
                                             <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Kaloriendichte: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g - niedrigere Werte sind besser zum Abnehmen">{{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }}</strong></span>
+                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong></span>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}

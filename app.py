@@ -1092,7 +1092,8 @@ def extract_protein(naehrwert_str):
 def extract_total_grams(naehrwert_str):
     """
     Extract total grams from nutritional values.
-    Total = Fett + Kohlenhydrate + Zucker + Eiweiß + Salz
+    Total = Fett + Kohlenhydrate + Eiweiß + Salz
+    Note: Zucker is excluded because it's already part of Kohlenhydrate
     """
     try:
         if not naehrwert_str:
@@ -1110,10 +1111,7 @@ def extract_total_grams(naehrwert_str):
         if kohlenhydrate_match:
             total_grams += float(kohlenhydrate_match.group(1).replace(",", "."))
         
-        # Extract Zucker (Sugar) - note it's "davon Zucker"
-        zucker_match = re.search(r"davon Zucker=([\d,]+)g", naehrwert_str)
-        if zucker_match:
-            total_grams += float(zucker_match.group(1).replace(",", "."))
+        # Zucker is NOT included - it's already part of Kohlenhydrate ("davon Zucker")
         
         # Extract Eiweiß (Protein)
         eiweiss_match = re.search(r"Eiweiß=([\d,]+)g", naehrwert_str)
