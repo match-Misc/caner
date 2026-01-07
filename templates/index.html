@@ -243,9 +243,10 @@
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
                                                         {% if weight_loss_score > 0 %}
-                                                            {% if weight_loss_score <= 2.0 %}
+                                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
+                                                            {% if normalized_score <= 1.0 %}
                                                                 {% set syringes = '💉' %}
-                                                            {% elif weight_loss_score <= 3.5 %}
+                                                            {% elif normalized_score <= 2.0 %}
                                                                 {% set syringes = '💉💉' %}
                                                             {% else %}
                                                                 {% set syringes = '💉💉💉' %}
@@ -253,7 +254,7 @@
                                                             <strong class="weight-loss-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong>
+                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -379,9 +380,10 @@
                                                             title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
                                                         {% if weight_loss_score > 0 %}
-                                                            {% if weight_loss_score <= 2.0 %}
+                                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
+                                                            {% if normalized_score <= 1.0 %}
                                                                 {% set syringes = '💉' %}
-                                                            {% elif weight_loss_score <= 3.5 %}
+                                                            {% elif normalized_score <= 2.0 %}
                                                                 {% set syringes = '💉💉' %}
                                                             {% else %}
                                                                 {% set syringes = '💉💉💉' %}
@@ -389,7 +391,7 @@
                                                             <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
                                                                     data-bs-toggle="tooltip" 
                                                                     data-bs-placement="top" 
-                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong></span>
+                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong></span>
                                                         {% else %}
                                                             <span class="text-muted">N/A</span>
                                                         {% endif %}
@@ -808,9 +810,10 @@
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
                                         {% if weight_loss_score > 0 %}
-                                            {% if weight_loss_score <= 2.0 %}
+                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
+                                            {% if normalized_score <= 1.0 %}
                                                 {% set syringes = '💉' %}
-                                            {% elif weight_loss_score <= 3.5 %}
+                                            {% elif normalized_score <= 2.0 %}
                                                 {% set syringes = '💉💉' %}
                                             {% else %}
                                                 {% set syringes = '💉💉💉' %}
@@ -818,7 +821,7 @@
                                             <strong class="weight-loss-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong>
+                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}
@@ -945,9 +948,10 @@
                                             title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                     <div class="user-price-caner-info mobile-layout">
                                         {% if weight_loss_score > 0 %}
-                                            {% if weight_loss_score <= 2.0 %}
+                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
+                                            {% if normalized_score <= 1.0 %}
                                                 {% set syringes = '💉' %}
-                                            {% elif weight_loss_score <= 3.5 %}
+                                            {% elif normalized_score <= 2.0 %}
                                                 {% set syringes = '💉💉' %}
                                             {% else %}
                                                 {% set syringes = '💉💉💉' %}
@@ -955,7 +959,7 @@
                                             <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
-                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g">{{ syringes }}</strong></span>
+                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong></span>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}

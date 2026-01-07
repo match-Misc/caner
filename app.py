@@ -930,6 +930,26 @@ def index():
     except Exception as e:
         logger.error(f"Error retrieving page view count: {e}")
 
+    # Calculate OZ score bounds (min/max weight_loss_score) for each mensa
+    oz_score_bounds = {}
+    for mensa, meals in filtered_data.items():
+        oz_scores = []
+        for meal in meals:
+            kcal = extract_kcal(meal.get("nutritional_values", ""))
+            total_grams = extract_total_grams(meal.get("nutritional_values", ""))
+            oz_score = calculate_weight_loss_score(kcal, total_grams)
+            if oz_score > 0:  # Only include valid scores
+                oz_scores.append(oz_score)
+        
+        if oz_scores:
+            oz_score_bounds[mensa] = {
+                "min": min(oz_scores),
+                "max": max(oz_scores)
+            }
+        else:
+            # Default bounds if no valid scores
+            oz_score_bounds[mensa] = {"min": 0, "max": 5}
+
     try:
         # Test JSON serialization before rendering
         # This will catch any potential circular references
@@ -942,6 +962,7 @@ def index():
                 "selected_mensa": selected_mensa,
                 "mensa_emojis": mensa_emojis,
                 "page_views": current_page_views,
+                "oz_score_bounds": oz_score_bounds,
             },
             default=str,
         )  # Use str as fallback for non-serializable objects
@@ -958,6 +979,7 @@ def index():
             dashboard_mode=dashboard_mode,
             expert_mode=expert_mode,
             marking_info=marking_info,
+            oz_score_bounds=oz_score_bounds,
         )
     except RecursionError as e:
         logger.error(f"RecursionError in index route: {e}")
@@ -1154,6 +1176,33 @@ def calculate_weight_loss_score(kcal, total_grams):
     except Exception as e:
         logger.error(
             f"An unexpected error occurred in calculate_weight_loss_score with kcal={kcal}, total_grams={total_grams}: {e}"
+        )
+        logger.error(traceback.format_exc())
+        return 0.0
+
+
+@app.template_filter("normalize_oz_score")
+def normalize_oz_score(weight_loss_score, min_score, max_score):
+    """
+    Normalize the weight loss score to a 0-3 scale based on min and max values.
+    Lower original scores (healthier) should map to lower normalized values.
+    Returns a value between 0 and 3 for syringe display.
+    """
+    try:
+        if weight_loss_score <= 0 or min_score is None or max_score is None:
+            return 0.0
+        
+        # If all scores are the same, return middle value
+        if max_score == min_score:
+            return 1.5
+        
+        # Normalize to 0-3 scale: (score - min) / (max - min) * 3
+        # Lower score = healthier = fewer syringes
+        normalized = ((weight_loss_score - min_score) / (max_score - min_score)) * 3.0
+        return round(normalized, 2)
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred in normalize_oz_score with weight_loss_score={weight_loss_score}, min_score={min_score}, max_score={max_score}: {e}"
         )
         logger.error(traceback.format_exc())
         return 0.0
