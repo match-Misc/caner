@@ -1192,7 +1192,7 @@ def normalize_oz_score(weight_loss_score, min_score, max_score):
         if weight_loss_score <= 0 or min_score is None or max_score is None:
             return 0.0
         
-        # If all scores are the same, return middle value
+        # If all scores are the same, return middle value (halfway on 0-3 scale)
         if max_score == min_score:
             return 1.5
         
