@@ -242,7 +242,7 @@
                                                         {% endif %}
                                                     </td>
                                                     <td class="expert-mode-col" style="display: none;">
-                                                        {% if weight_loss_score > 0 %}
+                                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
                                                             {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
                                                             {% if normalized_score <= 1.0 %}
                                                                 {% set syringes = '💉' %}
@@ -379,7 +379,7 @@
                                                             data-bs-placement="top" 
                                                             title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                                     <div class="user-price-caner-info mobile-layout">
-                                                        {% if weight_loss_score > 0 %}
+                                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
                                                             {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
                                                             {% if normalized_score <= 1.0 %}
                                                                 {% set syringes = '💉' %}
@@ -809,7 +809,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        {% if weight_loss_score > 0 %}
+                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
                                             {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
                                             {% if normalized_score <= 1.0 %}
                                                 {% set syringes = '💉' %}
@@ -947,7 +947,7 @@
                                             data-bs-placement="top" 
                                             title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
                                     <div class="user-price-caner-info mobile-layout">
-                                        {% if weight_loss_score > 0 %}
+                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
                                             {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
                                             {% if normalized_score <= 1.0 %}
                                                 {% set syringes = '💉' %}
