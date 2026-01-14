@@ -164,7 +164,7 @@ marking_info = {
     "26": {"emoji": "🥛", "title": "Milch"},
     "22": {"emoji": "🥚", "title": "Ei"},
     "20a": {"emoji": "🌾", "title": "Weizen"},
-    "q": {"emoji": "🐎", "title": "Pferd"},
+    "q": {"emoji": '<img src="/static/img/lower_saxony_coat_of_arms.svg" alt="Pferd" title="Pferd" style="width: 1.2em; height: 1.2em; display: inline-block; vertical-align: middle;">', "title": "Pferd"},
 }
 
 # Create Flask app
