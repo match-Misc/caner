@@ -164,7 +164,7 @@ marking_info = {
     "26": {"emoji": "🥛", "title": "Milch"},
     "22": {"emoji": "🥚", "title": "Ei"},
     "20a": {"emoji": "🌾", "title": "Weizen"},
-    "q": {"emoji": "🐎", "title": "Pferd"},
+    "q": {"emoji": "🐎", "title": "Niedersachsen Menü"},
 }
 
 # Create Flask app
