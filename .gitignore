@@ -1,5 +1,3 @@
-/home/savidini/Downloads/Caner/.gitignore
-```gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -125,4 +123,9 @@ dmypy.json
 
 # Log files
 *.log
-```
+
+# Menu and voucher files
+static/menu/*.pdf
+static/menu/*.png
+static/vouchers/*.pdf
+static/vouchers/*.png
