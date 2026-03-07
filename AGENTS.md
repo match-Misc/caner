@@ -24,13 +24,13 @@ uv run python main.py
 - `uv run python script.py` - run scripts
 - Database tables are created automatically on app startup
 
-**Run tests and linting**:
+**Run linting**:
 ```bash
-uvx ruff check .                    # Lint code
-uv run python -m pytest test_downloads.py  # Run tests
+uvx ruff check .    # Lint Python code
+uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031   # Lint Jinja templates
 ```
 
-> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and fix all issues. Iterate until no errors remain.
+> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and `uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031` and fix all issues. Iterate until no errors remain.
 
 ## 🧪 Debugging
 

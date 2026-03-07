@@ -56,7 +56,7 @@
           <div
             class="col-md-2 col-3 d-flex align-items-center justify-content-center"
           >
-            <a href="/" class="text-decoration-none">
+            <a href="{{ url_for('index') }}" class="text-decoration-none">
               <div class="caner-image mirrored">
                 <img
                   src="{{ url_for('static', filename='img/caner.png') }}"
@@ -74,7 +74,7 @@
           <div class="col-md-8 col-6">
             <div class="text-container">
               <h1 class="text-center">
-                <a href="/" class="text-decoration-none text-reset"
+                <a href="{{ url_for('index') }}" class="text-decoration-none text-reset"
                   >Das Caner</a
                 >
               </h1>
@@ -97,7 +97,7 @@
           <div
             class="col-md-2 col-3 d-flex align-items-center justify-content-center"
           >
-            <a href="/" class="text-decoration-none">
+            <a href="{{ url_for('index') }}" class="text-decoration-none">
               <div class="caner-image">
                 <img
                   src="{{ url_for('static', filename='img/caner.png') }}"
@@ -117,7 +117,7 @@
     </header>
 
     <main class="content-area">
-      <div class="container{% if dashboard_mode %} dashboard-mode{% endif %}">{% block content %}{% endblock %}</div>
+      <div class="container{% if dashboard_mode %} dashboard-mode{% endif %}">{% block content %}{% endblock content %}</div>
     </main>
 
     <!-- Page view counter -->
@@ -173,7 +173,7 @@
     <!-- Meal Recommendation Popup -->
     <div id="mealRecommendationPopup" class="meal-recommendation-popup">
       <div class="meal-recommendation-content">
-        <span class="close-popup" id="closePopup">&times;</span>
+        <span class="close-popup" id="closePopup">×</span>
         <h2 class="recommendation-title">Mahlzeit-Empfehlung</h2>
         <p id="recommendationText" class="recommendation-text">
           Laden der Empfehlung...
