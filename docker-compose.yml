@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   caner:
     build:
@@ -14,13 +12,10 @@ services:
     environment:
       - PORT=30823
     volumes:
-      - caner_logs:/app/logs
+      - ./logs:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:30823/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
-volumes:
-  caner_logs:

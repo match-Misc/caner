@@ -322,10 +322,10 @@ def process_menu_image_and_update_meals(png_path):
         logger.error(f"Error encoding image {png_path} to base64: {e}")
         return False
 
-    api_key = os.environ.get("MISTRAL_API_KEY")
+    api_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("MISTRAL_API_KEY")
     if not api_key:
         logger.error(
-            "MISTRAL_API_KEY not found in environment. Cannot process menu image."
+            "OPENROUTER_API_KEY not found in environment. Cannot process menu image."
         )
         return False
 
