@@ -63,15 +63,15 @@ from utils.xml_parser import get_available_dates, get_available_mensen, parse_me
 sys.setrecursionlimit(5000)  # Increased from default 1000
 
 
-# Load environment variables. This must be done after imports but before using env vars.
-dotenv_path = os.path.join(os.path.dirname(__file__), ".secrets")
+# Load environment variables from .env file
+dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path=dotenv_path)
 else:
-    # If running in an environment where .secrets might not be present (e.g., Docker, CI),
+    # If running in an environment where .env might not be present (e.g., Docker, CI),
     # this allows the app to continue if env vars are set externally.
     print(
-        f"Warning: .secrets file not found at {dotenv_path}. Ensure environment variables are set."
+        f"Warning: .env file not found at {dotenv_path}. Ensure environment variables are set."
     )
 
 
@@ -180,30 +180,15 @@ app.wsgi_app = ProxyFix(
     x_prefix=1,  # Number of proxies handling path prefix
 )
 
-# Configure the database
-# All database configuration is loaded from .secrets
-db_user = os.environ.get("CANER_DB_USER")
-db_password = os.environ.get("CANER_DB_PASSWORD")
-db_host = os.environ.get("CANER_DB_HOST")
-db_name = os.environ.get("CANER_DB_NAME")
+# Configure the database from DATABASE_URL (Supabase)
+database_url = os.environ.get("DATABASE_URL")
 
-if not all([db_user, db_password, db_host, db_name]):
+if not database_url:
     logger.error(
-        "Database configuration missing. Please ensure all database-related environment variables are set in .secrets:"
-        "\n- CANER_DB_USER\n- CANER_DB_PASSWORD\n- CANER_DB_HOST\n- CANER_DB_NAME"
+        "Database configuration missing. Please ensure DATABASE_URL is set in .env"
     )
-    # Potentially exit or raise an error here if the database connection is critical for startup
-    # For now, we'll let it try to connect, which will fail informatively.
 
-
-# Use SQLite for testing if specified
-use_sqlite = os.environ.get("USE_SQLITE", "false").lower() == "true"
-if use_sqlite:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_caner.db"
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
-    )
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 300  # Recycle connections every 5 minutes
 
@@ -941,12 +926,9 @@ def index():
             oz_score = calculate_weight_loss_score(kcal, total_grams)
             if oz_score > 0:  # Only include valid scores
                 oz_scores.append(oz_score)
-        
+
         if oz_scores:
-            oz_score_bounds[mensa] = {
-                "min": min(oz_scores),
-                "max": max(oz_scores)
-            }
+            oz_score_bounds[mensa] = {"min": min(oz_scores), "max": max(oz_scores)}
         else:
             # Default bounds if no valid scores
             oz_score_bounds[mensa] = {"min": 0, "max": 5}
@@ -1121,31 +1103,31 @@ def extract_total_grams(naehrwert_str):
     try:
         if not naehrwert_str:
             return 0.0
-        
+
         total_grams = 0.0
-        
+
         # Extract Fett (Fat)
         fett_match = re.search(r"Fett=([\d,]+)g", naehrwert_str)
         if fett_match:
             total_grams += float(fett_match.group(1).replace(",", "."))
-        
+
         # Extract Kohlenhydrate (Carbohydrates)
         kohlenhydrate_match = re.search(r"Kohlenhydrate=([\d,]+)g", naehrwert_str)
         if kohlenhydrate_match:
             total_grams += float(kohlenhydrate_match.group(1).replace(",", "."))
-        
+
         # Zucker is NOT included - it's already part of Kohlenhydrate ("davon Zucker")
-        
+
         # Extract Eiweiß (Protein)
         eiweiss_match = re.search(r"Eiweiß=([\d,]+)g", naehrwert_str)
         if eiweiss_match:
             total_grams += float(eiweiss_match.group(1).replace(",", "."))
-        
+
         # Extract Salz (Salt)
         salz_match = re.search(r"Salz=([\d,]+)g", naehrwert_str)
         if salz_match:
             total_grams += float(salz_match.group(1).replace(",", "."))
-        
+
         return total_grams
     except Exception as e:
         logger.error(
@@ -1161,18 +1143,20 @@ def calculate_weight_loss_score(kcal, total_grams):
     Lower values are better for weight loss (lower calorie density).
     """
     try:
-        if not isinstance(kcal, (int, float)) or not isinstance(total_grams, (int, float)):
+        if not isinstance(kcal, (int, float)) or not isinstance(
+            total_grams, (int, float)
+        ):
             logger.warning(
                 f"Invalid input in calculate_weight_loss_score: kcal={kcal} (type: {type(kcal)}), total_grams={total_grams} (type: {type(total_grams)})"
             )
             return 0.0
-        
+
         if total_grams <= 0:
             return 0.0
-        
+
         if kcal <= 0:
             return 0.0
-        
+
         return round(kcal / total_grams, 2)
     except Exception as e:
         logger.error(
@@ -1192,11 +1176,11 @@ def normalize_oz_score(weight_loss_score, min_score, max_score):
     try:
         if weight_loss_score <= 0 or min_score is None or max_score is None:
             return 0.0
-        
+
         # If all scores are the same, return middle value (halfway on 0-3 scale)
         if max_score == min_score:
             return 1.5
-        
+
         # Normalize to 0-3 scale: (score - min) / (max - min) * 3
         # Lower score = healthier = fewer syringes
         normalized = ((weight_loss_score - min_score) / (max_score - min_score)) * 3.0

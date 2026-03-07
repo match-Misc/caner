@@ -13,27 +13,17 @@ from sqlalchemy import create_engine, text
 # Add the current directory to the path so we can import our modules
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(__file__), ".secrets")
+# Load environment variables from .env file
+dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
-# Database configuration
-db_user = os.environ.get("CANER_DB_USER")
-db_password = os.environ.get("CANER_DB_PASSWORD")
-db_host = os.environ.get("CANER_DB_HOST")
-db_name = os.environ.get("CANER_DB_NAME")
+# Database configuration - uses DATABASE_URL (Supabase)
+database_url = os.environ.get("DATABASE_URL")
 
-if not all([db_user, db_password, db_host, db_name]):
-    print(
-        "Database configuration missing. Please ensure all database-related environment variables are set."
-    )
+if not database_url:
+    print("Database configuration missing. Please ensure DATABASE_URL is set in .env")
     sys.exit(1)
-
-# Create database URL
-database_url = (
-    f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}?sslmode=require"
-)
 
 
 def add_mps_columns():
