@@ -10,11 +10,10 @@ cd caner
 uv sync
 ```
 
-Create `.secrets` file with required environment variables (see `.secrets.example` or ask for template).
+Create `.env` file with required environment variables (see `.env.example` or ask for template).
 
 Initialize database and run:
 ```bash
-uv run flask db upgrade
 uv run python main.py
 ```
 
@@ -23,15 +22,15 @@ uv run python main.py
 **Always use `uv`**:
 - `uv add package-name` - install dependencies
 - `uv run python script.py` - run scripts
-- `uv run flask db migrate/upgrade` - database migrations
+- Database tables are created automatically on app startup
 
-**Run tests and linting**:
+**Run linting**:
 ```bash
-uvx ruff check .                    # Lint code
-uv run python -m pytest test_downloads.py  # Run tests
+uvx ruff check .    # Lint Python code
+uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031   # Lint Jinja templates
 ```
 
-> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and fix all issues. Iterate until no errors remain.
+> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and `uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031` and fix all issues. Iterate until no errors remain.
 
 ## 🧪 Debugging
 
@@ -39,10 +38,10 @@ Application runs in debug mode with auto-reload. Check console output for errors
 
 ## 🔑 Configuration
 
-Required in `.secrets`:
+Required in `.env`:
 - `SESSION_SECRET`
 - `MISTRAL_API_KEY`
-- `CANER_DB_USER`, `CANER_DB_PASSWORD`, `CANER_DB_HOST`, `CANER_DB_NAME`
+- `DATABASE_URL`
 
 ## 🚨 Troubleshooting
 

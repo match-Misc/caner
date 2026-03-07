@@ -9,96 +9,86 @@
             <div class="row">
                 <!-- Left Column: Selected Mensa -->
                 <div class="col-lg-8 dashboard-column">
-                    {% for mensa, meals in data.items() if mensa != "XXXLutz Hesse Markrestaurant" and mensa == selected_mensa %}
-                                            <div class="mensa-section mb-4">
-                                             {% if mensa == selected_mensa %}
-                                                 <!-- Mobile selectors row (shown on small screens) -->
-                                                 <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
-                                                     <div class="d-flex align-items-center">
-                                                         <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                                         <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
-                                                     </div>
-                                                     <div class="d-flex align-items-center">
-                                                         <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile = new URLSearchParams(window.location.search); paramsMobile.set('mensa', this.value); paramsMobile.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile.toString()}`;">
-                                                             {% for mensa in available_mensen %}
-                                                                 <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                                                     {{ mensa }}
-                                                                 </option>
-                                                             {% endfor %}
-                                                         </select>
-                                                         <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                                                     </div>
-                                                 </div>
-                                             {% endif %}
+                    <!-- Selection bar always visible for selected mensa (even when no meals) -->
+                    {% if selected_mensa and selected_mensa != "XXXLutz Hesse Markrestaurant" %}
+                    <div class="mensa-section mb-4">
+                        <!-- Mobile selectors row (shown on small screens) -->
+                        <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                                <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile = new URLSearchParams(window.location.search); paramsMobile.set('mensa', this.value); paramsMobile.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile.toString()}`;">
+                                    {% for mensa in available_mensen %}
+                                        <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                            {{ mensa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                            </div>
+                        </div>
 
-                                             <!-- Desktop title with inline selectors (shown on large screens) -->
-                                             <h2 class="mensa-title-desktop" style="display: grid; grid-template-columns: auto 1fr auto; align-items: center;">
-                                                 {% if mensa == selected_mensa %}
-                                                     <div class="d-flex align-items-center">
-                                                         <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                                         <input type="text" name="date" id="date" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
-                                                     </div>
-                                                 {% endif %}
+                        <!-- Desktop title with inline selectors (shown on large screens) -->
+                        <h2 class="mensa-title-desktop" style="display: grid; grid-template-columns: auto 1fr auto; align-items: center;">
+                            <div class="d-flex align-items-center">
+                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                                <input type="text" name="date" id="date" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
+                            </div>
+                            <span class="mensa-name-and-emoji-wrapper text-center">
+                                <span class="mensa-name-text">{{ selected_mensa }}</span>
+                                <span class="ms-2">
+                                    {% if selected_mensa == "Mensa Garbsen" %}
+                                        <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% elif selected_mensa == "Contine" %}
+                                        <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% elif selected_mensa == "Hauptmensa" %}
+                                        <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% else %}
+                                        {{ mensa_emojis[selected_mensa] }}
+                                    {% endif %}
+                                </span>
+                            </span>
+                            <div class="d-flex align-items-center">
+                                <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
+                                    {% for mensa in available_mensen %}
+                                        <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                            {{ mensa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                            </div>
+                        </h2>
 
-                                                 <span class="mensa-name-and-emoji-wrapper text-center{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                                 {% if mensa == "Mensa Garbsen" %}
-                                     <span class="mensa-name-text">{{ mensa }}</span>
-                                 {% else %}
-                                     <span class="mensa-name-text">{{ mensa }}</span>
-                                 {% endif %}
-                                 <span class="ms-2">
-                                     {% if mensa == "Mensa Garbsen" %}
-                                         <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "Hauptmensa" %}
-                                         <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "Contine" %}
-                                         <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                                         <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                                     {% else %}
-                                         {{ mensa_emojis[mensa] }}
-                                     {% endif %}
-                                 </span>
-                             </span>
+                        <!-- Mobile title (shown on small screens) -->
+                        <h2 class="mensa-title-mobile text-center">
+                            <span class="mensa-name-and-emoji-wrapper">
+                                <span class="mensa-name-text">{{ selected_mensa }}</span>
+                                <span class="ms-2">
+                                    {% if selected_mensa == "Mensa Garbsen" %}
+                                        <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% elif selected_mensa == "Contine" %}
+                                        <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% elif selected_mensa == "Hauptmensa" %}
+                                        <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                                    {% else %}
+                                        {{ mensa_emojis[selected_mensa] }}
+                                    {% endif %}
+                                </span>
+                            </span>
+                        </h2>
 
-                             {% if mensa == selected_mensa %}
-                                 <div class="d-flex align-items-center">
-                                     <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
-                                         {% for mensa in available_mensen %}
-                                             <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                                 {{ mensa }}
-                                             </option>
-                                         {% endfor %}
-                                     </select>
-                                     <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                                 </div>
-                             {% endif %}
-                                             </h2>
+                        <!-- No meals message when selected_mensa has no meals -->
+                        {% if selected_mensa in data and data[selected_mensa]|length == 0 %}
+                        <div class="no-meals-warning mt-3">
+                            <i class="fas fa-utensils me-2"></i>Keine Mahlzeiten für dieses Datum vorhanden.
+                        </div>
+                        {% endif %}
 
-                                             <!-- Mobile title (shown on small screens) -->
-                                             <h2 class="mensa-title-mobile text-center">
-                                                 <span class="mensa-name-and-emoji-wrapper{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                                 {% if mensa == "Mensa Garbsen" %}
-                                     <span class="mensa-name-text">{{ mensa }}</span>
-                                 {% else %}
-                                     <span class="mensa-name-text">{{ mensa }}</span>
-                                 {% endif %}
-                                 <span class="ms-2">
-                                     {% if mensa == "Mensa Garbsen" %}
-                                         <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin zu Mensa Garbsen & XXXLutz">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "Hauptmensa" %}
-                                         <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "Contine" %}
-                                         <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                                     {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                                         <span id="askDarkCanerEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                                     {% else %}
-                                         {{ mensa_emojis[mensa] }}
-                                     {% endif %}
-                                 </span>
-                             </span>
-                                             </h2>
-
+                        <!-- Table content for selected mensa - moved inside the same mensa-section to eliminate gap -->
+                        {% for mensa, meals in data.items() if mensa != "XXXLutz Hesse Markrestaurant" and mensa == selected_mensa %}
                             {% if mensa == "XXXLutz Hesse Markrestaurant" %}
                                 <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
                                 <div class="xxxlutz-container">
@@ -418,9 +408,9 @@
                                     {% endif %}
                                 </div>
                             {% endif %}
-
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Right Column: XXXLutz Hesse + Marvin Recommendation -->
@@ -529,95 +519,88 @@
         </div>
     {% else %}
         <!-- Normal Mode: Single column layout -->
-        {% for mensa, meals in data.items() %}
-                    <div class="mensa-section mb-4">
-                     {% if mensa == selected_mensa %}
-                         <!-- Mobile selectors row (shown on small screens) -->
-                         <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
-                             <div class="d-flex align-items-center">
-                                 <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                 <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
-                             </div>
-                             <div class="d-flex align-items-center">
-                                 <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile2 = new URLSearchParams(window.location.search); paramsMobile2.set('mensa', this.value); paramsMobile2.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile2.toString()}`;">
-                                     {% for mensa in available_mensen %}
-                                         <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                             {{ mensa }}
-                                         </option>
-                                     {% endfor %}
-                                 </select>
-                                 <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                             </div>
-                         </div>
-                     {% endif %}
+        <!-- Selection bar always visible for selected mensa (even when no meals) -->
+        {% if selected_mensa and selected_mensa != "XXXLutz Hesse Markrestaurant" %}
+        <div class="mensa-section mb-4">
+            <!-- Mobile selectors row (shown on small screens) -->
+            <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center">
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                    <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+                </div>
+                <div class="d-flex align-items-center">
+                    <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile2 = new URLSearchParams(window.location.search); paramsMobile2.set('mensa', this.value); paramsMobile2.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile2.toString()}`;">
+                        {% for mensa in available_mensen %}
+                            <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                {{ mensa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
 
-                     <!-- Desktop title with inline selectors (shown on large screens) -->
-                     <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
-                         {% if mensa == selected_mensa %}
-                             <div class="d-flex align-items-center">
-                                 <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                 <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
-                             </div>
-                         {% endif %}
+            <!-- Desktop title with inline selectors (shown on large screens) -->
+            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
+                    <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+                </div>
+                <span class="mensa-name-and-emoji-wrapper text-center">
+                    <span class="mensa-name-text">{{ selected_mensa }}</span>
+                    <span class="ms-2">
+                        {% if selected_mensa == "Mensa Garbsen" %}
+                            <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% elif selected_mensa == "Contine" %}
+                            <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% elif selected_mensa == "Hauptmensa" %}
+                            <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% else %}
+                            {{ mensa_emojis[selected_mensa] }}
+                        {% endif %}
+                    </span>
+                </span>
+                <div class="d-flex align-items-center">
+                    <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
+                        {% for mensa in available_mensen %}
+                            <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
+                                {{ mensa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </h2>
 
-                         <span class="mensa-name-and-emoji-wrapper text-center{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                     {% if mensa == "Mensa Garbsen" %}
-                         <span class="mensa-name-text">{{ mensa }}</span>
-                     {% else %}
-                         <span class="mensa-name-text">{{ mensa }}</span>
-                     {% endif %}
-                     <span class="ms-2">
-                         {% if mensa == "Mensa Garbsen" %}
-                             <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "Hauptmensa" %}
-                             <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "Contine" %}
-                             <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                             <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                         {% else %}
-                             {{ mensa_emojis[mensa] }}
-                         {% endif %}
-                     </span>
-                 </span>
+            <!-- Mobile title (shown on small screens) -->
+            <h2 class="mensa-title-mobile text-center">
+                <span class="mensa-name-and-emoji-wrapper">
+                    <span class="mensa-name-text">{{ selected_mensa }}</span>
+                    <span class="ms-2">
+                        {% if selected_mensa == "Mensa Garbsen" %}
+                            <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% elif selected_mensa == "Contine" %}
+                            <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% elif selected_mensa == "Hauptmensa" %}
+                            <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
+                        {% else %}
+                            {{ mensa_emojis[selected_mensa] }}
+                        {% endif %}
+                    </span>
+                </span>
+            </h2>
 
-                         {% if mensa == selected_mensa %}
-                             <div class="d-flex align-items-center">
-                                 <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
-                                     {% for mensa in available_mensen %}
-                                         <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                             {{ mensa }}
-                                         </option>
-                                     {% endfor %}
-                                 </select>
-                                 <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                             </div>
-                         {% endif %}
-                     </h2>
+            <!-- No meals message when selected_mensa has no meals -->
+            {% if selected_mensa in data and data[selected_mensa]|length == 0 %}
+            <div class="no-meals-warning mt-3">
+                <i class="fas fa-utensils me-2"></i>Keine Mahlzeiten für dieses Datum vorhanden.
+            </div>
+            {% endif %}
 
-                     <!-- Mobile title (shown on small screens) -->
-                     <h2 class="mensa-title-mobile text-center">
-                         <span class="mensa-name-and-emoji-wrapper{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                     {% if mensa == "Mensa Garbsen" %}
-                         <span class="mensa-name-text">{{ mensa }}</span>
-                     {% else %}
-                         <span class="mensa-name-text">{{ mensa }}</span>
-                     {% endif %}
-                     <span class="ms-2">
-                         {% if mensa == "Mensa Garbsen" %}
-                             <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin nur zu Mensa Garbsen">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "Hauptmensa" %}
-                             <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister zur Hauptmensa">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "Contine" %}
-                             <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Ask Donald Trump for Contine recommendation">{{ mensa_emojis[mensa] }}</span>
-                         {% elif mensa == "XXXLutz Hesse Markrestaurant" %}
-                             <span id="askDarkCanerEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                         {% else %}
-                             {{ mensa_emojis[mensa] }}
-                         {% endif %}
-                     </span>
-                 </span>
-                     </h2>
+            <!-- Table content for selected mensa - moved inside the same mensa-section to eliminate gap -->
+            {% for mensa, meals in data.items() %}
+                {% if mensa == selected_mensa %}
+                    <!-- Table content for selected mensa (header already shown above) -->
 
             {% if mensa == "XXXLutz Hesse Markrestaurant" %}
                 <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
@@ -987,11 +970,120 @@
                     {% endif %}
                 </div>
             {% endif %}
+                {% else %}
+                    <!-- Non-selected mensen get their own mensa-section -->
+                    <div class="mensa-section mb-4">
+                        {% if mensa == "XXXLutz Hesse Markrestaurant" %}
+                            <!-- XXXLutz header -->
+                            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
+                                <span class="mensa-name-and-emoji-wrapper text-center xxxlutz-title">
+                                    <span class="mensa-name-text">{{ mensa }}</span>
+                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
+                                </span>
+                            </h2>
+                            <h2 class="mensa-title-mobile text-center">
+                                <span class="mensa-name-and-emoji-wrapper xxxlutz-title">
+                                    <span class="mensa-name-text">{{ mensa }}</span>
+                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
+                                </span>
+                            </h2>
+                        {% else %}
+                            <!-- Other mensa headers -->
+                            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
+                                <span class="mensa-name-and-emoji-wrapper text-center">
+                                    <span class="mensa-name-text">{{ mensa }}</span>
+                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
+                                </span>
+                            </h2>
+                            <h2 class="mensa-title-mobile text-center">
+                                <span class="mensa-name-and-emoji-wrapper">
+                                    <span class="mensa-name-text">{{ mensa }}</span>
+                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
+                                </span>
+                            </h2>
+                        {% endif %}
 
+                        {% if mensa == "XXXLutz Hesse Markrestaurant" %}
+                            <!-- XXXLutz Menu content -->
+                            <div class="xxxlutz-container">
+                                <div class="xxxlutz-section mb-4">
+                                    <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
+                                    <div class="row justify-content-center">
+                                        {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="xxxlutz-card">
+                                                    {{ meal.description }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="xxxlutz-section mb-4">
+                                    <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
+                                    <div class="row justify-content-center">
+                                        {% for meal in meals if meal.category == 'Ständiges Angebot' %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="xxxlutz-card">
+                                                    {{ meal.description }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <!-- XXXLutz Vouchers Section - Only shown when Mensa Garbsen is selected -->
+                                {% if selected_mensa == "Mensa Garbsen" %}
+                                <div class="xxxlutz-section mb-4">
+                                    <h4 class="xxxlutz-section-title">Gutscheine</h4>
+                                    <div class="row justify-content-center">
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="xxxlutz-card">
+                                                <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="text-decoration-none d-block p-3">
+                                                    <i class="fas fa-download"></i> Neue Gutscheine
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="xxxlutz-card">
+                                                <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="text-decoration-none d-block p-3">
+                                                    <i class="fas fa-download"></i> Alte Gutscheine
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Regular table content for non-selected mensen -->
+                            <div class="table-responsive">
+                                <table class="table meal-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Essen</th>
+                                            <th>Studierende</th>
+                                            <th>Mitarbeitende</th>
+                                            <th>Gästende</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for meal in meals %}
+                                            <tr>
+                                                <td><strong>{{ meal.description }}</strong></td>
+                                                <td>{{ meal.price_student }} €</td>
+                                                <td>{{ meal.price_employee }} €</td>
+                                                <td>{{ meal.price_guest }} €</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
         </div>
-
-    {% endfor %}
-{% endif %}
+        {% endif %}
+    {% endif %}
 {% else %}
     <div class="alert alert-info">
         Keine Mahlzeiten für das ausgewählte Datum oder die ausgewählte Mensa gefunden.
@@ -1523,4 +1615,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-{% endblock %}
+{% endblock content %}

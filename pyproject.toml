@@ -45,3 +45,12 @@ dependencies = [
     "zope-event==5.0",
     "zope-interface==7.2",
 ]
+
+[tool.djlint]
+profile = "jinja"
+ignore = [
+    "H021",
+    "H006",
+    "H030",
+    "H031"
+]

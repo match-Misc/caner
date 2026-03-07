@@ -1,0 +1,21 @@
+services:
+  caner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: caner
+    restart: unless-stopped
+    ports:
+      - "30823:30823"
+    env_file:
+      - .env
+    environment:
+      - PORT=30823
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:30823/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
