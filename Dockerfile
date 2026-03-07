@@ -37,6 +37,7 @@ COPY app.py ./
 COPY main.py ./
 COPY models.py ./
 COPY gunicorn.conf.py ./
+COPY supervisord.conf ./
 COPY data_fetcher.py ./
 COPY data_loader.py ./
 COPY utils/ ./utils/
@@ -46,8 +47,12 @@ COPY static/ ./static/
 # Create log directory
 RUN mkdir -p /app/logs
 
-# Create cron script for data fetcher
-RUN echo '* * * * * root cd /app && uv run --frozen python data_fetcher.py >> /app/logs/data_fetcher.log 2>&1' > /etc/cron.d/data_fetcher && \
+# Set timezone to Europe/Berlin (CET/CEST)
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Create cron script for data fetcher - runs at 6:00 AM and 11:00 AM CET
+RUN echo '0 6,11 * * * root cd /app && uv run --frozen python data_fetcher.py >> /app/logs/data_fetcher.log 2>&1' > /etc/cron.d/data_fetcher && \
     chmod 0644 /etc/cron.d/data_fetcher && \
     crontab /etc/cron.d/data_fetcher
 
@@ -59,4 +64,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:30823/ || exit 1
 
 # Use supervisord to manage gunicorn and cron
-CMD ["sh", "-c", "cron && supervisord -c /app/supervisord.conf"]
+CMD ["supervisord", "-c", "/app/supervisord.conf"]

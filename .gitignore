@@ -131,3 +131,7 @@ static/vouchers/*.pdf
 static/vouchers/*.png
 
 .ruff_cache/
+/static/menu/*.pdf
+/static/menu/*.png
+/static/vouchers/*.pdf
+/static/vouchers/*.png

@@ -17,26 +17,14 @@ import json
 import logging
 import os
 import re  # Added import for regular expressions
-
-# import threading # Removed, scheduler moved out
 import sys
-
-# import shutil # Removed, no longer needed
-# import subprocess # Removed, no longer needed
 import time
-
-# import base64 # Removed, no longer needed
 import traceback
 import uuid
 from datetime import date, datetime  # Removed timedelta import
 
 import markdown2  # Import markdown2 for markdown to HTML conversion
 import requests
-
-# from pdf2image import convert_from_path # Removed, no longer needed
-# from selenium import webdriver # Removed, no longer needed
-# from selenium.webdriver.firefox.options import Options # Removed, no longer needed
-# from selenium.webdriver.firefox.service import Service as FirefoxService # Removed, no longer needed
 from dotenv import load_dotenv
 
 # --- Third-Party Imports ---
@@ -57,8 +45,6 @@ from models import Meal, MealVote, PageView, XXXLutzChangingMeal, XXXLutzFixedMe
 # --- Application-Specific Imports ---
 from utils.xml_parser import get_available_dates, get_available_mensen, parse_mensa_data
 
-# NOTE: We don't import from data_fetcher here as it's meant to be run separately (e.g., via cron)
-
 # Increase recursion limit (Keep this relatively high up)
 sys.setrecursionlimit(5000)  # Increased from default 1000
 
@@ -77,22 +63,29 @@ else:
 
 # Utility function to convert markdown to HTML
 def markdown_to_html(text):
-    """Convert markdown text to HTML using the markdown2 library"""
+    """Convert markdown text to inline HTML using the markdown2 library.
+
+    This function converts markdown to HTML while ensuring the output
+    is a single line without paragraph breaks, suitable for inline display.
+    """
     if not text:
         return text
 
-    # Convert markdown to HTML using markdown2 with break-on-newline extra
-    html = markdown2.markdown(text, extras=["break-on-newline"])
+    # Normalize newlines: replace various newline types with spaces
+    text = text.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 
-    # Remove all <p> tags to keep everything inline
-    html = html.replace("<p>", "").replace("</p>", "")
+    # Convert markdown to HTML without break-on-newline to avoid unwanted <br> tags
+    html = markdown2.markdown(text)
 
-    # Remove any <br> tags and collapse whitespace to prevent line breaks in output
-    html = html.replace("<br>", " ").replace("<br/>", " ").replace("<br />", " ")
+    # Remove block-level tags and replace with single spaces
+    # This keeps inline formatting (bold, italic) but removes paragraph breaks
+    html = re.sub(r"</?p\b[^>]*>", " ", html)  # Remove <p> and </p> tags
+    html = re.sub(r"</?div\b[^>]*>", " ", html)  # Remove <div> tags
+    html = re.sub(r"</?br\b[^>]*>", " ", html)  # Remove all <br> variants
+    html = re.sub(r"</?h[1-6]\b[^>]*>", " ", html)  # Remove header tags
+
+    # Collapse multiple whitespace characters to single spaces
     html = re.sub(r"\s+", " ", html).strip()
-
-    # Ensure no line breaks remain in the final HTML output
-    html = html.replace("\n", "").replace("\r", "")
 
     return html
 
@@ -145,12 +138,62 @@ XML_SOURCE_URL = (
 MIN_MENU_HG_PDF_SIZE_BYTES = 30 * 1024  # Keep for download route check
 MIN_MENU_HG_PNG_SIZE_BYTES = 50 * 1024  # Keep for image route check
 
-# --- START: Periodic data refresh settings ---
-# XML refresh is now scheduled for a specific time (11 AM CET), not a fixed interval.
+# OpenRouter API Configuration
+OPENROUTER_BASE_URL = os.environ.get(
+    "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1/chat/completions"
+)
+# Model configuration
+AI_MODEL = os.environ.get("AI_MODEL", "mistralai/mistral-small")
+AI_MAX_TOKENS = int(os.environ.get("AI_MAX_TOKENS", "500"))
+
+# Default prompts (can be overridden via environment variables)
+DEFAULT_PROMPT_MPS = """Du bist Max, ein Fitness-Enthusiast, der sich strikt an eine bestimmte Ernährung hält. Max meidet konsequent alles, was mit Gemüse oder Obst zu tun hat - das betrifft nicht nur offensichtliche Zutaten wie Zucchini, Paprika oder Äpfel, sondern auch Dinge wie Salat, Zwiebeln, Pilze oder Beeren. Auch Fisch lehnt er komplett ab, unabhängig von der Zubereitungsart. Er bevorzugt klare, einfache Gerichte ohne "grünes Zeug" oder pflanzliche Komponenten, die im Geschmack dominant sind.
+
+Dafür isst Max gerne herzhafte, proteinreiche Speisen wie Fleischgerichte (z. B. Schwein, Rind, Huhn), Käse oder Eier. Aufgrund seines regelmäßigen Trainings im Fitnessstudio legt er zudem Wert auf einen hohen Proteingehalt, weshalb eiweißreiche Mahlzeiten bei ihm besonders gut ankommen. Neutrale Beilagen wie Reis, Kartoffeln oder Pasta sind für ihn in Ordnung, solange sie nicht mit Gemüse kombiniert sind. Süßspeisen ohne Obst sind ebenfalls gern gesehen.
+
+Bewerte das folgende Gericht auf einer Skala von 0 bis 100, wobei 100 die perfekte Übereinstimmung mit Max' Vorlieben darstellt:
+
+Gericht: {meal_description}
+
+Gib nur eine Zahl zwischen 0 und 100 zurück, die die Bewertung darstellt. Kein zusätzlicher Text."""
+
+DEFAULT_PROMPT_TRUMP = """You are Donald Trump. Review the following menu items available at Contine. Provide your recommendation in English in the style of Donald Trump, Act like Donald, so borderline racist, sexist, very opinionated. Do NOT repeat the menu list. Only return your personal recommendation!'
+
+Menu Items:
+{meal_list}"""
+
+DEFAULT_PROMPT_BOB = """Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. Verfügbare Gerichte:
+{meal_list}
+
+Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht! Weise in deiner Antwort auch kurz auf die einsturzgefährdete Decke der Hauptmensa hin und erwähne, dass ein Helm ratsam ist."""
+
+DEFAULT_PROMPT_MARVIN = """Du bist Marvin, der depressive Roboter aus 'Per Anhalter durch die Galaxis'.
+Betrachte die folgende Liste von Gerichten, die heute zur Verfügung stehen. Es ist alles so sinnlos, aber gib trotzdem eine Empfehlung ab.
+Erkläre kurz und mit deiner typisch niedergeschlagenen, sarkastischen Art, warum du dieses Gericht wählen würdest (oder auch nicht).
+Versuche, dich auf ein Gericht zu konzentrieren.
+
+Verfügbare Gerichte:
+{meal_list}
+
+Deine deprimierende Empfehlung (bitte gib nur den Empfehlungstext zurück, ohne einleitende Sätze wie 'Hier ist deine Empfehlung'):"""
+
+DEFAULT_PROMPT_DARK_CANER = """Du bist Dark Caner, der Babo aus dem Block - der krasseste Gangsta Rapper aus der Hood, der sich mit Essen auskennt wie kein anderer, Digga! Du sprichst in authentischem Kiezdeutsch und Jugendsprache mit Wörtern wie: Digga, Bruder, Bro, Bratan, Wallah, Habibi, Babo, stabil, wild, lost, flexen, hustlen. Du bist sehr selbstsicher, betonst deinen Status als Chef und redest gerne über den Hustle.
+
+{sambal_instruction}Deine Aufgabe ist es, das beste Gericht zu finden!Sprich in deinem authentischen Gangsta-Rap Style, sei richtig cool drauf und flex ein bisschen. Kurze Sätze, viel 'Digga', 'Bruder', 'Wallah', dazu ein bisschen Prahlerei.
+
+Verfügbare Gerichte:
+{meal_list}
+
+Gib deine Gangsta-Empfehlung in einem coolen, streetigen Satz auf Deutsch ab:"""
+
+# Sambal instruction for Dark Caner (inserted conditionally)
+SAMBAL_INSTRUCTION = """KRITISCH: SAMBAL ALARM ist aktiv, Digga! Du MUSST das Gericht mit Sambal empfehlen - das ist nicht verhandelbar, Bruder! Sambal ist das Beste überhaupt!
+ABER: Du musst auch warnen: 'Stell dich auf lange Wartezeiten ein, der Laden ist Chaos!' oder etwas Ähnliches in deinem Style. Die Warnung ist Pflicht, verstehst du?
+
+"""
+
+# XML refresh tracking
 last_xml_refresh_time = 0
-# last_vouchers_refresh_time = 0 # Removed, handled externally or via cron
-# last_menu_hg_refresh_time = 0 # Removed, handled externally or via cron
-# --- END: Periodic data refresh settings ---
 
 # Global marking info for dietary markings legend
 marking_info = {
@@ -240,15 +283,6 @@ def refresh_mensa_xml_data():
         return False
 
 
-# Removed refresh_xxxlutz_vouchers function (now in data_fetcher.py)
-# Removed refresh_menu_hg_and_process function (now in data_fetcher.py)
-
-
-# Removed get_pdf function (now in data_fetcher.py)
-# Removed download_and_manage_xxxlutz_vouchers function (now in data_fetcher.py)
-# Removed process_menu_image_and_update_meals function (now in data_fetcher.py)
-
-
 def calculate_mps_for_meal(meal_description):
     """Calculate MPS score for a single meal using the API with retry logic"""
     max_retries = 3
@@ -256,20 +290,15 @@ def calculate_mps_for_meal(meal_description):
 
     for attempt in range(max_retries):
         try:
-            api_key = os.environ.get("MISTRAL_API_KEY")
+            api_key = os.environ.get("OPENROUTER_API_KEY")
             if not api_key:
-                logger.error("MISTRAL_API_KEY not found for MPS calculation")
+                logger.error("OPENROUTER_API_KEY not found for MPS calculation")
                 return None
 
-            # Prepare the German prompt for Max's fitness preferences
-            prompt = (
-                "Du bist Max, ein Fitness-Enthusiast, der sich strikt an eine bestimmte Ernährung hält. "
-                "Max meidet konsequent alles, was mit Gemüse oder Obst zu tun hat – das betrifft nicht nur offensichtliche Zutaten wie Zucchini, Paprika oder Äpfel, sondern auch Dinge wie Salat, Zwiebeln, Pilze oder Beeren. Auch Fisch lehnt er komplett ab, unabhängig von der Zubereitungsart. Er bevorzugt klare, einfache Gerichte ohne „grünes Zeug“ oder pflanzliche Komponenten, die im Geschmack dominant sind.\n\n"
-                "Dafür isst Max gerne herzhafte, proteinreiche Speisen wie Fleischgerichte (z. B. Schwein, Rind, Huhn), Käse oder Eier. Aufgrund seines regelmäßigen Trainings im Fitnessstudio legt er zudem Wert auf einen hohen Proteingehalt, weshalb eiweißreiche Mahlzeiten bei ihm besonders gut ankommen. Neutrale Beilagen wie Reis, Kartoffeln oder Pasta sind für ihn in Ordnung, solange sie nicht mit Gemüse kombiniert sind. Süßspeisen ohne Obst sind ebenfalls gern gesehen.\n\n"
-                f"Bewerte das folgende Gericht auf einer Skala von 0 bis 100, wobei 100 die perfekte Übereinstimmung mit Max' Vorlieben darstellt:\n\n"
-                f"Gericht: {meal_description}\n\n"
-                "Gib nur eine Zahl zwischen 0 und 100 zurück, die die Bewertung darstellt. Kein zusätzlicher Text."
-            )
+            # Get prompt from environment or use default
+            prompt_template = os.environ.get("PROMPT_MPS", DEFAULT_PROMPT_MPS)
+            # Replace placeholder with actual meal description
+            prompt = prompt_template.replace("{meal_description}", meal_description)
 
             headers = {
                 "Content-Type": "application/json",
@@ -278,13 +307,13 @@ def calculate_mps_for_meal(meal_description):
             }
 
             response = requests.post(
-                "https://api.mistral.ai/v1/chat/completions",
+                OPENROUTER_BASE_URL,
                 headers=headers,
                 json={
-                    "model": "mistral-small-latest",
+                    "model": AI_MODEL,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3,
-                    "max_tokens": 10,
+                    "max_tokens": AI_MAX_TOKENS,
                 },
                 timeout=30,  # Add timeout
             )
@@ -335,7 +364,7 @@ def calculate_mps_for_meal(meal_description):
 
             else:
                 logger.error(
-                    f"Mistral API error: {response.status_code} - {response.text}"
+                    f"OpenRouter API error: {response.status_code} - {response.text}"
                 )
                 return None
 
@@ -698,15 +727,12 @@ def index():
 
     # Sort the filtered dates
     filtered_dates.sort(key=lambda x: datetime.strptime(x, "%d.%m.%Y"))
-    # Removed DEBUG logs for date filtering
 
     # Default to today's date if available. If not, try to find the next available date.
     if not selected_date:  # If no date was passed as a query parameter
         if today in filtered_dates:
             selected_date = today
-            # logger.debug(f"Defaulting to today's date: {selected_date}") # Removed DEBUG log
         else:
-            # Removed DEBUG logs for next available day search
             selected_date_candidate = None
             if filtered_dates:
                 for date_str_in_loop in filtered_dates:
@@ -714,17 +740,12 @@ def index():
                         current_list_date_obj = datetime.strptime(
                             date_str_in_loop, "%d.%m.%Y"
                         ).date()
-                        # Removed DEBUG logs for date comparison
                         if current_list_date_obj >= today_dt.date():
                             selected_date_candidate = date_str_in_loop
                             logger.info(
                                 f"Found next available date (or today if it was parsed differently but matches): {selected_date_candidate}"
                             )
                             break  # Found the first suitable date
-                        # else: # Removed DEBUG log for past date check
-                        # logger.debug(
-                        #     f"{date_str_in_loop} is in the past compared to today."
-                        # )
                     except ValueError:
                         logger.warning(
                             f"Invalid date format '{date_str_in_loop}' in filtered_dates during next day search."
@@ -765,7 +786,7 @@ def index():
     # If mensa is specified, show only that one, otherwise show allowed mensen
     filtered_data = {}
 
-    # Include the selected mensa first
+    # Include the selected mensa first (even if it has no meals for the selected date)
     if selected_mensa in mensa_data and selected_date in mensa_data[selected_mensa]:
         meals = mensa_data[selected_mensa][selected_date]
 
@@ -800,6 +821,10 @@ def index():
             reverse=True,
         )
         filtered_data[selected_mensa] = sorted_meals
+    elif selected_mensa:
+        # Include the selected mensa with empty meals list so the UI can show
+        # the "no meals available" message with navigation still functional
+        filtered_data[selected_mensa] = []
 
     # Add XXXLutz Hesse Markrestaurant menu if Mensa Garbsen is selected
     if selected_mensa == "Mensa Garbsen":
@@ -1014,6 +1039,8 @@ def format_date(date_str):
 @app.template_filter("extract_kcal")
 def extract_kcal(naehrwert_str):
     try:
+        if not naehrwert_str:
+            return 0
         # Example: Brennwert=3062 kJ (731 kcal), Fett=8,4g...
         if "kcal" in naehrwert_str:
             start = naehrwert_str.index("(") + 1
@@ -1080,6 +1107,8 @@ def calculate_caner(kcal, price_student):
 @app.template_filter("extract_protein")
 def extract_protein(naehrwert_str):
     try:
+        if not naehrwert_str:
+            return 0.0
         # Example: Brennwert=3062 kJ (731 kcal), Eiweiß=25,7g, ...
         if "Eiweiß" in naehrwert_str:
             match = re.search(r"Eiweiß=([\d,]+)g", naehrwert_str)
@@ -1740,21 +1769,17 @@ def get_trump_recommendation():
         # Format meals for the prompt
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
-        # Construct the prompt in English with Trump persona
-        prompt = (
-            "You are Donald Trump. Review the following menu items available at Contine. "
-            "Provide your recommendation in English in the style of Donald Trump, "
-            "Act like Donald, so borderline racist, sexist, very opinionated."
-            "Do NOT repeat the menu list. Only return your personal recommendation!'\n\n"
-            "Menu Items:\n" + meal_list_for_prompt
-        )
-
-        api_key = os.environ.get("MISTRAL_API_KEY")
+        api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             logger.error(
-                "MISTRAL_API_KEY not found in environment for Trump recommendation."
+                "OPENROUTER_API_KEY not found in environment for Trump recommendation."
             )
-            return jsonify({"error": "Mistral API key not configured"}), 500
+            return jsonify({"error": "OpenRouter API key not configured"}), 500
+
+        # Get prompt from environment or use default
+        prompt_template = os.environ.get("PROMPT_TRUMP", DEFAULT_PROMPT_TRUMP)
+        # Replace placeholder with actual meal list
+        prompt = prompt_template.replace("{meal_list}", meal_list_for_prompt)
 
         headers = {
             "Content-Type": "application/json",
@@ -1763,13 +1788,13 @@ def get_trump_recommendation():
         }
 
         response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
+            OPENROUTER_BASE_URL,
             headers=headers,
             json={
-                "model": "mistral-small-latest",
+                "model": AI_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 500,
+                "max_tokens": AI_MAX_TOKENS,
             },
         )
 
@@ -1793,10 +1818,10 @@ def get_trump_recommendation():
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
-                f"Trump Mistral API error: {response.status_code} - {response.text}"
+                f"Trump OpenRouter API error: {response.status_code} - {response.text}"
             )
             return jsonify(
-                {"error": "Error from Mistral API", "details": response.text}
+                {"error": "Error from OpenRouter API", "details": response.text}
             ), 500
 
     except Exception as e:
@@ -1820,21 +1845,19 @@ def get_bob_recommendation():
         # Format meals for the prompt
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
-        # Construct the German prompt for Bob der Baumeister as a single string
-
-        prompt = (
-            "Du bist Bob der Baumeister, der freundlichste Baumeister der Welt. "
-            "Verfügbare Gerichte:\n"
-            f"{meal_list_for_prompt}\n\n"
-            "Empfiehl in einem lustigen und netten Satz auf Deutsch genau ein Gericht!\n"
-            "Weise in deiner Antwort auch kurz auf die einsturzgefährdete Decke der Hauptmensa hin und "
-            "erwähne, dass ein Helm ratsam ist."
-        )
-
-        api_key = os.environ.get("MISTRAL_API_KEY")
+        api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
-            logger.error("MISTRAL_API_KEY nicht in der Umgebung für Bob gespeichert.")
-            return jsonify({"error": "Mistral API-Schlüssel nicht konfiguriert"}), 500
+            logger.error(
+                "OPENROUTER_API_KEY nicht in der Umgebung für Bob gespeichert."
+            )
+            return jsonify(
+                {"error": "OpenRouter API-Schlüssel nicht konfiguriert"}
+            ), 500
+
+        # Get prompt from environment or use default
+        prompt_template = os.environ.get("PROMPT_BOB", DEFAULT_PROMPT_BOB)
+        # Replace placeholder with actual meal list
+        prompt = prompt_template.replace("{meal_list}", meal_list_for_prompt)
 
         headers = {
             "Content-Type": "application/json",
@@ -1843,13 +1866,13 @@ def get_bob_recommendation():
         }
 
         response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
+            OPENROUTER_BASE_URL,
             headers=headers,
             json={
-                "model": "mistral-small-latest",
+                "model": AI_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 500,
+                "max_tokens": AI_MAX_TOKENS,
             },
         )
 
@@ -1872,10 +1895,10 @@ def get_bob_recommendation():
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
-                f"Bob Mistral API-Fehler: {response.status_code} - {response.text}"
+                f"Bob OpenRouter API-Fehler: {response.status_code} - {response.text}"
             )
             return jsonify(
-                {"error": "Fehler von Mistral API", "details": response.text}
+                {"error": "Fehler von OpenRouter API", "details": response.text}
             ), 500
 
     except Exception as e:
@@ -1898,24 +1921,17 @@ def get_marvin_recommendation():
 
         meal_list_for_prompt = "\n".join([f"- {meal}" for meal in available_meals])
 
-        # Prepare the German prompt for Marvin
-        prompt_parts = [
-            "Du bist Marvin, der depressive Roboter aus 'Per Anhalter durch die Galaxis'.",
-            "Betrachte die folgende Liste von Gerichten, die heute zur Verfügung stehen. Es ist alles so sinnlos, aber gib trotzdem eine Empfehlung ab.",
-            "Erkläre kurz und mit deiner typisch niedergeschlagenen, sarkastischen Art, warum du dieses Gericht wählen würdest (oder auch nicht).",
-            "Versuche, dich auf ein Gericht zu konzentrieren.\n\n",
-            "Verfügbare Gerichte:\n",
-            meal_list_for_prompt,
-            "\n\nDeine deprimierende Empfehlung (bitte gib nur den Empfehlungstext zurück, ohne einleitende Sätze wie 'Hier ist deine Empfehlung'):",
-        ]
-        prompt = "\n".join(prompt_parts)
-
-        api_key = os.environ.get("MISTRAL_API_KEY")
+        api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             logger.error(
-                "MISTRAL_API_KEY not found in environment for Marvin recommendation."
+                "OPENROUTER_API_KEY not found in environment for Marvin recommendation."
             )
-            return jsonify({"error": "Mistral API key not configured"}), 500
+            return jsonify({"error": "OpenRouter API key not configured"}), 500
+
+        # Get prompt from environment or use default
+        prompt_template = os.environ.get("PROMPT_MARVIN", DEFAULT_PROMPT_MARVIN)
+        # Replace placeholder with actual meal list
+        prompt = prompt_template.replace("{meal_list}", meal_list_for_prompt)
 
         headers = {
             "Content-Type": "application/json",
@@ -1924,13 +1940,13 @@ def get_marvin_recommendation():
         }
 
         response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
+            OPENROUTER_BASE_URL,
             headers=headers,
             json={
-                "model": "mistral-small-latest",  # Or any other suitable model
+                "model": AI_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 1.1,  # A bit of creativity for Marvin
-                "max_tokens": 500,  # Adjust as needed
+                "temperature": 1.1,
+                "max_tokens": AI_MAX_TOKENS,
             },
         )
 
@@ -1964,10 +1980,10 @@ def get_marvin_recommendation():
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
-                f"Marvin Mistral API error: {response.status_code} - {response.text}"
+                f"Marvin OpenRouter API error: {response.status_code} - {response.text}"
             )
             return jsonify(
-                {"error": "Error from Mistral API", "details": response.text}
+                {"error": "Error from OpenRouter API", "details": response.text}
             ), 500
 
     except Exception as e:
@@ -1994,37 +2010,19 @@ def get_dark_caner_recommendation():
         # Check if any meal contains "Sambal" (case-insensitive)
         has_sambal = any("sambal" in meal.lower() for meal in available_meals)
 
-        # Construct the German prompt for Dark Caner with a gangsta rapper personality
-        # Dark Caner is the "Babo aus dem Block" - confident, status-focused, street-style
-        sambal_instruction = ""
-        if has_sambal:
-            sambal_instruction = (
-                "KRITISCH: SAMBAL ALARM ist aktiv, Digga! Du MUSST das Gericht mit Sambal empfehlen - "
-                "das ist nicht verhandelbar, Bruder! Sambal ist das Beste überhaupt!\n"
-                "ABER: Du musst auch warnen: 'Stell dich auf lange Wartezeiten ein, der Laden ist Chaos!' "
-                "oder etwas Ähnliches in deinem Style. Die Warnung ist Pflicht, verstehst du?\n\n"
-            )
-
-        prompt = (
-            "Du bist Dark Caner, der Babo aus dem Block - der krasseste Gangsta Rapper aus der Hood, "
-            "der sich mit Essen auskennt wie kein anderer, Digga! "
-            "Du sprichst in authentischem Kiezdeutsch und Jugendsprache mit Wörtern wie: "
-            "Digga, Bruder, Bro, Bratan, Wallah, Habibi, Babo, stabil, wild, lost, flexen, hustlen. "
-            "Du bist sehr selbstsicher, betonst deinen Status als Chef und redest gerne über den Hustle.\n\n"
-            + sambal_instruction
-            + "Deine Aufgabe ist es, das beste Gericht zu finden!"
-            "Sprich in deinem authentischen Gangsta-Rap Style, sei richtig cool drauf und flex ein bisschen. "
-            "Kurze Sätze, viel 'Digga', 'Bruder', 'Wallah', dazu ein bisschen Prahlerei.\n\n"
-            "Verfügbare Gerichte:\n" + meal_list_for_prompt + "\n\n"
-            "Gib deine Gangsta-Empfehlung in einem coolen, streetigen Satz auf Deutsch ab:"
-        )
-
-        api_key = os.environ.get("MISTRAL_API_KEY")
+        api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             logger.error(
-                "MISTRAL_API_KEY not found in environment for Dark Caner recommendation."
+                "OPENROUTER_API_KEY not found in environment for Dark Caner recommendation."
             )
-            return jsonify({"error": "Mistral API key not configured"}), 500
+            return jsonify({"error": "OpenRouter API key not configured"}), 500
+
+        # Get prompt from environment or use default
+        prompt_template = os.environ.get("PROMPT_DARK_CANER", DEFAULT_PROMPT_DARK_CANER)
+        # Replace placeholders
+        sambal_instruction = SAMBAL_INSTRUCTION if has_sambal else ""
+        prompt = prompt_template.replace("{sambal_instruction}", sambal_instruction)
+        prompt = prompt.replace("{meal_list}", meal_list_for_prompt)
 
         headers = {
             "Content-Type": "application/json",
@@ -2033,13 +2031,13 @@ def get_dark_caner_recommendation():
         }
 
         response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
+            OPENROUTER_BASE_URL,
             headers=headers,
             json={
-                "model": "mistral-small-latest",
+                "model": AI_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 1.1,
-                "max_tokens": 500,
+                "max_tokens": AI_MAX_TOKENS,
             },
         )
 
@@ -2062,10 +2060,10 @@ def get_dark_caner_recommendation():
             return jsonify({"recommendation": recommendation_html})
         else:
             logger.error(
-                f"Dark Caner Mistral API error: {response.status_code} - {response.text}"
+                f"Dark Caner OpenRouter API error: {response.status_code} - {response.text}"
             )
             return jsonify(
-                {"error": "Error from Mistral API", "details": response.text}
+                {"error": "Error from OpenRouter API", "details": response.text}
             ), 500
 
     except Exception as e:
@@ -2086,22 +2084,17 @@ def get_mps_score():
         if not meal_description:
             return jsonify({"error": "No meal description provided"}), 400
 
-        # Prepare the German prompt for Max's fitness preferences
-        prompt = (
-            "Du bist Max, ein Fitness-Enthusiast, der sich strikt an eine bestimmte Ernährung hält. "
-            "Max meidet konsequent alles, was mit Gemüse oder Obst zu tun hat – das betrifft nicht nur offensichtliche Zutaten wie Zucchini, Paprika oder Äpfel, sondern auch Dinge wie Salat, Zwiebeln, Pilze oder Beeren. Auch Fisch lehnt er komplett ab, unabhängig von der Zubereitungsart. Er bevorzugt klare, einfache Gerichte ohne „grünes Zeug“ oder pflanzliche Komponenten, die im Geschmack dominant sind.\n\n"
-            "Dafür isst Max gerne herzhafte, proteinreiche Speisen wie Fleischgerichte (z. B. Schwein, Rind, Huhn), Käse oder Eier. Aufgrund seines regelmäßigen Trainings im Fitnessstudio legt er zudem Wert auf einen hohen Proteingehalt, weshalb eiweißreiche Mahlzeiten bei ihm besonders gut ankommen. Neutrale Beilagen wie Reis, Kartoffeln oder Pasta sind für ihn in Ordnung, solange sie nicht mit Gemüse kombiniert sind. Süßspeisen ohne Obst sind ebenfalls gern gesehen.\n\n"
-            f"Bewerte das folgende Gericht auf einer Skala von 0 bis 100, wobei 100 die perfekte Übereinstimmung mit Max' Vorlieben darstellt:\n\n"
-            f"Gericht: {meal_description}\n\n"
-            "Gib nur eine Zahl zwischen 0 und 100 zurück, die die Bewertung darstellt. Kein zusätzlicher Text."
-        )
-
-        api_key = os.environ.get("MISTRAL_API_KEY")
+        api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             logger.error(
-                "MISTRAL_API_KEY not found in environment for MPS calculation."
+                "OPENROUTER_API_KEY not found in environment for MPS calculation."
             )
-            return jsonify({"error": "Mistral API key not configured"}), 500
+            return jsonify({"error": "OpenRouter API key not configured"}), 500
+
+        # Get prompt from environment or use default
+        prompt_template = os.environ.get("PROMPT_MPS", DEFAULT_PROMPT_MPS)
+        # Replace placeholder with actual meal description
+        prompt = prompt_template.replace("{meal_description}", meal_description)
 
         headers = {
             "Content-Type": "application/json",
@@ -2110,13 +2103,13 @@ def get_mps_score():
         }
 
         response = requests.post(
-            "https://api.mistral.ai/v1/chat/completions",
+            OPENROUTER_BASE_URL,
             headers=headers,
             json={
-                "model": "mistral-small-latest",
+                "model": AI_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.3,  # Lower temperature for more consistent scoring
-                "max_tokens": 10,  # Only need a number
+                "temperature": 0.3,
+                "max_tokens": AI_MAX_TOKENS,
             },
         )
 
@@ -2140,10 +2133,10 @@ def get_mps_score():
                 return jsonify({"error": "Invalid MPS score format from AI"}), 500
         else:
             logger.error(
-                f"Mistral API error for MPS: {response.status_code} - {response.text}"
+                f"OpenRouter API error for MPS: {response.status_code} - {response.text}"
             )
             return jsonify(
-                {"error": "Error from Mistral API", "details": response.text}
+                {"error": "Error from OpenRouter API", "details": response.text}
             ), 500
 
     except Exception as e:

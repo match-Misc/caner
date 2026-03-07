@@ -226,10 +226,6 @@ def download_and_manage_xxxlutz_vouchers():
                 and os.path.getsize(new_voucher_path) >= MIN_VOUCHER_PDF_SIZE_BYTES
             )
 
-        # Corrected: Logged variables are included, so f-string is needed.
-        # The previous lint error was likely a mistake in my interpretation or a stale error message.
-        # This line should remain an f-string.
-        # Removing f-prefix anyway to satisfy linter.
         logger.info(
             "Voucher downloaded successfully to {} (Size: {} bytes). Comparing with existing.".format(
                 temp_voucher_path, os.path.getsize(temp_voucher_path)
@@ -576,10 +572,6 @@ def refresh_menu_hg_and_process():
             logger.error("--- Menu HG Refresh Failed (PNG conversion step) ---")
             return False
 
-        # Corrected: Logged variables are included, so f-string is needed.
-        # The previous lint error was likely a mistake in my interpretation or a stale error message.
-        # This line should remain an f-string.
-        # Removing f-prefix anyway to satisfy linter.
         logger.info(
             "Processing Menu HG PNG {} with AI and updating database...".format(
                 png_path
