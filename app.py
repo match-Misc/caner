@@ -1088,7 +1088,10 @@ def get_effective_student_price(price_student, marking):
             return price_student
         try:
             price = float(price_student.replace(",", ".").strip())
-            if price > 2.50:
+            cap_price = float(
+                str(NIEDERSACHSEN_STUDENT_PRICE).replace(",", ".").strip()
+            )
+            if price > cap_price:
                 return NIEDERSACHSEN_STUDENT_PRICE
         except (ValueError, AttributeError):
             pass
