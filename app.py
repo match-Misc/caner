@@ -195,6 +195,9 @@ ABER: Du musst auch warnen: 'Stell dich auf lange Wartezeiten ein, der Laden ist
 # XML refresh tracking
 last_xml_refresh_time = 0
 
+# Reduced student price for Niedersachsen Menü (marking "q")
+NIEDERSACHSEN_STUDENT_PRICE = "2,50"
+
 # Global marking info for dietary markings legend
 marking_info = {
     "v": {"emoji": "🥕", "title": "Vegetarisch"},
@@ -812,6 +815,10 @@ def index():
                 logger.error(f"Error looking up meal in database: {e}")
                 meal["id"] = 0  # Use placeholder ID in case of error
                 meal["mps_score"] = None
+            # Apply Niedersachsen Menü student price reduction if applicable
+            meal["price_student"] = get_effective_student_price(
+                meal["price_student"], meal.get("marking", "")
+            )
 
         sorted_meals = sorted(
             meals,
@@ -862,6 +869,10 @@ def index():
                 logger.error(f"Error looking up Garbsen meal in database: {e}")
                 meal["id"] = 0  # Use placeholder ID in case of error
                 meal["mps_score"] = None
+            # Apply Niedersachsen Menü student price reduction if applicable
+            meal["price_student"] = get_effective_student_price(
+                meal["price_student"], meal.get("marking", "")
+            )
 
         sorted_garbsen_meals = sorted(
             garbsen_meals,
@@ -923,6 +934,10 @@ def index():
                     else:
                         # If not found, use a placeholder ID
                         meal["id"] = "0"
+                    # Apply Niedersachsen Menü student price reduction if applicable
+                    meal["price_student"] = get_effective_student_price(
+                        meal["price_student"], meal.get("marking", "")
+                    )
 
                 sorted_meals = sorted(
                     meals,
@@ -1052,6 +1067,35 @@ def extract_kcal(naehrwert_str):
             f"An unexpected error occurred in extract_kcal with {naehrwert_str}: {e}"
         )
         return 0
+
+
+def get_effective_student_price(price_student, marking):
+    """Return the effective student price for a meal.
+
+    If the meal is tagged as Niedersachsen Menü (marking code "q") and the
+    original student price exceeds 2.50 €, the price is capped at
+    NIEDERSACHSEN_STUDENT_PRICE so that scores are calculated correctly.
+
+    :param price_student: str or None, student price in German format (e.g. "3,40")
+    :param marking: str or None, comma-separated marking codes (e.g. "v,q,s")
+    :returns: str or None, effective student price in German format
+    """
+    if not marking:
+        return price_student
+    markings = marking.lower().replace(" ", "").split(",")
+    if "q" in markings:
+        if not price_student:
+            return price_student
+        try:
+            price = float(price_student.replace(",", ".").strip())
+            cap_price = float(
+                str(NIEDERSACHSEN_STUDENT_PRICE).replace(",", ".").strip()
+            )
+            if price > cap_price:
+                return NIEDERSACHSEN_STUDENT_PRICE
+        except (ValueError, AttributeError):
+            pass
+    return price_student
 
 
 @app.template_filter("calculate_caner")
