@@ -210,7 +210,7 @@ marking_info = {
     "26": {"emoji": "🥛", "title": "Milch"},
     "22": {"emoji": "🥚", "title": "Ei"},
     "20a": {"emoji": "🌾", "title": "Weizen"},
-    "q": {"emoji": "🐎", "title": "Niedersachsen Menü"},
+    "q": {"emoji": ["🐎", "🌿", "🏛️"], "title": "Niedersachsen Menü"},
 }
 
 # Create Flask app
@@ -1503,8 +1503,10 @@ def get_dietary_info(marking):
         if code in marking_info:
             emoji = marking_info[code]["emoji"]
             title = marking_info[code]["title"]
+            icons = emoji if isinstance(emoji, list) else [emoji]
+            inner = "".join(icons)
             emoji_spans.append(
-                f'<span class="food-marking" title="{title}">{emoji}</span>'
+                f'<span class="food-marking" title="{title}">{inner}</span>'
             )
 
     return " ".join(emoji_spans)
