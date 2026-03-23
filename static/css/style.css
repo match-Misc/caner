@@ -683,6 +683,13 @@ body {
     cursor: help;
 }
 
+.food-marking-img {
+    height: 1em;
+    width: auto;
+    vertical-align: text-bottom;
+    margin-right: 4px;
+}
+
 .food-markings-row {
     display: flex;
     align-items: center;
