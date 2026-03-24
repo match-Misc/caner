@@ -192,6 +192,13 @@ ABER: Du musst auch warnen: 'Stell dich auf lange Wartezeiten ein, der Laden ist
 
 """
 
+# Sambal Alarm override – set DISABLE_SAMBAL_ALARM=true to force-disable the alarm
+DISABLE_SAMBAL_ALARM = os.environ.get("DISABLE_SAMBAL_ALARM", "false").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
 # XML refresh tracking
 last_xml_refresh_time = 0
 
@@ -1003,6 +1010,7 @@ def index():
             expert_mode=expert_mode,
             marking_info=marking_info,
             oz_score_bounds=oz_score_bounds,
+            sambal_alarm_disabled=DISABLE_SAMBAL_ALARM,
         )
     except RecursionError as e:
         logger.error(f"RecursionError in index route: {e}")
@@ -2066,7 +2074,7 @@ def get_dark_caner_recommendation():
         # Get prompt from environment or use default
         prompt_template = os.environ.get("PROMPT_DARK_CANER", DEFAULT_PROMPT_DARK_CANER)
         # Replace placeholders
-        sambal_instruction = SAMBAL_INSTRUCTION if has_sambal else ""
+        sambal_instruction = SAMBAL_INSTRUCTION if (has_sambal and not DISABLE_SAMBAL_ALARM) else ""
         prompt = prompt_template.replace("{sambal_instruction}", sambal_instruction)
         prompt = prompt.replace("{meal_list}", meal_list_for_prompt)
 
