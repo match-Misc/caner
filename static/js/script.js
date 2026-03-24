@@ -238,7 +238,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Run the Sambal check when page loads
-    setTimeout(checkForSambal, 500);
+    if (!sambalAlarmDisabled) {
+        setTimeout(checkForSambal, 500);
+    }
     
     // Meal voting functionality
     function initMealVoting() {
