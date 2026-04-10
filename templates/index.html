@@ -398,7 +398,14 @@
                                         <div class="d-flex flex-wrap justify-content-center gap-2">
                                             {% for code, info in marking_info.items() %}
                                             <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
+                                                {% if info.get('emoji') %}
                                                 <span style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
+                                                {% endif %}
+                                                {% if "images" in info %}
+                                                    {% for img in info.images %}
+                                                        <img class="food-marking-img" src="{{ img }}" alt="{{ info.title }}" title="{{ info.title }}">
+                                                    {% endfor %}
+                                                {% endif %}
                                                 <span>{{ info.title }}</span>
                                             </span>
                                             {% endfor %}
@@ -960,7 +967,9 @@
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             {% for code, info in marking_info.items() %}
                             <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
+                                {% if info.get('emoji') %}
                                 <span style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
+                                {% endif %}
                                 {% if "images" in info %}
                                     {% for img in info.images %}
                                         <img class="food-marking-img" src="{{ img }}" alt="{{ info.title }}" title="{{ info.title }}">

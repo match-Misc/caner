@@ -217,7 +217,7 @@ marking_info = {
     "26": {"emoji": "🥛", "title": "Milch"},
     "22": {"emoji": "🥚", "title": "Ei"},
     "20a": {"emoji": "🌾", "title": "Weizen"},
-    "q": {"emoji": "🐎", "title": "Niedersachsen Menü", "images": ["/static/img/sparen.png", "/static/img/nds.png"]},
+    "q": {"title": "Niedersachsen Menü", "images": ["/static/img/nds.png"]},
 }
 
 # Create Flask app
@@ -1509,13 +1509,17 @@ def get_dietary_info(marking):
     emoji_spans = []
     for code in markings:
         if code in marking_info:
-            emoji = marking_info[code]["emoji"]
             title = marking_info[code]["title"]
-            span_content = f'<span class="food-marking" title="{title}">{emoji}</span>'
+            emoji = marking_info[code].get("emoji", "")
+            if emoji:
+                span_content = f'<span class="food-marking" title="{title}">{emoji}</span>'
+            else:
+                span_content = ""
             if "images" in marking_info[code]:
                 for img in marking_info[code]["images"]:
                     span_content += f'<img class="food-marking-img" src="{img}" title="{title}">'
-            emoji_spans.append(span_content)
+            if span_content:
+                emoji_spans.append(span_content)
 
     return " ".join(emoji_spans)
 
