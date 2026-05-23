@@ -1,246 +1,83 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize meal recommendation functionality - Removed
-    // initMealRecommendation(); 
-    
     // Dark mode functionality
     const darkModeToggle = document.getElementById('darkModeToggle');
     const html = document.documentElement;
-    const darkModeIcon = darkModeToggle.querySelector('i');
+    const darkModeIcon = darkModeToggle ? darkModeToggle.querySelector('i') : null;
 
     // Check if dark mode is already enabled in localStorage
     const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
 
     // Set initial dark mode state (icon only, theme is set by inline script)
-    if (isDarkMode) {
-        // html.setAttribute('data-theme', 'dark'); // Redundant: This is now handled by the inline script in base.html
+    if (isDarkMode && darkModeIcon) {
         darkModeIcon.classList.remove('fa-moon');
         darkModeIcon.classList.add('fa-sun');
     }
 
     // Add click event listener to the dark mode toggle button
-    darkModeToggle.addEventListener('click', function() {
-        if (html.getAttribute('data-theme') === 'dark') {
-            // Switch to light mode
-            html.removeAttribute('data-theme');
-            localStorage.setItem('darkMode', 'disabled');
-            darkModeIcon.classList.remove('fa-sun');
-            darkModeIcon.classList.add('fa-moon');
-        } else {
-            // Switch to dark mode
-            html.setAttribute('data-theme', 'dark');
-            localStorage.setItem('darkMode', 'enabled');
-            darkModeIcon.classList.remove('fa-moon');
-            darkModeIcon.classList.add('fa-sun');
-        }
-    });
-
-    // Dashboard mode functionality
-    const dashboardModeToggle = document.getElementById('dashboardModeToggle');
-    
-    // Check current URL parameter to determine actual dashboard state
-    const url = new URL(window.location);
-    const isDashboardModeActiveInURL = url.searchParams.get('dashboard') === 'true';
-    
-    // Synchronize localStorage with the actual URL state
-    localStorage.setItem('dashboardMode', isDashboardModeActiveInURL ? 'enabled' : 'disabled');
-    let dashboardModeEnabled = isDashboardModeActiveInURL;
-
-    function applyDashboardModeStyles() {
-        if (dashboardModeToggle) {
-            dashboardModeToggle.style.opacity = dashboardModeEnabled ? '1' : '0.5';
-        }
-    }
-
-    if (dashboardModeToggle) {
-        applyDashboardModeStyles(); // Apply initial state on load
-
-        dashboardModeToggle.addEventListener('click', function() {
-            dashboardModeEnabled = !dashboardModeEnabled; // Toggle the state
-            localStorage.setItem('dashboardMode', dashboardModeEnabled ? 'enabled' : 'disabled');
-            applyDashboardModeStyles();
-
-            // Reload the page with the dashboard parameter to apply the change
-            const url = new URL(window.location);
-            if (dashboardModeEnabled) {
-                url.searchParams.set('dashboard', 'true');
+    if (darkModeToggle && darkModeIcon) {
+        darkModeToggle.addEventListener('click', function() {
+            if (html.getAttribute('data-theme') === 'dark') {
+                // Switch to light mode
+                html.removeAttribute('data-theme');
+                localStorage.setItem('darkMode', 'disabled');
+                darkModeIcon.classList.remove('fa-sun');
+                darkModeIcon.classList.add('fa-moon');
             } else {
-                url.searchParams.delete('dashboard');
+                // Switch to dark mode
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeIcon.classList.remove('fa-moon');
+                darkModeIcon.classList.add('fa-sun');
             }
-            window.location.href = url.toString();
         });
     }
-    
-    // Make table rows clickable to show/hide nutritional information on mobile
-    const mealRows = document.querySelectorAll('.meal-table tbody tr');
-    
-    mealRows.forEach(row => {
-        row.addEventListener('click', function(e) {
-            // Ignore clicks on vote buttons
-            if (e.target.closest('.vote-btn') || e.target.closest('.vote-controls')) {
+
+    const languageOptions = document.querySelectorAll('.language-option[data-lang]');
+    languageOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const targetLang = option.dataset.lang;
+            if (!targetLang || option.classList.contains('active')) {
                 return;
             }
-            
-            // Check if we're on mobile
-            if (window.innerWidth <= 768) {
-                const nutritionalInfo = this.querySelector('.nutritional-info');
-                if (nutritionalInfo) {
-                    // Toggle the display of nutritional info
-                    if (nutritionalInfo.style.display === 'block') {
-                        nutritionalInfo.style.display = 'none';
-                    } else {
-                        nutritionalInfo.style.display = 'block';
-                        nutritionalInfo.style.whiteSpace = 'normal';
-                    }
-                }
-            }
+
+            const url = new URL(window.location);
+            url.searchParams.set('lang', targetLang);
+            window.location.href = url.toString();
         });
     });
-    
-    // Handle mobile price toggles
-    const priceHeaders = document.querySelectorAll('.mobile-prices-header');
-    priceHeaders.forEach(header => {
-        // Get the target collapse element ID
-        const targetId = header.getAttribute('data-bs-target');
-        if (targetId) {
-            const target = document.querySelector(targetId);
-            
-            header.addEventListener('click', function() {
-                // Toggle the collapsed class to rotate the chevron
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                
-                if (isExpanded) {
-                    this.classList.add('collapsed');
-                    this.setAttribute('aria-expanded', 'false');
-                    if (target) {
-                        target.classList.remove('show');
-                    }
-                } else {
-                    this.classList.remove('collapsed');
-                    this.setAttribute('aria-expanded', 'true');
-                    if (target) {
-                        target.classList.add('show');
-                    }
-                }
+
+    const mobilePriceSelectors = document.querySelectorAll('.mobile-price-selector');
+    mobilePriceSelectors.forEach(selector => {
+        const buttons = selector.querySelectorAll('.mobile-price-selector-button');
+        const mobileMenu = selector.closest('.mobile-meal-cards');
+
+        function selectPriceType(priceType) {
+            buttons.forEach(button => {
+                const isActive = button.dataset.priceType === priceType;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive.toString());
+            });
+
+            if (!mobileMenu) {
+                return;
+            }
+
+            mobileMenu.querySelectorAll('.mobile-user-info-row[data-price-type]').forEach(row => {
+                row.classList.toggle('d-none', row.dataset.priceType !== priceType);
             });
         }
-    });
-    
-    // Add tooltip functionality for truncated text
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    if (typeof bootstrap !== 'undefined') {
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                selectPriceType(button.dataset.priceType || 'student');
+            });
         });
-    }
+
+        selectPriceType('student');
+    });
     
     // Initialize meal voting system
     initMealVoting();
-    
-    // SAMBALALARM - Check if any meal in XXXLutz Hesse Markrestaurant contains "Sambal"
-    function checkForSambal() {
-        // Check if we're on the XXXLutz Hesse Markrestaurant section
-        const xxxlutzContainer = document.querySelector('.xxxlutz-container');
-        if (xxxlutzContainer) {
-            // Get all meal descriptions in the XXXLutz section
-            const mealCards = xxxlutzContainer.querySelectorAll('.xxxlutz-card');
-            
-            // Check each meal description for "Sambal"
-            let sambalFound = false;
-            let sambalMealCard = null;
-            
-            mealCards.forEach(card => {
-                const mealText = card.textContent.toLowerCase().trim();
-                if (mealText.includes('sambal')) {
-                    sambalFound = true;
-                    // Highlight this specific meal card
-                    card.classList.add('sambal-meal-card');
-                    card.style.boxShadow = '0 0 15px 5px rgba(255, 0, 0, 0.7)';
-                    card.style.animation = 'sambalPulse 0.8s infinite alternate';
-                    sambalMealCard = card;
-                }
-            });
-            
-            // If Sambal was found, check if alarm should be shown
-            // Only show the fullscreen alarm once per session (not on date changes)
-            if (sambalFound) {
-                const alarmShown = sessionStorage.getItem('sambalalarmShown');
-                if (alarmShown === null) {
-                    createFullscreenSambalalarm(sambalMealCard);
-                    // Mark that the alarm has been shown in this session
-                    sessionStorage.setItem('sambalalarmShown', 'true');
-                }
-            }
-        }
-    }
-    
-    // Function to create the fullscreen Sambalalarm
-    function createFullscreenSambalalarm(sambalMealCard) {
-        // Create the fullscreen sambalalarm element
-        const sambalalarm = document.createElement('div');
-        sambalalarm.className = 'fullscreen-sambalalarm';
-        sambalalarm.id = 'fullscreen-sambalalarm';
-        
-        // Create container
-        const container = document.createElement('div');
-        container.className = 'sambalalarm-container';
-        
-        // Create main text
-        const text = document.createElement('h1');
-        text.className = 'sambalalarm-text';
-        text.textContent = '🔥 SAMBAL ALARM!!! 🔥';
-        
-        // Add more floating fire emojis with varied sizes
-        for (let i = 0; i < 50; i++) {
-            const fireEmoji = document.createElement('div');
-            fireEmoji.className = 'fire-emoji';
-            fireEmoji.textContent = '🔥';
-            
-            // Random positioning
-            fireEmoji.style.top = Math.random() * 100 + '%';
-            fireEmoji.style.left = Math.random() * 100 + '%';
-            
-            // Random sizing
-            const size = 2.5 + (Math.random() * 2);
-            fireEmoji.style.fontSize = size + 'rem';
-            
-            // Randomize the starting point of the animation
-            fireEmoji.style.animationDelay = (Math.random() * 3) + 's';
-            
-            sambalalarm.appendChild(fireEmoji);
-        }
-        
-        // Assemble the elements
-        container.appendChild(text);
-        sambalalarm.appendChild(container);
-        
-        // Shared function to dismiss the sambalalarm with fade-out
-        function dismissSambalalarm() {
-            if (document.body.contains(sambalalarm)) {
-                sambalalarm.style.opacity = '0';
-                setTimeout(() => {
-                    if (document.body.contains(sambalalarm)) {
-                        document.body.removeChild(sambalalarm);
-                    }
-                }, 500);
-            }
-        }
-        
-        // Add click event to dismiss the alarm
-        sambalalarm.addEventListener('click', dismissSambalalarm);
-        
-        // Add to DOM
-        document.body.appendChild(sambalalarm);
-        
-        // Auto fade out after 4 seconds
-        setTimeout(dismissSambalalarm, 4000);
-        
-        // Sound removed as requested
-    }
-    
-    // Run the Sambal check when page loads
-    if (!sambalAlarmDisabled) {
-        setTimeout(checkForSambal, 500);
-    }
     
     // Meal voting functionality
     function initMealVoting() {
@@ -416,13 +253,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         if (expertModeToggleIcon) {
-            expertModeToggleIcon.style.opacity = expertModeEnabled ? '1' : '0.5';
+            expertModeToggleIcon.style.opacity = '1';
+            expertModeToggleIcon.classList.toggle('active', expertModeEnabled);
+            expertModeToggleIcon.setAttribute('aria-pressed', expertModeEnabled.toString());
         }
 
         const canerElements = document.querySelectorAll('.caner-symbols');
         const rkrElements = document.querySelectorAll('strong.rkr-value');
         const mpsElements = document.querySelectorAll('strong.mps-value');
-        const weightLossElements = document.querySelectorAll('strong.weight-loss-value');
 
         if (expertModeEnabled) {
             canerElements.forEach(el => {
@@ -519,37 +357,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Color weight loss scores (inverted: lower is better for weight loss)
-            weightLossElements.forEach(el => {
-                const textValue = el.textContent.replace(',', '.').replace(/[^\d.-]/g, '');
-                const weightLossValue = parseFloat(textValue);
-
-                if (!isNaN(weightLossValue) && weightLossValue > 0) {
-                    // For weight loss: lower values are better (less calorie-dense)
-                    // Typical range: ~1.0 (soups, salads) to ~9.0 (dense foods)
-                    // We'll use 1.0-5.0 as the scale range
-                    const scaleMinWL = 1.0;  // Best (low calorie density) - green
-                    const scaleMaxWL = 5.0;  // Worst (high calorie density) - red
-                    const visualMidPointWL = (scaleMinWL + scaleMaxWL) / 2;
-                    let finalColor;
-
-                    if (weightLossValue <= scaleMinWL) {
-                        finalColor = colorPositive; // Green for low calorie density
-                    } else if (weightLossValue >= scaleMaxWL) {
-                        finalColor = colorNegative; // Red for high calorie density
-                    } else if (weightLossValue <= visualMidPointWL) {
-                        // Interpolate from colorPositive (at scaleMinWL) to colorCenter (at midpoint)
-                        const factor = (weightLossValue - scaleMinWL) / (visualMidPointWL - scaleMinWL);
-                        finalColor = interpolateColor(colorPositive, colorCenter, factor);
-                    } else {
-                        // Interpolate from colorCenter (at midpoint) to colorNegative (at scaleMaxWL)
-                        const factor = (weightLossValue - visualMidPointWL) / (scaleMaxWL - visualMidPointWL);
-                        finalColor = interpolateColor(colorCenter, colorNegative, factor);
-                    }
-                    el.style.color = finalColor;
-                }
-            });
-
         } else { // Expert mode disabled
             canerElements.forEach(el => {
                 el.style.color = ''; // Reset color
@@ -558,9 +365,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.style.color = ''; // Reset color
             });
             mpsElements.forEach(el => {
-                el.style.color = ''; // Reset color
-            });
-            weightLossElements.forEach(el => {
                 el.style.color = ''; // Reset color
             });
 
@@ -593,7 +397,5 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = url.toString();
         });
     }
-
-    // Removed initMealRecommendation() and getMealRecommendation() functions as they are deprecated
 
 });

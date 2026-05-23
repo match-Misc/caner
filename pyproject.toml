@@ -1,11 +1,10 @@
 [project]
 name = "caner"
 version = "0.1.0"
-description = "Add your description here"
+description = "LUH mensa menu ranking and recommendation app"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "attrs==25.3.0",
     "blinker==1.9.0",
     "certifi==2025.4.26",
     "charset-normalizer==3.4.2",
@@ -16,32 +15,21 @@ dependencies = [
     "gevent==25.5.1",
     "greenlet==3.2.2",
     "gunicorn==23.0.0",
-    "h11==0.16.0",
     "idna==3.10",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
     "markupsafe==3.0.2",
     "markdown2",
-    "outcome==1.3.0.post0",
     "packaging==25.0",
-    "pdf2image==1.17.0",
-    "pillow==11.2.1",
     "psycopg2-binary==2.9.10",
-    "pysocks==1.7.1",
     "python-dotenv==1.1.0",
     "requests==2.32.3",
-    "selenium==4.32.0",
     "setuptools==80.4.0",
-    "sniffio==1.3.1",
-    "sortedcontainers==2.4.0",
     "sqlalchemy==2.0.40",
-    "trio==0.30.0",
-    "trio-websocket==0.12.2",
+    "tqdm",
     "typing-extensions==4.13.2",
     "urllib3==2.4.0",
-    "websocket-client==1.8.0",
     "werkzeug==3.1.3",
-    "wsproto==1.2.0",
     "zope-event==5.0",
     "zope-interface==7.2",
 ]

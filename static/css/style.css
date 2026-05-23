@@ -17,6 +17,21 @@
     --bg-table-hover: #f0f0f0;
     --bg-legend: #f8f9fa;
     --bg-nutrient-card: #f9f9f9;
+    --control-bg: var(--bg-card);
+    --control-menu-bg: var(--bg-card);
+    --control-text: #1f2933;
+    --control-muted: rgba(51, 51, 51, 0.72);
+    --control-border: var(--border-color);
+    --control-hover-bg: #fff4bf;
+    --control-focus-ring: rgba(255, 204, 0, 0.4);
+    --control-selected-bg: var(--primary-yellow);
+    --control-selected-text: var(--primary-red);
+    --theme-action-bg: var(--primary-red);
+    --theme-action-text: #ffffff;
+    --theme-action-hover-bg: #d92525;
+    --theme-overlay-bg: rgba(0, 0, 0, 0.68);
+    --theme-overlay-error-bg: rgba(100, 0, 0, 0.78);
+    --theme-info-accent: var(--primary-red);
 }
 
 [data-theme="dark"] {
@@ -41,6 +56,21 @@
     --bg-table-hover: #44475a;  /* Dracula current line */
     --bg-legend: #44475a;       /* Dracula current line */
     --bg-nutrient-card: #383a59; /* Dracula selection (modified) */
+    --control-bg: #383a59;
+    --control-menu-bg: var(--bg-card);
+    --control-text: var(--primary-yellow);
+    --control-muted: rgba(248, 248, 242, 0.82);
+    --control-border: var(--primary-yellow);
+    --control-hover-bg: #44475a;
+    --control-focus-ring: rgba(241, 250, 140, 0.4);
+    --control-selected-bg: var(--primary-red);
+    --control-selected-text: #ffffff;
+    --theme-action-bg: var(--primary-red);
+    --theme-action-text: #ffffff;
+    --theme-action-hover-bg: #ff6e6e;
+    --theme-overlay-bg: rgba(25, 26, 33, 0.78);
+    --theme-overlay-error-bg: rgba(80, 0, 12, 0.82);
+    --theme-info-accent: var(--primary-yellow);
 }
 
 /* Override Bootstrap's text-dark class in dark mode to use dracula yellow */
@@ -65,11 +95,129 @@ body {
     background-color: var(--bg-header);
     color: var(--text-light);
     padding: 10px 0;
+    position: relative;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 [data-theme="dark"] .header-area {
     color: var(--header-text);
+}
+
+.header-area .container {
+    padding-top: 0;
+    position: relative;
+}
+
+.header-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+@media (min-width: 1001px) {
+    .header-area .container {
+        position: static;
+    }
+
+    .header-controls {
+        margin-bottom: 0;
+        padding: 0;
+        position: absolute;
+        right: 12px;
+        top: 8px;
+        width: auto;
+        z-index: 5;
+    }
+}
+
+.language-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 32px;
+    padding: 3px;
+    background-color: var(--bg-counter);
+    color: var(--color-counter);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.16);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.language-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 31px;
+    height: 24px;
+    padding: 0 6px;
+    background-color: transparent;
+    color: inherit;
+    border: 0;
+    border-radius: 999px;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.language-option:hover,
+.language-option:focus-visible {
+    background-color: var(--control-hover-bg);
+    outline: none;
+}
+
+.language-option.active {
+    background-color: var(--primary-yellow);
+    color: var(--primary-red);
+}
+
+.header-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background-color: var(--bg-counter);
+    color: var(--color-counter);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.16);
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.header-icon-button:hover,
+.header-icon-button:focus-visible {
+    background-color: var(--control-hover-bg);
+    color: var(--color-counter);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.header-icon-button.active {
+    background-color: var(--bg-counter) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    color: var(--primary-yellow);
+}
+
+[data-theme="dark"] .language-switch,
+[data-theme="dark"] .header-icon-button {
+    border-color: rgba(241, 250, 140, 0.35);
+    color: var(--primary-yellow);
+}
+
+[data-theme="dark"] .language-option.active {
+    background-color: var(--primary-yellow);
+    color: #191a21;
+}
+
+[data-theme="dark"] .header-icon-button.active {
+    background-color: var(--bg-counter) !important;
+    border-color: rgba(241, 250, 140, 0.35) !important;
+    color: var(--primary-yellow);
 }
 
 .header-area h1 {
@@ -145,53 +293,6 @@ body {
     transition: background-color 0.3s ease;
 }
 
-/* Filter panel styles */
-.filter-panel {
-    background-color: var(--bg-filter);
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: background-color 0.3s ease;
-}
-
-/* Standardized padding for select and input in filter panel for height consistency */
-.filter-panel select,
-.filter-panel input.form-control { /* Target date input specifically if needed or all form-controls */
-    padding: .375rem .75rem; /* Default Bootstrap form-control padding */
-    /* height: calc(1.5em + .75rem + 2px); Ensure same explicit height if padding alone isn't enough */
-}
-
-.filter-panel select {
-    background-color: var(--bg-card);
-    color: var(--text-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    width: 100%;
-    transition: all 0.3s ease;
-}
-
-[data-theme="dark"] .filter-panel select {
-    background-color: #383a59;
-    color: var(--primary-yellow);
-    border: 1px solid var(--primary-yellow);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f1fa8c' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 16px 12px;
-    padding-right: 2.5rem; /* Keep for the SVG arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-.filter-panel select:focus {
-    outline: none;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 2px rgba(241, 250, 140, 0.2);
-}
-
-
 /* Mensa section styles */
 .mensa-section {
     background-color: var(--bg-card);
@@ -204,25 +305,6 @@ body {
 
 [data-theme="dark"] .mensa-section {
     background-color: #383a59; /* Darker than the bg-card */
-}
-
-.mensa-title {
-    font-size: 1.8rem;
-    color: var(--primary-red);
-    margin-bottom: 10px;
-    border-bottom: 2px solid var(--primary-yellow);
-    padding-bottom: 5px;
-    text-align: center;
-}
-
-/* Clickable mensa text styling */
-#mensaGarbsenTextTrigger {
-    transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-
-#mensaGarbsenTextTrigger:hover {
-    color: var(--primary-red);
-    text-decoration: underline;
 }
 
 /* Table styles */
@@ -259,90 +341,6 @@ body {
     transition: background-color 0.3s ease;
 }
 
-/* Category row in XXXLutz menu */
-.category-row {
-    background-color: var(--primary-yellow) !important;
-}
-
-.category-row h5 {
-    margin: 0;
-    padding: 5px 0;
-    color: var(--text-dark);
-    font-weight: bold;
-    text-align: left;
-}
-
-/* XXXLutz Hesse Menu Styles */
-.xxxlutz-section-header {
-    background-color: var(--primary-red);
-    padding: 12px 15px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-}
-
-.xxxlutz-section-header h4 {
-    margin: 0;
-    color: var(--text-light);
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-align: center;
-}
-
-/* Sambalalarm styles */
-.fullscreen-sambalalarm {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--primary-red);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: sambalColors 1s infinite;
-    cursor: pointer;
-    overflow: hidden;
-    transition: opacity 0.5s ease-out;
-}
-
-[data-theme="dark"] .fullscreen-sambalalarm {
-    background-color: #44475a;
-}
-
-[data-theme="dark"] .sambalalarm-text {
-    color: var(--primary-green);
-    text-shadow: 
-        4px 4px 8px rgba(0, 0, 0, 0.7),
-        0 0 20px rgba(80, 250, 123, 0.8),
-        0 0 30px rgba(80, 250, 123, 0.6);
-}
-
-.sambalalarm-container {
-    text-align: center;
-    padding: 40px;
-    animation: sambalPulse 0.8s infinite alternate;
-    position: relative;
-    z-index: 10000;
-}
-
-.sambalalarm-text {
-    color: white;
-    font-weight: bold;
-    font-size: 5.5rem;
-    text-transform: uppercase;
-    margin: 0;
-    text-shadow: 
-        4px 4px 8px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(255, 165, 0, 0.8),
-        0 0 30px rgba(255, 0, 0, 0.6);
-    animation: sambalShake 1s infinite alternate;
-    white-space: nowrap;
-    letter-spacing: 2px;
-    position: relative;
-    z-index: 10000;
-}
-
 .meal-table td:first-child {
     word-break: break-word; /* Allow long meal descriptions to wrap */
 }
@@ -364,217 +362,6 @@ body {
 
 .meal-table td.expert-mode-col {
     padding-top: 0.5rem; /* Add top padding to align RKR/MPS values with Caner values */
-}
-
-/* Media queries for Sambal Alarm responsiveness */
-@media (max-width: 1000px) {
-    .sambalalarm-text {
-        font-size: 3.5rem;
-        letter-spacing: 1px;
-    }
-}
-
-@media (max-width: 576px) {
-    .sambalalarm-text {
-        font-size: 2rem;
-        white-space: nowrap;
-        padding: 0 5px;
-        letter-spacing: 0px;
-    }
-    
-    .sambalalarm-container {
-        padding: 15px;
-    }
-}
-
-.sambalalarm-subtext {
-    color: white;
-    font-size: 1.5rem;
-    margin-top: 30px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Fire emojis that float around */
-.fire-emoji {
-    position: absolute;
-    font-size: 3rem;
-    animation: fireFloat 3s linear infinite;
-    z-index: 100;
-    text-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
-}
-
-.fire-emoji:nth-child(odd) {
-    animation-direction: reverse;
-    animation-duration: 2.5s;
-}
-
-.fire-emoji:nth-child(3n) {
-    animation-name: fireFloat2;
-    animation-duration: 4s;
-}
-
-.fire-emoji:nth-child(5n) {
-    animation-name: fireFloat3;
-    animation-duration: 3.2s;
-}
-
-@keyframes fireFloat {
-    0% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
-    }
-    25% {
-        transform: translate(150px, -150px) rotate(90deg) scale(1.2);
-    }
-    50% {
-        transform: translate(250px, 0) rotate(180deg) scale(0.8);
-    }
-    75% {
-        transform: translate(150px, 150px) rotate(270deg) scale(1.1);
-    }
-    100% {
-        transform: translate(0, 0) rotate(360deg) scale(1);
-    }
-}
-
-@keyframes fireFloat2 {
-    0% {
-        transform: translate(0, 0) rotate(0deg) scale(0.8);
-    }
-    20% {
-        transform: translate(-120px, 100px) rotate(-72deg) scale(1.3);
-    }
-    40% {
-        transform: translate(-180px, -80px) rotate(-144deg) scale(1);
-    }
-    60% {
-        transform: translate(-60px, -140px) rotate(-216deg) scale(1.2);
-    }
-    80% {
-        transform: translate(80px, -60px) rotate(-288deg) scale(0.9);
-    }
-    100% {
-        transform: translate(0, 0) rotate(-360deg) scale(0.8);
-    }
-}
-
-@keyframes fireFloat3 {
-    0% {
-        transform: translate(0, 0) rotate(0deg) scale(1.2);
-    }
-    33% {
-        transform: translate(80px, 120px) rotate(120deg) scale(0.9);
-    }
-    66% {
-        transform: translate(-100px, 80px) rotate(240deg) scale(1.1);
-    }
-    100% {
-        transform: translate(0, 0) rotate(360deg) scale(1.2);
-    }
-}
-
-@keyframes sambalPulse {
-    0% {
-        transform: scale(1);
-    }
-    100% {
-        transform: scale(1.05);
-    }
-}
-
-@keyframes sambalShake {
-    0% {
-        transform: translate(0, 0) rotate(0.5deg);
-    }
-    10% {
-        transform: translate(-3px, -1px) rotate(-1deg);
-    }
-    20% {
-        transform: translate(3px, 0) rotate(1deg);
-    }
-    30% {
-        transform: translate(-3px, 1px) rotate(-0.5deg);
-    }
-    40% {
-        transform: translate(3px, -1px) rotate(0.5deg);
-    }
-    50% {
-        transform: translate(-3px, 0) rotate(-1deg);
-    } 
-    60% {
-        transform: translate(3px, 1px) rotate(0deg);
-    }
-    70% {
-        transform: translate(-3px, -1px) rotate(1deg);
-    }
-    80% {
-        transform: translate(3px, 0) rotate(-1deg);
-    }
-    90% {
-        transform: translate(-3px, 1px) rotate(0.5deg);
-    }
-    100% {
-        transform: translate(3px, -1px) rotate(-0.5deg);
-    }
-}
-
-@keyframes sambalColors {
-    0% {
-        background-color: rgba(255, 0, 0, 0.85);
-    }
-    33% {
-        background-color: rgba(255, 102, 0, 0.85);
-    }
-    66% {
-        background-color: rgba(255, 51, 0, 0.85);
-    }
-    100% {
-        background-color: rgba(255, 0, 0, 0.85);
-    }
-}
-
-.simple-meal-card {
-    background-color: var(--bg-card);
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    padding: 20px 15px;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
-}
-
-.simple-meal-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.simple-meal-title {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: var(--text-dark);
-    transition: color 0.3s ease;
-}
-
-.mobile-category-heading {
-    background-color: var(--primary-yellow);
-    border-radius: 6px;
-    margin: 10px 0;
-    padding: 8px 15px;
-}
-
-.mobile-category-heading h5 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--text-dark);
-}
-
-/* Caner score styles */
-.caner-score {
-    font-weight: bold;
-    text-align: center;
 }
 
 .caner-symbol {
@@ -649,32 +436,6 @@ body {
     text-align: right;
 }
 
-/* Color grading for Caner and Recker values */
-/* These classes (.positive-value, .negative-value) should be dynamically added to .caner-value and .recker-value elements */
-/* (e.g., via JavaScript) when expert mode is active and the value meets the criteria. */
-
-/* Light Mode */
-.caner-value.positive-value,
-.recker-value.positive-value { /* Assuming .recker-value class for Recker values */
-    color: #28a745; /* Ensure green matches upvote button active: #28a745 */
-}
-
-.caner-value.negative-value,
-.recker-value.negative-value { /* Assuming .recker-value class for Recker values */
-    color: #dc3545; /* Ensure red matches downvote button active: #dc3545 */
-}
-
-/* Dark Mode */
-[data-theme="dark"] .caner-value.positive-value,
-[data-theme="dark"] .recker-value.positive-value {
-    color: #50fa7b; /* Ensure green matches dark mode upvote button active: #50fa7b */
-}
-
-[data-theme="dark"] .caner-value.negative-value,
-[data-theme="dark"] .recker-value.negative-value {
-    color: #ff5555; /* Ensure red matches dark mode downvote button active: #ff5555 */
-}
-
 /* Food Markings */
 .food-marking {
     display: inline-block;
@@ -703,7 +464,7 @@ body {
 .vote-controls {
     display: flex;
     align-items: center;
-    margin: 0 8px;
+    margin: 0 0 0 6px;
 }
 
 .vote-btn {
@@ -757,47 +518,6 @@ body {
     font-weight: bold;
 }
 
-/* Removed empty rule placeholder: .btn-nutrient-toggle, .nutrient-card styles removed */
-
-/* Legend styles */
-.caner-legend {
-    background-color: var(--bg-legend);
-    border-radius: 8px;
-    padding: 10px 15px;
-    border-left: 4px solid var(--primary-red);
-    transition: background-color 0.3s ease;
-}
-
-.caner-legend p {
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-}
-
-.caner-legend .caner-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-}
-
-/* Dashboard container styles for full width */
-.dashboard-container {
-    max-width: 100% !important;
-    padding-left: 5px !important;
-    padding-right: 5px !important;
-}
-
-.dashboard-container .row {
-    --bs-gutter-x: 5px !important;
-}
-
-/* Override Bootstrap container for dashboard mode */
-.content-area .container.dashboard-mode {
-    max-width: 100% !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-}
-
 /* Footer styles */
 footer {
     background-color: var(--bg-footer);
@@ -818,57 +538,20 @@ footer {
     transition: background-color 0.3s ease;
 }
 
-/* Dark mode toggle */
-.dark-mode-toggle {
-    display: inline-block;
-}
-
-#darkModeToggle {
-    background-color: var(--bg-counter);
-    color: var(--color-counter);
-    border: none;
-    border-radius: 20px;
-    padding: 5px 15px;
-    height: 32px;
+.page-view-counter {
     display: inline-flex;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    box-sizing: border-box; /* Added */
-    word-break: break-all; /* Added for text wrapping */
-    white-space: normal; /* Added for text wrapping */
-    text-align: center; /* Center text */
-}
-
-#darkModeToggle:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Commented out i rule as it was empty or causing lint errors 
-#darkModeToggle i {
-    Removed to help center the icon 
-}
-*/
-
-#darkModeToggle .dark-mode-text {
-    white-space: nowrap;
-}
-
-.page-view-counter {
-    display: inline-flex; /* Changed from inline-block */
-    align-items: center; /* Added */
-    height: 32px; /* Added */
+    height: 32px;
     background-color: var(--bg-counter);
     color: var(--color-counter);
     border-radius: 20px;
     padding: 5px 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, color 0.3s ease;
-    box-sizing: border-box; /* Added */
+    box-sizing: border-box;
 }
 
-[data-theme="dark"] .page-view-counter,
-[data-theme="dark"] #darkModeToggle {
+[data-theme="dark"] .page-view-counter {
     color: var(--primary-yellow);
 }
 
@@ -890,52 +573,6 @@ a.github-link {
 
 /* Ensure the icon color in dark mode matches other footer elements */
 [data-theme="dark"] a.github-link {
-    color: var(--primary-yellow);
-}
-
-#expertModeToggleIcon {
-    background-color: var(--bg-counter);
-    color: var(--color-counter);
-    border: none;
-    border-radius: 20px;
-    padding: 5px 15px; /* Match darkModeToggle padding for consistency */
-    height: 32px; /* Match darkModeToggle height */
-    /* display: inline-flex; */ /* Already has d-flex from class attribute */
-    /* align-items: center; */   /* Already has align-items-center from class attribute */
-    /* justify-content: center; */ /* Already has justify-content-center from class attribute */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease; /* Added opacity to transition */
-    box-sizing: border-box;
-}
-
-#expertModeToggleIcon:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-[data-theme="dark"] #expertModeToggleIcon {
-    color: var(--primary-yellow); /* Match other footer icons in dark mode */
-}
-
-#dashboardModeToggle {
-    background-color: var(--bg-counter);
-    color: var(--color-counter);
-    border: none;
-    border-radius: 20px;
-    padding: 5px 15px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
-    box-sizing: border-box;
-}
-
-#dashboardModeToggle:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-[data-theme="dark"] #dashboardModeToggle {
     color: var(--primary-yellow);
 }
 
@@ -979,142 +616,8 @@ a.github-link i.fa-github {
     transition: color 0.3s ease;
 }
 
-/* XXXLutz Simple Cards */
-.xxxlutz-container {
-    width: 100%;
-}
-
-.xxxlutz-section {
-    margin-bottom: 15px !important;
-}
-
-.xxxlutz-section-title {
-    background-color: var(--primary-red);
-    color: var(--text-light);
-    padding: 8px 10px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-}
-
-.xxxlutz-card {
-    background-color: var(--bg-card);
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 3px 7px rgba(0,0,0,0.15);
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-weight: bold;
-    color: var(--text-dark);
-    border-left: 3px solid var(--primary-red);
-    transition: all 0.2s ease, background-color 0.3s ease, color 0.3s ease;
-}
-
-[data-theme="dark"] .xxxlutz-card {
-    background-color: #282A36;
-}
-
-.xxxlutz-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Color for Gutscheine links in XXXLutz cards */
-.xxxlutz-section .xxxlutz-card a {
-    color: black; /* Light mode: black text */
-    text-decoration: none; /* Ensure no underline if not desired */
-}
-
-.xxxlutz-section .xxxlutz-card a:hover {
-    color: black; /* Maintain black color on hover for light mode */
-}
-
-[data-theme="dark"] .xxxlutz-section .xxxlutz-card a {
-    color: var(--primary-yellow); /* Dark mode: Dracula yellow */
-}
-
-[data-theme="dark"] .xxxlutz-section .xxxlutz-card a:hover {
-    color: var(--primary-yellow); /* Maintain yellow color on hover for dark mode */
-}
-
-/* XXXLutz voucher links styling */
-.voucher-links {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    background-color: var(--bg-filter);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: background-color 0.3s ease;
-}
-
-[data-theme="dark"] .voucher-links {
-    background-color: #383a59;
-}
-
-
-[data-theme="dark"] .voucher-links a {
-    background-color: #282a36; /* Dracula background */
-    color: var(--primary-yellow); /* Dracula yellow */
-    border: 1px solid #44475a; /* Dracula current line as border */
-    outline: none; /* Remove outline */
-    /* transition and border-radius are inherited */
-}
-[data-theme="dark"] .voucher-links a:focus {
-    outline: none; /* Remove outline on focus */
-    box-shadow: none; /* Remove box-shadow on focus */
-}
-
-[data-theme="dark"] .voucher-links a:hover {
-    transform: translateY(-2px);
-    background-color: #323442; /* Slightly lighter dark background */
-    border-color: var(--primary-yellow); /* Dracula yellow border */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.voucher-links a {
-    margin: 5px;
-    width: 200px;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    background-color: var(--bg-card); /* Light mode default */
-    color: black;       /* Light mode: black text */
-    border: 1px solid var(--border-color); /* Light mode default */
-}
-
-.voucher-links a:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    background-color: #f8f9fa; /* Slightly off-white */
-    border-color: var(--primary-red); /* Highlight with primary red */
-    color: black; /* Ensure dark text on light hover background */
-}
-
-.voucher-links a i {
-    margin-right: 10px;
-}
-
-@media (max-width: 576px) {
-    .xxxlutz-section-title {
-        font-size: 1.1rem;
-        padding: 8px 12px;
-    }
-    
-    .xxxlutz-card {
-        padding: 12px;
-        font-size: 0.9rem;
-    }
+.mobile-price-selector {
+    display: none;
 }
 
 /* Food markings styles */
@@ -1128,123 +631,320 @@ a.github-link i.fa-github {
     gap: 5px;
 }
 
-/* Action buttons (info and euro) */
-.action-buttons {
+.meal-action-row {
+    line-height: 1;
+}
+
+/* Unified themed controls */
+.themed-dropdown {
+    display: inline-block;
+    min-width: 0;
+}
+
+.themed-select-toggle,
+input#date.form-control,
+input#date-mobile.form-control,
+.recommendation-form .form-control {
+    background-color: var(--control-bg) !important;
+    border: 1px solid var(--control-border) !important;
+    border-radius: 4px;
+    color: var(--control-text) !important;
+    min-height: calc(1.5em + 0.5rem + 2px);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.themed-select-toggle {
+    align-items: center;
+    display: inline-flex;
+    justify-content: space-between;
+    max-width: 100%;
+    text-align: left;
+}
+
+.themed-select-toggle:hover,
+.themed-select-toggle:active,
+.themed-select-toggle.show {
+    background-color: var(--control-hover-bg) !important;
+    border-color: var(--primary-yellow) !important;
+    color: var(--control-text) !important;
+}
+
+.themed-select-toggle:focus,
+.themed-select-toggle:focus-visible,
+input#date.form-control:focus,
+input#date-mobile.form-control:focus,
+.recommendation-form .form-control:focus {
+    border-color: var(--primary-yellow) !important;
+    box-shadow: 0 0 0 3px var(--control-focus-ring) !important;
+    outline: none !important;
+}
+
+.themed-select-label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.themed-dropdown-menu {
+    --bs-dropdown-bg: var(--control-menu-bg);
+    --bs-dropdown-border-color: var(--control-border);
+    --bs-dropdown-link-color: var(--control-text);
+    --bs-dropdown-link-hover-bg: var(--control-hover-bg);
+    --bs-dropdown-link-hover-color: var(--control-text);
+    --bs-dropdown-link-active-bg: var(--control-selected-bg);
+    --bs-dropdown-link-active-color: var(--control-selected-text);
+    border-radius: 6px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.16);
+    max-height: min(60vh, 320px);
+    overflow-y: auto;
+    padding: 0.25rem;
+}
+
+.themed-dropdown-item {
+    border-radius: 4px;
+    color: var(--control-text);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.themed-dropdown-item.active,
+.themed-dropdown-item:active {
+    background-color: var(--control-selected-bg) !important;
+    color: var(--control-selected-text) !important;
+}
+
+.mensa-select-toggle {
+    width: 250px;
+}
+
+.mensa-select-toggle:hover,
+.mensa-select-toggle:active,
+.mensa-select-toggle.show {
+    background-color: var(--control-bg) !important;
+}
+
+.recommendation-dropdown,
+.recommendation-dropdown .themed-select-toggle {
+    width: 100%;
+}
+
+.btn-theme-primary {
+    align-items: center;
+    background-color: var(--theme-action-bg);
+    border: 1px solid var(--theme-action-bg);
+    color: var(--theme-action-text);
+    display: inline-flex;
+    gap: 0.45rem;
+    justify-content: center;
+}
+
+.btn-theme-primary:hover,
+.btn-theme-primary:focus,
+.btn-theme-primary:active {
+    background-color: var(--theme-action-hover-bg) !important;
+    border-color: var(--theme-action-hover-bg) !important;
+    box-shadow: 0 0 0 3px var(--control-focus-ring) !important;
+    color: var(--theme-action-text) !important;
+}
+
+.btn-theme-primary:disabled {
+    background-color: var(--control-hover-bg);
+    border-color: var(--control-border);
+    color: var(--control-muted);
+    opacity: 1;
+}
+
+.date-nav-arrow,
+.recommendation-trigger {
+    background-color: var(--control-bg) !important;
+    border-color: var(--control-border) !important;
+    color: var(--control-text) !important;
+}
+
+.date-nav-arrow:hover,
+.date-nav-arrow:focus,
+.recommendation-trigger:hover,
+.recommendation-trigger:focus {
+    background-color: var(--control-hover-bg) !important;
+    border-color: var(--primary-yellow) !important;
+    box-shadow: 0 0 0 3px var(--control-focus-ring) !important;
+    color: var(--control-text) !important;
+}
+
+.date-nav-arrow.disabled,
+.date-nav-arrow[aria-disabled="true"] {
+    color: var(--control-muted) !important;
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.mensa-name-and-emoji-wrapper {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    min-width: 0;
+}
+
+.mensa-name-and-emoji-wrapper .ms-2 {
+    margin-left: 0 !important;
+}
+
+.recommendation-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    margin-left: 8px;
+    gap: 0.35rem;
+    max-width: 100%;
+    white-space: nowrap;
 }
 
-/* Meal recommendation popup */
-.meal-recommendation-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+.recommendation-trigger-emoji {
+    line-height: 1;
 }
 
-.meal-recommendation-popup.active {
-    display: flex;
-}
-
-.meal-recommendation-content {
-    background-color: var(--bg-card);
-    color: var(--text-dark);
-    padding: 25px;
-    border-radius: 10px;
-    max-width: 80%;
-    width: 500px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    border-left: 5px solid var(--primary-red);
-    background-image: url('../img/tobias.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: 1001;
-}
-
-.meal-recommendation-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg-card);
-    opacity: 0.6;
-    border-radius: 10px;
-    z-index: 0;
-}
-
-.recommendation-title, .recommendation-text, .close-popup {
-    position: relative;
-    z-index: 1;
-}
-
-.close-popup {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--primary-red);
-}
-
-.recommendation-title {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: var(--primary-red);
-    text-align: center;
-}
-
-.recommendation-text {
-    font-size: 1.1rem;
-    line-height: 1.5;
-    margin-bottom: 0;
-    white-space: pre-line;
-}
-
-[data-theme="dark"] .meal-recommendation-content {
-    background-color: #282A36;
-    color: var(--text-light);
-}
-
-.btn-circle {
-    background: none;
-    border: none;
-    padding: 0;
+.recommendation-trigger-label {
     font-size: 0.85rem;
-    transition: transform 0.2s ease, color 0.3s ease;
-    color: var(--text-dark);
 }
 
-.btn-circle:hover {
+.recommendation-fab {
+    align-items: center;
+    background-color: var(--bg-card) !important;
+    border: 2px solid var(--primary-red) !important;
+    border-radius: 50%;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    color: var(--primary-red) !important;
+    display: inline-flex;
+    font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+    height: clamp(3.5rem, 8vw, 4.25rem);
+    justify-content: center;
+    max-width: none;
+    padding: 0;
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    width: clamp(3.5rem, 8vw, 4.25rem);
+    z-index: 1020;
+}
+
+.recommendation-fab:hover,
+.recommendation-fab:focus {
+    background-color: var(--bg-card) !important;
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34), 0 0 0 4px var(--control-focus-ring) !important;
+    color: var(--primary-red) !important;
     transform: translateY(-2px);
 }
 
-.btn-circle[aria-expanded="true"] {
-    color: var(--text-dark);
+.recommendation-fab:active {
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(0) scale(0.97);
 }
 
-.btn-info {
-    color: #0d6efd;
+.recommendation-fab .recommendation-trigger-label {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
 }
 
-[data-theme="dark"] .btn-info {
-    color: #58a6ff;
+.recommendation-fab-badge {
+    align-items: center;
+    background-color: var(--primary-red);
+    border: 2px solid var(--control-bg);
+    border-radius: 50%;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+    height: 1.55em;
+    justify-content: center;
+    position: absolute;
+    right: -0.15rem;
+    top: -0.15rem;
+    width: 1.55em;
 }
 
-/* Removed .btn-info hover/focus override rules */
+[data-theme="dark"] .recommendation-fab-badge {
+    border-color: var(--bg-card);
+}
+
+.recommendation-modal-content {
+    background-color: var(--bg-card);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: 0;
+    color: var(--text-light);
+    overflow: hidden;
+}
+
+.recommendation-modal-overlay {
+    background-color: var(--theme-overlay-bg);
+    min-height: 360px;
+    padding: 1rem;
+}
+
+.recommendation-modal-overlay.is-error {
+    background-color: var(--theme-overlay-error-bg);
+}
+
+.recommendation-modal-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.recommendation-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.recommendation-form .form-label {
+    color: #ffffff;
+    font-weight: 600;
+    margin: 0;
+}
+
+.recommendation-result {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: center;
+    line-height: 1.5;
+    margin-top: 1rem;
+    min-height: 100px;
+    text-align: center;
+}
+
+.recommendation-result .text-muted {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.recommendation-result .text-danger {
+    color: #ffd6d6 !important;
+    font-weight: 600;
+}
+
+.recommendation-text {
+    font-size: 1.05rem;
+}
+
+[data-theme="dark"] .recommendation-modal-content {
+    background-color: #282A36;
+}
+
+.nutrient-info-trigger .text-info {
+    color: var(--theme-info-accent) !important;
+}
 
 /* Custom Popover Styling for Nutrient Info */
 .popover {
@@ -1303,8 +1003,8 @@ a.github-link i.fa-github {
 }
 
 .nutrient-info-trigger i.fa-info-circle {
-    transition: color 0.2s ease; /* Smooth transition for color */
-    /* Use text-info color defined by Bootstrap, which should handle dark mode */
+    color: var(--theme-info-accent);
+    transition: color 0.2s ease;
 }
 
 /* Ensure no unwanted background or border on the trigger span */
@@ -1317,50 +1017,6 @@ a.github-link i.fa-github {
 }
 
 
-.btn-euro {
-    color: #198754;
-}
-
-[data-theme="dark"] .btn-euro {
-    color: #50fa7b;
-}
-
-/* Price cards */
-.price-info-card {
-    background-color: var(--bg-card);
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    padding: 10px 15px;
-    transition: background-color 0.3s ease;
-}
-
-.price-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-}
-
-.price-item:not(:last-child) {
-    border-bottom: 1px dashed var(--border-color);
-    transition: border-color 0.3s ease;
-}
-
-.price-label {
-    font-size: 0.85rem;
-    color: var(--text-dark);
-    opacity: 0.8;
-    transition: color 0.3s ease;
-}
-
-.price-value {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: var(--text-dark);
-    transition: color 0.3s ease;
-}
-
-/* Removed empty rule placeholder: Styles related to .nutrient-info-collapse and dark mode overrides removed */
-
 /* Caner info section */
 .mobile-caner-info {
     display: flex;
@@ -1371,27 +1027,34 @@ a.github-link i.fa-github {
     transition: border-color 0.3s ease;
 }
 
-.mobile-caner-group {
-    margin-bottom: 10px;
-}
-
-.mobile-caner-group:not(:last-child) {
-    padding-bottom: 8px;
-    border-bottom: 1px dashed var(--border-color);
-    transition: border-color 0.3s ease;
-}
-
-.mobile-meal-label {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--text-dark);
-    opacity: 0.8;
-    margin-bottom: 2px;
-    transition: color 0.3s ease;
-}
-
 /* Responsive styles */
 @media (max-width: 1000px) {
+    .header-area .container {
+        padding-top: 0;
+        position: relative;
+    }
+
+    .header-controls {
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .language-switch,
+    .header-icon-button {
+        height: 30px;
+    }
+
+    .header-icon-button {
+        width: 30px;
+    }
+
+    .language-option {
+        min-width: 30px;
+        height: 22px;
+        padding: 0 5px;
+        font-size: 0.95rem;
+    }
+
     .header-area h1 {
         font-size: 1.4rem;
     }
@@ -1403,6 +1066,10 @@ a.github-link i.fa-github {
     .text-container {
         padding: 0 5px;
     }
+
+    .mensa-section {
+        padding: 8px;
+    }
     
     /* Hide the desktop views on mobile */
     .table-responsive {
@@ -1413,17 +1080,43 @@ a.github-link i.fa-github {
     .mobile-meal-cards {
         display: block;
     }
+
+    .mobile-price-selector {
+        background-color: var(--control-bg);
+        border: 1px solid var(--control-border);
+        border-radius: 6px;
+        display: flex;
+        gap: 2px;
+        margin: 0 0 8px;
+        padding: 2px;
+    }
+
+    .mobile-price-selector-button {
+        background: transparent;
+        border: 0;
+        border-radius: 4px;
+        color: var(--control-text);
+        flex: 1;
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1.1;
+        padding: 0.3rem 0.35rem;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mobile-price-selector-button.active {
+        background-color: var(--control-selected-bg);
+        color: var(--control-selected-text);
+    }
     
     .mobile-meal-card {
         display: block;
+        margin-bottom: 8px;
+        padding: 8px 10px;
     }
     
     .caner-symbol {
         font-size: 1rem;
-    }
-    
-    .caner-legend {
-        margin-top: 15px;
     }
     
     .caner-image {
@@ -1447,7 +1140,69 @@ a.github-link i.fa-github {
     }
     
     .mobile-meal-description {
+        font-size: 0.95rem;
+        line-height: 1.25;
+        margin-bottom: 6px;
         text-align: center;
+    }
+
+    .meal-action-row {
+        gap: 7px;
+        margin-bottom: 0;
+        margin-top: 4px;
+    }
+
+    .food-marking {
+        font-size: 1rem;
+        margin-right: 1px;
+    }
+
+    .food-marking-img {
+        height: 1.2em;
+        margin-right: 1px;
+    }
+
+    .nutrient-info-trigger {
+        font-size: 0.9rem;
+    }
+
+    .vote-controls {
+        gap: 2px;
+        margin-left: 2px;
+    }
+
+    .vote-btn {
+        font-size: 0.82rem;
+        margin: 0;
+        padding: 1px 3px;
+    }
+
+    .upvote-count,
+    .downvote-count {
+        font-size: 0.75rem;
+    }
+
+    .mobile-caner-info {
+        margin-top: 6px;
+        padding-top: 6px;
+    }
+
+    .mobile-user-info-row {
+        border-bottom: none;
+        padding: 0.15rem 0;
+    }
+
+    .mobile-user-label {
+        font-size: 0.82em;
+    }
+
+    .mobile-meal-card .user-price-caner-info.mobile-layout {
+        gap: 0.35rem;
+    }
+
+    .mobile-meal-card .user-price-caner-info.mobile-layout .caner-symbols img {
+        height: 1.05em;
+        margin-right: 0;
     }
 }
 
@@ -1474,16 +1229,12 @@ a.github-link i.fa-github {
 
 
 /* Mobile cards: User type label and info row */
-.mobile-user-info-container {
-    width: 100%;
-}
-
 .mobile-user-info-row {
     display: grid; /* Use Grid layout */
     grid-template-columns: auto 1fr; /* Label column auto, value column takes remaining space */
     align-items: center; /* Vertically align items in the middle */
     padding: 0.3rem 0;
-    border-bottom: 1px solid #eee; /* Optional: separator line */
+    border-bottom: 1px solid var(--border-color);
     gap: 0.5rem; /* Add some gap between label and value block */
 }
 .mobile-user-info-row:last-child {
@@ -1492,7 +1243,7 @@ a.github-link i.fa-github {
 
 .mobile-user-label {
     font-size: 0.9em;
-    color: #555;
+    color: var(--control-muted);
 }
 
 /* Mobile cards: Price and Caner info side-by-side */
@@ -1503,7 +1254,7 @@ a.github-link i.fa-github {
     gap: 0.5rem; /* Space between price, symbols, and score */
     /* flex-grow: 1; */ /* No longer needed as grid column takes care of space */
     justify-content: flex-end; /* Align the content (price, symbols) to the right within this div */
-    text-align: right; /* Added text-align right */
+    text-align: right;
 }
 
 .mobile-user-info-row.expert-mode-col {
@@ -1527,11 +1278,6 @@ a.github-link i.fa-github {
     height: 1.2em; /* Adjust size if needed */
 }
 
-.mobile-meal-card .user-price-caner-info.mobile-layout .caner-score-value {
-    font-size: 0.9em;
-    color: #777;
-}
-
 .mobile-meal-card .rkr-value-mobile {
     display: block;
     width: auto;
@@ -1543,7 +1289,19 @@ a.github-link i.fa-github {
 /* Responsive adjustments for table cells if needed for very small screens, although Bootstrap's table-responsive should handle most cases. */
 /* This is an additional refinement if the table content itself needs to be more responsive. */
 @media (max-width: 576px) { /* Example breakpoint, adjust as needed */
-    /* Removed empty rule for .meal-table .user-price-caner-info */
+    .header-area .container {
+        padding-top: 0;
+    }
+
+    .header-controls {
+        margin-bottom: 6px;
+    }
+
+    .language-option {
+        min-width: 28px;
+        padding: 0 4px;
+    }
+
     .meal-table th, .meal-table td {
         font-size: 0.85em; /* Smaller font for table on xs screens */
     }
@@ -1612,35 +1370,6 @@ html[data-theme="dark"] .datepicker-panel ul li.selected:hover {
     color: #ffffff !important;
 }
 
-/* Date input focus styling - yellow glow to match mensa dropdown */
-input#date.form-control:focus,
-input#date-mobile.form-control:focus {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4) !important;
-    outline: none !important;
-}
-
-html[data-theme="dark"] input#date.form-control,
-html[data-theme="dark"] input#date-mobile.form-control {
-    background-color: #383a59 !important; /* Match Mensa select dropdown */
-    color: var(--primary-yellow) !important;
-    border-color: var(--primary-yellow) !important;
-    /* Padding is now handled by the shared .filter-panel select, .filter-panel input.form-control rule */
-}
-
-html[data-theme="dark"] input#date.form-control:focus,
-html[data-theme="dark"] input#date-mobile.form-control:focus {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 0 3px rgba(241, 250, 140, 0.4) !important;
-    outline: none !important;
-}
-
-html[data-theme="dark"] input#date.form-control::placeholder,
-html[data-theme="dark"] input#date-mobile.form-control::placeholder {
-    color: var(--primary-yellow) !important;
-    opacity: 0.7 !important;
-}
-
 /* Datepicker popup font size */
 .datepicker {
     font-size: 0.875rem;
@@ -1654,8 +1383,8 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
 .datepicker-picker span.selected,
 .datepicker-picker span.selected:hover,
 .datepicker-picker span.selected.focused {
-    background-color: var(--primary-yellow) !important;
-    color: var(--primary-red) !important;
+    background-color: var(--control-selected-bg) !important;
+    color: var(--control-selected-text) !important;
     text-shadow: none !important;
 }
 
@@ -1666,126 +1395,16 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
     background-color: transparent !important;
 }
 
-/* Highlighted selected option in dropdown menus */
-.form-select option {
-    background: var(--bg-card);
-    color: var(--text-dark);
-}
-
-.form-select option[selected] {
-    background: var(--primary-yellow) !important;
-    color: var(--primary-red) !important;
-}
-
-[data-theme="dark"] .form-select option {
-    background: #383a59;
-    color: var(--primary-yellow);
-}
-
-[data-theme="dark"] .form-select option[selected] {
-    background: var(--primary-yellow) !important;
-    color: var(--primary-red) !important;
-}
-
-/* Light mode form-select accent color */
-.form-select {
-    accent-color: var(--primary-yellow);
-}
-
-.form-select:focus {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4) !important;
-}
-
-/* Dark mode styles for form-select elements (including mensa dropdown) */
-[data-theme="dark"] .form-select {
-    background-color: #383a59;
-    color: var(--primary-yellow);
-    border: 1px solid var(--primary-yellow);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f1fa8c' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 16px 12px;
-    padding-right: 2.5rem;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    accent-color: var(--primary-yellow);
-}
-
-[data-theme="dark"] .form-select:focus {
-    outline: none;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 3px rgba(241, 250, 140, 0.4);
-}
-
-/* Mensa dropdown specific styles - yellow focus color and accent color */
-#mensa, #mensa-mobile {
-    accent-color: var(--primary-yellow);
-}
-
-#mensa:focus, #mensa-mobile:focus {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4) !important;
-    outline: none !important;
-}
-
-[data-theme="dark"] #mensa,
-[data-theme="dark"] #mensa-mobile {
-    accent-color: var(--primary-yellow);
-}
-
-[data-theme="dark"] #mensa:focus,
-[data-theme="dark"] #mensa-mobile:focus {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 0 3px rgba(241, 250, 140, 0.4) !important;
-}
-
-/* Mensa dropdown options - yellow highlight using accent-color */
-#mensa option,
-#mensa-mobile option {
-    background-color: var(--bg-card);
-    color: var(--text-dark);
-}
-
-#mensa option:checked,
-#mensa option:focus,
-#mensa option:hover,
-#mensa-mobile option:checked,
-#mensa-mobile option:focus,
-#mensa-mobile option:hover {
-    background-color: var(--primary-yellow) !important;
-    color: var(--text-dark) !important;
-}
-
-[data-theme="dark"] #mensa option,
-[data-theme="dark"] #mensa-mobile option {
-    background-color: #383a59;
-    color: var(--primary-yellow);
-}
-
-[data-theme="dark"] #mensa option:checked,
-[data-theme="dark"] #mensa option:focus,
-[data-theme="dark"] #mensa option:hover,
-[data-theme="dark"] #mensa-mobile option:checked,
-[data-theme="dark"] #mensa-mobile option:focus,
-[data-theme="dark"] #mensa-mobile option:hover {
-    background-color: var(--primary-yellow) !important;
-    color: #333 !important;
-}
-
-.xxxlutz-title {
-    flex: 1;
-}
-
-#mensa, #date {
+#date,
+.mensa-select-toggle {
     width: 250px;
 }
 
 /* Desktop layout (default) */
 .mensa-title-desktop {
-    display: flex !important;
-    justify-content: space-between;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    column-gap: 1rem;
     align-items: center;
     font-size: 1.8rem;
     color: var(--primary-red);
@@ -1793,6 +1412,23 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
     border-bottom: 2px solid var(--primary-yellow);
     padding-bottom: 5px;
     text-align: center;
+}
+
+.mensa-title-control {
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.mensa-title-control-left {
+    justify-self: start;
+}
+
+.mensa-title-control-right {
+    justify-self: end;
+}
+
+.mensa-title-desktop > .mensa-name-and-emoji-wrapper {
+    grid-column: 2;
 }
 
 .mensa-title-mobile {
@@ -1811,24 +1447,20 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
 
 /* Tablet layout */
 @media (max-width: 1000px) {
-    #mensa, #date {
+    #date,
+    .mensa-select-toggle {
         width: 180px;
         font-size: 0.9rem;
     }
 
-    .selectors-row {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .selectors-row > div {
-        flex: 1;
-        min-width: 200px;
-    }
 }
 
 /* Mobile layout */
 @media (max-width: 768px) {
+    .content-area {
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+
     /* Hide desktop elements */
     .mensa-title-desktop {
         display: none !important;
@@ -1856,6 +1488,10 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
         flex: 1;
     }
 
+    .selectors-row-mobile .control-group {
+        gap: 0.25rem;
+    }
+
     .selectors-row-mobile > div:first-child {
         justify-content: flex-start;
     }
@@ -1865,7 +1501,7 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
     }
 
     .selectors-row-mobile .form-control,
-    .selectors-row-mobile .form-select {
+    .selectors-row-mobile .themed-select-toggle {
         width: 140px;
         font-size: 0.8rem;
     }
@@ -1875,9 +1511,23 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
         font-size: 0.8rem;
     }
 
-    #mensa-mobile, #date-mobile {
+    #date-mobile,
+    .selectors-row-mobile .mensa-select-toggle {
         width: 120px;
         font-size: 0.85rem;
+    }
+
+    .mensa-name-and-emoji-wrapper {
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    .recommendation-trigger:not(.recommendation-fab) {
+        padding: 0.25rem 0.45rem;
+    }
+
+    .recommendation-trigger-label {
+        font-size: 0.78rem;
     }
 }
 
@@ -1903,4 +1553,3 @@ html[data-theme="dark"] input#date-mobile.form-control::placeholder {
     background-color: var(--primary-red);
     color: #ffffff;
 }
-

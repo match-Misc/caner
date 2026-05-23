@@ -17,9 +17,8 @@ services:
       start_period: 10s
 
   caner:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${CANER_IMAGE:-ghcr.io/match-misc/caner:latest}
+    pull_policy: always
     container_name: caner
     restart: unless-stopped
     depends_on:
@@ -34,9 +33,17 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-caner}:${POSTGRES_PASSWORD:-caner_dev_password}@postgres:5432/${POSTGRES_DB:-caner}
     volumes:
       - ./logs:/app/logs
+    networks:
+      - default
+      - npmnet
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:30823/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+
+networks:
+  npmnet:
+    external: true
+    name: npmnet

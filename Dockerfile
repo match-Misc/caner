@@ -15,23 +15,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies including Firefox and geckodriver for Selenium
+# Install runtime system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     cron \
     supervisor \
     logrotate \
-    firefox-esr \
-    wget \
-    bzip2 \
     && rm -rf /var/lib/apt/lists/*
-
-# Install geckodriver for Firefox/Selenium (pinned version for reliability)
-RUN GECKODRIVER_VERSION="v0.35.0" \
-    && wget -q "https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_VERSION}/geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" \
-    && tar -xzf "geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" -C /usr/local/bin \
-    && rm "geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" \
-    && chmod +x /usr/local/bin/geckodriver
 
 # Install uv using pip for better security (instead of curl | sh)
 RUN pip install --no-cache-dir uv
@@ -42,6 +32,7 @@ COPY requirements.txt ./
 
 # Install Python dependencies using uv
 RUN uv sync --frozen --no-dev
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy application code
 COPY . .

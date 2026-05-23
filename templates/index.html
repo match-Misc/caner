@@ -1,1633 +1,646 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% macro selectors(mensa, date_input_id, mensa_select_id) %}
+  <div class="dropdown themed-dropdown mensa-dropdown">
+    <input type="hidden" name="mensa" id="{{ mensa_select_id }}" value="{{ mensa }}">
+    <button class="btn btn-sm dropdown-toggle themed-select-toggle mensa-select-toggle"
+            type="button"
+            id="{{ mensa_select_id }}-dropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+      <span class="themed-select-label">{{ mensa }}</span>
+    </button>
+    <ul class="dropdown-menu themed-dropdown-menu" aria-labelledby="{{ mensa_select_id }}-dropdown">
+      {% for option_mensa in available_mensen %}
+        <li>
+          <button type="button"
+                  class="dropdown-item themed-dropdown-item mensa-dropdown-item{% if option_mensa == mensa %} active{% endif %}"
+                  data-target-input="{{ mensa_select_id }}"
+                  data-date-input="{{ date_input_id }}"
+                  data-value="{{ option_mensa }}"
+                  {% if option_mensa == mensa %}aria-current="true"{% endif %}>
+            {{ option_mensa }}
+          </button>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endmacro %}
 
-{% if data %}
-    {% if dashboard_mode %}
-        <!-- Dashboard Mode: Side-by-side layout -->
-        <div class="dashboard-container">
-            <div class="row">
-                <!-- Left Column: Selected Mensa -->
-                <div class="col-lg-8 dashboard-column">
-                    <!-- Selection bar always visible for selected mensa (even when no meals) -->
-                    {% if selected_mensa and selected_mensa != "XXXLutz Hesse Markrestaurant" %}
-                    <div class="mensa-section mb-4">
-                        <!-- Mobile selectors row (shown on small screens) -->
-                        <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
-                            <div class="d-flex align-items-center">
-                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile = new URLSearchParams(window.location.search); paramsMobile.set('mensa', this.value); paramsMobile.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile.toString()}`;">
-                                    {% for mensa in available_mensen %}
-                                        <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                            {{ mensa }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                            </div>
-                        </div>
-
-                        <!-- Desktop title with inline selectors (shown on large screens) -->
-                        <h2 class="mensa-title-desktop" style="display: grid; grid-template-columns: auto 1fr auto; align-items: center;">
-                            <div class="d-flex align-items-center">
-                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                <input type="text" name="date" id="date" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
-                            </div>
-                            <span class="mensa-name-and-emoji-wrapper text-center">
-                                <span class="mensa-name-text">{{ selected_mensa }}</span>
-                                <span class="ms-2">
-                                    {% if selected_mensa == "Mensa Garbsen" %}
-                                        <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% elif selected_mensa == "Contine" %}
-                                        <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% elif selected_mensa == "Hauptmensa" %}
-                                        <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% else %}
-                                        {{ mensa_emojis[selected_mensa] }}
-                                    {% endif %}
-                                </span>
-                            </span>
-                            <div class="d-flex align-items-center">
-                                <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
-                                    {% for mensa in available_mensen %}
-                                        <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                            {{ mensa }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                            </div>
-                        </h2>
-
-                        <!-- Mobile title (shown on small screens) -->
-                        <h2 class="mensa-title-mobile text-center">
-                            <span class="mensa-name-and-emoji-wrapper">
-                                <span class="mensa-name-text">{{ selected_mensa }}</span>
-                                <span class="ms-2">
-                                    {% if selected_mensa == "Mensa Garbsen" %}
-                                        <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% elif selected_mensa == "Contine" %}
-                                        <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% elif selected_mensa == "Hauptmensa" %}
-                                        <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                                    {% else %}
-                                        {{ mensa_emojis[selected_mensa] }}
-                                    {% endif %}
-                                </span>
-                            </span>
-                        </h2>
-
-                        <!-- No meals message when selected_mensa has no meals -->
-                        {% if selected_mensa in data and data[selected_mensa]|length == 0 %}
-                        <div class="no-meals-warning mt-3">
-                            <i class="fas fa-utensils me-2"></i>Keine Mahlzeiten für dieses Datum vorhanden.
-                        </div>
-                        {% endif %}
-
-                        <!-- Table content for selected mensa - moved inside the same mensa-section to eliminate gap -->
-                        {% for mensa, meals in data.items() if mensa != "XXXLutz Hesse Markrestaurant" and mensa == selected_mensa %}
-                            {% if mensa == "XXXLutz Hesse Markrestaurant" %}
-                                <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
-                                <div class="xxxlutz-container">
-                                    <!-- Weekly dishes section -->
-                                    <div class="xxxlutz-section mb-4">
-                                        <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                                        <div class="row justify-content-center">
-                                            {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
-                                                <div class="col-md-6 col-lg-4 mb-3">
-                                                    <div class="xxxlutz-card">
-                                                        {{ meal.description }}
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-
-                                    <!-- Permanent menu section -->
-                                    <div class="xxxlutz-section mb-4">
-                                        <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
-                                        <div class="row justify-content-center">
-                                            {% for meal in meals if meal.category == 'Ständiges Angebot' %}
-                                                <div class="col-md-6 col-lg-4 mb-3">
-                                                    <div class="xxxlutz-card">
-                                                        {{ meal.description }}
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <!-- Regular desktop table view for other mensen -->
-                                <div class="table-responsive">
-                                    <table class="table meal-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Essen</th>
-                                                <th>Studierende</th>
-                                                <th>Mitarbeitende</th>
-                                                <th>Gästende</th>
-                                                <th class="expert-mode-col" style="display: none;" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal</th>
-                                                <th class="expert-mode-col" style="display: none;"
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real</th>
-                                                <th class="expert-mode-col" style="display: none;"
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
-                                                <th class="expert-mode-col" style="display: none;"
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for meal in meals %}
-                                                {% set kcal = meal.nutritional_values|extract_kcal %}
-                                                {% set protein_g = meal.nutritional_values|extract_protein %}
-                                                {% set total_grams = meal.nutritional_values|extract_total_grams %}
-                                                {% set caner_student = kcal|calculate_caner(meal.price_student) %}
-                                                {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
-                                                {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
-                                                {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
-                                                {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
-                                                {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
-
-                                                <tr>
-                                                    <td>
-                                                        <strong>{{ meal.description }}</strong>
-                                                        <div class="food-markings-row">
-                                                            {{ meal.marking|get_dietary_info|safe }}
-                                                            <div class="action-buttons">
-                                                                {% if meal.nutritional_values %}
-                                                                <span class="nutrient-info-trigger"
-                                                                      data-bs-toggle="popover"
-                                                                      data-bs-trigger="click"
-                                                                      data-bs-placement="top"
-                                                                      data-bs-html="true"
-                                                                      data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}"
-                                                                      title="Nährwerte"
-                                                                      style="cursor: help;">
-                                                                    <i class="fas fa-info-circle text-info"></i>
-                                                                </span>
-                                                                {% endif %}
-                                                            </div>
-                                                        </div>
-                                                        <div class="food-markings-row mt-2">
-                                                            <div class="vote-controls" data-meal-id="{{ meal.id }}">
-                                                                <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
-                                                                    <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
-                                                                </button>
-                                                                <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
-                                                                    <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="user-price-caner-info">
-                                                            <span class="price">{{ meal.price_student }} €</span>
-                                                            <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="user-price-caner-info">
-                                                            <span class="price">{{ meal.price_employee }} €</span>
-                                                            <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="user-price-caner-info">
-                                                            <span class="price">{{ meal.price_guest }} €</span>
-                                                            <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="expert-mode-col" style="display: none;">
-                                                        <strong class="rkr-value" 
-                                                                data-bs-toggle="tooltip" 
-                                                                data-bs-placement="top" 
-                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
-                                                    </td>
-                                                    <td class="expert-mode-col" style="display: none;">
-                                                        <strong class="rkr-value" 
-                                                                data-bs-toggle="tooltip" 
-                                                                data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong>
-                                                    </td>
-                                                    <td class="expert-mode-col" style="display: none;">
-                                                        {% if meal.mps_score is not none %}
-                                                            <strong class="mps-value" 
-                                                                    data-bs-toggle="tooltip" 
-                                                                    data-bs-placement="top" 
-                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
-                                                        {% else %}
-                                                            <span class="text-muted">N/A</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="expert-mode-col" style="display: none;">
-                                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
-                                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
-                                                            {% if normalized_score <= 1.0 %}
-                                                                {% set syringes = '💉' %}
-                                                            {% elif normalized_score <= 2.0 %}
-                                                                {% set syringes = '💉💉' %}
-                                                            {% else %}
-                                                                {% set syringes = '💉💉💉' %}
-                                                            {% endif %}
-                                                            <strong class="weight-loss-value" 
-                                                                    data-bs-toggle="tooltip" 
-                                                                    data-bs-placement="top" 
-                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong>
-                                                        {% else %}
-                                                            <span class="text-muted">N/A</span>
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Regular mobile cards view for other mensen -->
-                                <div class="mobile-meal-cards">
-                                    {% for meal in meals %}
-                                        {% set kcal = meal.nutritional_values|extract_kcal %}
-                                        {% set protein_g = meal.nutritional_values|extract_protein %}
-                                        {% set total_grams = meal.nutritional_values|extract_total_grams %}
-                                        {% set caner_student = kcal|calculate_caner(meal.price_student) %}
-                                        {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
-                                        {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
-                                        {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
-                                        {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
-                                        {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
-
-                                        <div class="mobile-meal-card">
-                                            <div class="mobile-meal-description">
-                                                {{ meal.description }}
-                                                <div class="food-markings-row text-center">
-                                                    {{ meal.marking|get_dietary_info|safe }}
-                                                    <div class="action-buttons">
-                                                        {% if meal.nutritional_values %}
-                                                        <span class="nutrient-info-trigger"
-                                                              data-bs-toggle="popover"
-                                                              data-bs-trigger="click"
-                                                              data-bs-placement="top"
-                                                              data-bs-html="true"
-                                                              data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}"
-                                                              title="Nährwerte"
-                                                              style="cursor: help;">
-                                                            <i class="fas fa-info-circle text-info"></i>
-                                                        </span>
-                                                        {% endif %}
-                                                    </div>
-
-                                                    <div class="food-markings-row mt-2" style="justify-content: center;">
-                                                        <div class="vote-controls" data-meal-id="{{ meal.id }}">
-                                                            <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
-                                                                <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
-                                                            </button>
-                                                            <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
-                                                                <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mobile-user-info-container mt-2">
-                                                <div class="mobile-user-info-row">
-                                                    <strong class="mobile-user-label">Studierende:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        <span class="price">{{ meal.price_student }} €</span>
-                                                        <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row">
-                                                    <strong class="mobile-user-label">Mitarbeitende:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        <span class="price">{{ meal.price_employee }} €</span>
-                                                        <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row">
-                                                    <strong class="mobile-user-label">Gästende:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        <span class="price">{{ meal.price_guest }} €</span>
-                                                        <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label" 
-                                                            data-bs-toggle="tooltip" 
-                                                            data-bs-placement="top" 
-                                                            title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
-                                                                data-bs-toggle="tooltip" 
-                                                                data-bs-placement="top" 
-                                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label" 
-                                                            data-bs-toggle="tooltip" 
-                                                            data-bs-placement="top" 
-                                                            title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
-                                                                data-bs-toggle="tooltip" 
-                                                                data-bs-placement="top" 
-                                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong></span>
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label" 
-                                                            data-bs-toggle="tooltip" 
-                                                            data-bs-placement="top" 
-                                                            title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        {% if meal.mps_score is not none %}
-                                                            <span class="mps-value-mobile"><strong class="mps-value" 
-                                                                    data-bs-toggle="tooltip" 
-                                                                    data-bs-placement="top" 
-                                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
-                                                        {% else %}
-                                                            <span class="text-muted">N/A</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                                <div class="mobile-user-info-row expert-mode-col" style="display: none;">
-                                                    <strong class="mobile-user-label" 
-                                                            data-bs-toggle="tooltip" 
-                                                            data-bs-placement="top" 
-                                                            title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
-                                                    <div class="user-price-caner-info mobile-layout">
-                                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
-                                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
-                                                            {% if normalized_score <= 1.0 %}
-                                                                {% set syringes = '💉' %}
-                                                            {% elif normalized_score <= 2.0 %}
-                                                                {% set syringes = '💉💉' %}
-                                                            {% else %}
-                                                                {% set syringes = '💉💉💉' %}
-                                                            {% endif %}
-                                                            <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
-                                                                    data-bs-toggle="tooltip" 
-                                                                    data-bs-placement="top" 
-                                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong></span>
-                                                        {% else %}
-                                                            <span class="text-muted">N/A</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                
-                                    <!-- Compact Dietary Markings Legend inside mobile-meal-cards -->
-                                    {% if mensa != "XXXLutz Hesse Markrestaurant" %}
-                                    {% if marking_info %}
-                                    <div class="mt-2" style="font-size: 0.8em;">
-                                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                                            {% for code, info in marking_info.items() %}
-                                            <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
-                                                {% if info.get('emoji') %}
-                                                <span style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
-                                                {% endif %}
-                                                {% if "images" in info %}
-                                                    {% for img in info.images %}
-                                                        <img class="food-marking-img" src="{{ img }}" alt="{{ info.title }}" title="{{ info.title }}">
-                                                    {% endfor %}
-                                                {% endif %}
-                                                <span>{{ info.title }}</span>
-                                            </span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Right Column: XXXLutz Hesse + Marvin Recommendation -->
-                <div class="col-lg-4 dashboard-column">
-                    {% for mensa, meals in data.items() if mensa == "XXXLutz Hesse Markrestaurant" %}
-                        <div class="mensa-section mb-4">
-                            {% if mensa == selected_mensa %}
-                                <!-- Mobile selectors row (shown on small screens) -->
-                                <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                        <input type="text" name="date" id="date-mobile" class="form-control form-control-sm ms-1" value="{{ selected_date }}" readonly>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile3 = new URLSearchParams(window.location.search); paramsMobile3.set('mensa', this.value); paramsMobile3.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile3.toString()}`;">
-                                            {% for mensa in available_mensen %}
-                                                <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                                    {{ mensa }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                                    </div>
-                                </div>
-                            {% endif %}
-
-                            <!-- Desktop title with inline selectors (shown on large screens) -->
-                            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
-                                {% if mensa == selected_mensa %}
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <label for="date" class="form-label small">Datum</label>
-                                            <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
-                                        </div>
-                                        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                                    </div>
-                                {% endif %}
-                                <span class="mensa-name-and-emoji-wrapper text-center{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">
-                                        <span id="askDarkCanerEmojiTrigger" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                                    </span>
-                                </span>
-                                {% if mensa == selected_mensa %}
-                                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                                {% endif %}
-                            </h2>
-
-                            <!-- Mobile title (shown on small screens) -->
-                            <h2 class="mensa-title-mobile text-center">
-                                <span class="mensa-name-and-emoji-wrapper{% if mensa == 'XXXLutz Hesse Markrestaurant' %} xxxlutz-title{% endif %}">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">
-                                        <span id="askDarkCanerEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Dark Caner, den Gangsta Rapper, für XXXLutz Tipps">{{ mensa_emojis[mensa] }}</span>
-                                    </span>
-                                </span>
-                            </h2>
-
-                            <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
-                            <div class="xxxlutz-container">
-                                <!-- Weekly dishes section -->
-                                <div class="xxxlutz-section mb-4">
-                                    <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                                    <div class="row justify-content-center">
-                                        {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="xxxlutz-card">
-                                                    {{ meal.description }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <!-- Permanent menu section -->
-                                <div class="xxxlutz-section mb-4">
-                                    <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
-                                    <div class="row justify-content-center">
-                                        {% for meal in meals if meal.category == 'Ständiges Angebot' %}
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="xxxlutz-card">
-                                                    {{ meal.description }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
-                    <!-- Marvin Recommendation Section -->
-                    <div class="mensa-section mb-4" style="position: relative;">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('/static/img/marvin.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0.2; z-index: 0;"></div>
-                        <div style="position: relative; z-index: 1;">
-                            <h2 class="mensa-title mb-0" style="color: var(--primary-red);">
-                                Marvin's Empfehlung
-                            </h2>
-                            <div id="marvin-recommendation-content" class="text-center" style="margin-top: 15px;">
-                                <p class="text-muted">Lade Marvin's deprimierende Einsicht...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% else %}
-        <!-- Normal Mode: Single column layout -->
-        <!-- Selection bar always visible for selected mensa (even when no meals) -->
-        {% if selected_mensa and selected_mensa != "XXXLutz Hesse Markrestaurant" %}
-        <div class="mensa-section mb-4">
-            <!-- Mobile selectors row (shown on small screens) -->
-            <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
-                <div class="d-flex align-items-center">
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                    <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
-                </div>
-                <div class="d-flex align-items-center">
-                    <select name="mensa" id="mensa-mobile" class="form-select form-select-sm me-1" onchange="const paramsMobile2 = new URLSearchParams(window.location.search); paramsMobile2.set('mensa', this.value); paramsMobile2.set('date', document.getElementById('date-mobile').value); window.location.href = `/?${paramsMobile2.toString()}`;">
-                        {% for mensa in available_mensen %}
-                            <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                {{ mensa }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                </div>
-            </div>
-
-            <!-- Desktop title with inline selectors (shown on large screens) -->
-            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow me-1" data-direction="prev" title="Vorheriger Tag"><i class="fas fa-chevron-left"></i></a>
-                    <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
-                </div>
-                <span class="mensa-name-and-emoji-wrapper text-center">
-                    <span class="mensa-name-text">{{ selected_mensa }}</span>
-                    <span class="ms-2">
-                        {% if selected_mensa == "Mensa Garbsen" %}
-                            <span id="askMarvinEmojiTrigger" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% elif selected_mensa == "Contine" %}
-                            <span id="askTrumpEmojiTrigger" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% elif selected_mensa == "Hauptmensa" %}
-                            <span id="askBobEmojiTrigger" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% else %}
-                            {{ mensa_emojis[selected_mensa] }}
-                        {% endif %}
-                    </span>
-                </span>
-                <div class="d-flex align-items-center">
-                    <select name="mensa" id="mensa" class="form-select form-select-sm me-1" onchange="const params = new URLSearchParams(window.location.search); params.set('mensa', this.value); params.set('date', document.getElementById('date').value); window.location.href = `/?${params.toString()}`;">
-                        {% for mensa in available_mensen %}
-                            <option value="{{ mensa }}" {% if mensa == selected_mensa %}selected{% endif %}>
-                                {{ mensa }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="Nächster Tag"><i class="fas fa-chevron-right"></i></a>
-                </div>
-            </h2>
-
-            <!-- Mobile title (shown on small screens) -->
-            <h2 class="mensa-title-mobile text-center">
-                <span class="mensa-name-and-emoji-wrapper">
-                    <span class="mensa-name-text">{{ selected_mensa }}</span>
-                    <span class="ms-2">
-                        {% if selected_mensa == "Mensa Garbsen" %}
-                            <span id="askMarvinEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Marvin, den depressiven Roboter">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% elif selected_mensa == "Contine" %}
-                            <span id="askTrumpEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Donald Trump für Contine Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% elif selected_mensa == "Hauptmensa" %}
-                            <span id="askBobEmojiTrigger-mobile" style="cursor: pointer;" title="Frag Bob der Baumeister für Hauptmensa Tipps">{{ mensa_emojis[selected_mensa] }}</span>
-                        {% else %}
-                            {{ mensa_emojis[selected_mensa] }}
-                        {% endif %}
-                    </span>
-                </span>
-            </h2>
-
-            <!-- No meals message when selected_mensa has no meals -->
-            {% if selected_mensa in data and data[selected_mensa]|length == 0 %}
-            <div class="no-meals-warning mt-3">
-                <i class="fas fa-utensils me-2"></i>Keine Mahlzeiten für dieses Datum vorhanden.
-            </div>
-            {% endif %}
-
-            <!-- Table content for selected mensa - moved inside the same mensa-section to eliminate gap -->
-            {% for mensa, meals in data.items() %}
-                {% if mensa == selected_mensa %}
-                    <!-- Table content for selected mensa (header already shown above) -->
-
-            {% if mensa == "XXXLutz Hesse Markrestaurant" %}
-                <!-- XXXLutz Menu - Simple cards for all devices (updated) -->
-                <div class="xxxlutz-container">
-                    
-                    <!-- Weekly dishes section -->
-                    <div class="xxxlutz-section mb-4">
-                        <!-- <a href="{{ url_for('static', filename='menu/menu_hg.pdf') }}" target="_blank" style="text-decoration: none; color: inherit;">
-                            <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                        </a> -->
-                        <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                        <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
-                                <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="xxxlutz-card">
-                                        {{ meal.description }}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- Permanent menu section -->
-                    <div class="xxxlutz-section mb-4">
-                        <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
-                        <div class="row justify-content-center">
-                            {% for meal in meals if meal.category == 'Ständiges Angebot' %}
-                                <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="xxxlutz-card">
-                                        {{ meal.description }}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- XXXLutz Vouchers Section - Only shown when Mensa Garbsen is selected -->
-                    {% if selected_mensa == "Mensa Garbsen" %}
-                    <div class="xxxlutz-section mb-4">
-                        <h4 class="xxxlutz-section-title">Gutscheine</h4>
-                        <div class="row justify-content-center">
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="xxxlutz-card">
-                                    <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="text-decoration-none d-block p-3">
-                                        <i class="fas fa-download"></i> Neue Gutscheine
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="xxxlutz-card">
-                                    <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="text-decoration-none d-block p-3">
-                                        <i class="fas fa-download"></i> Alte Gutscheine
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Menu HG section REMOVED -->
-                    {#
-                    <div class="xxxlutz-section mb-4">
-                        <h4 class="xxxlutz-section-title">Mensa HG Speiseplan</h4>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <div class="menu-hg-image">
-                                    <img src="{{ url_for('get_menu_hg_image') }}" alt="Mensa HG Speiseplan" class="img-fluid mb-3" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
-                                </div>
-                                <div class="voucher-links">
-                                    <a href="{{ url_for('download_menu_hg_pdf') }}" class="btn btn-success mb-2">
-                                        <i class="fas fa-download"></i> Speiseplan als PDF herunterladen
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    #}
-                    {# REMOVED dedicated Marvin section here #}
-                    {% endif %}
-                </div>
-            {% else %}
-                <!-- Regular desktop table view for other mensen -->
-                <div class="table-responsive">
-                    <table class="table meal-table">
-                        <thead>
-                            <tr>
-                                <th>Essen</th>
-                                <th>Studierende</th>
-                                <th>Mitarbeitende</th>
-                                <th>Gästende</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
-                                    data-bs-toggle="tooltip" 
-                                    data-bs-placement="top" 
-                                    title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
-                                    data-bs-toggle="tooltip" 
-                                    data-bs-placement="top" 
-                                    title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
-                                    data-bs-toggle="tooltip" 
-                                    data-bs-placement="top" 
-                                    title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS</th>
-                                <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}"
-                                    data-bs-toggle="tooltip" 
-                                    data-bs-placement="top" 
-                                    title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for meal in meals %}
-                                {% set kcal = meal.nutritional_values|extract_kcal %}
-                                {% set protein_g = meal.nutritional_values|extract_protein %}
-                                {% set total_grams = meal.nutritional_values|extract_total_grams %}
-                                {% set caner_student = kcal|calculate_caner(meal.price_student) %}
-                                {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
-                                {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
-                                {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
-                                {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
-                                {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
-
-                                <tr>
-                                    <td>
-                                        <strong>{{ meal.description }}</strong>
-                                        <div class="food-markings-row">
-                                            {{ meal.marking|get_dietary_info|safe }}
-                                            <div class="action-buttons">
-                                                {% if meal.nutritional_values %}
-                                                <span class="nutrient-info-trigger" 
-                                                      data-bs-toggle="popover"
-                                                      data-bs-trigger="click" 
-                                                      data-bs-placement="top"
-                                                      data-bs-html="true" 
-                                                      data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 
-                                                      title="Nährwerte"
-                                                      style="cursor: help;">
-                                                    <i class="fas fa-info-circle text-info"></i>
-                                                </span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="food-markings-row mt-2">
-                                            <div class="vote-controls" data-meal-id="{{ meal.id }}">
-                                                <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
-                                                    <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
-                                                </button>
-                                                <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
-                                                    <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="user-price-caner-info">
-                                            <span class="price">{{ meal.price_student }} €</span>
-                                            <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="user-price-caner-info">
-                                            <span class="price">{{ meal.price_employee }} €</span>
-                                            <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="user-price-caner-info">
-                                            <span class="price">{{ meal.price_guest }} €</span>
-                                            <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        <strong class="rkr-value" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="top" 
-                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
-                                    </td>
-                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        <strong class="rkr-value" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong>
-                                    </td>
-                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        {% if meal.mps_score is not none %}
-                                            <strong class="mps-value" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong>
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
-                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
-                                            {% if normalized_score <= 1.0 %}
-                                                {% set syringes = '💉' %}
-                                            {% elif normalized_score <= 2.0 %}
-                                                {% set syringes = '💉💉' %}
-                                            {% else %}
-                                                {% set syringes = '💉💉💉' %}
-                                            {% endif %}
-                                            <strong class="weight-loss-value" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong>
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Regular mobile cards view for other mensen -->
-                <div class="mobile-meal-cards">
-                    {% for meal in meals %}
-                        {% set kcal = meal.nutritional_values|extract_kcal %}
-                        {% set protein_g = meal.nutritional_values|extract_protein %}
-                        {% set total_grams = meal.nutritional_values|extract_total_grams %}
-                        {% set caner_student = kcal|calculate_caner(meal.price_student) %}
-                        {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
-                        {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
-                        {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
-                        {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
-                        {% set weight_loss_score = kcal|calculate_weight_loss_score(total_grams) %}
-
-                        <div class="mobile-meal-card">
-                            <div class="mobile-meal-description">
-                                {{ meal.description }}
-                                <div class="food-markings-row text-center">
-                                    {{ meal.marking|get_dietary_info|safe }}
-                                    <div class="action-buttons">
-                                        {% if meal.nutritional_values %}
-                                        <span class="nutrient-info-trigger" 
-                                              data-bs-toggle="popover"
-                                              data-bs-trigger="click" 
-                                              data-bs-placement="top"
-                                              data-bs-html="true" 
-                                              data-bs-content="{{ meal.nutritional_values|format_nutritional_values|safe }}" 
-                                              title="Nährwerte"
-                                              style="cursor: help;">
-                                            <i class="fas fa-info-circle text-info"></i>
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                
-                                <div class="food-markings-row mt-2" style="justify-content: center;">
-                                    <div class="vote-controls" data-meal-id="{{ meal.id }}">
-                                        <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
-                                            <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
-                                        </button>
-                                        <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
-                                            <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                </div> {# This closes .food-markings-row, then .mobile-meal-description needs to be closed #}
-                            </div> {# This was mobile-meal-description, ensure it\'s correctly placed after fixing above #}
-
-
-                            <div class="mobile-user-info-container mt-2">
-                                <div class="mobile-user-info-row">
-                                    <strong class="mobile-user-label">Studierende:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        <span class="price">{{ meal.price_student }} €</span>
-                                        <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row">
-                                    <strong class="mobile-user-label">Mitarbeitende:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        <span class="price">{{ meal.price_employee }} €</span>
-                                        <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row">
-                                    <strong class="mobile-user-label">Gästende:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        <span class="price">{{ meal.price_guest }} €</span>
-                                        <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label" 
-                                            data-bs-toggle="tooltip" 
-                                            data-bs-placement="top" 
-                                            title="RKR-Wert (Nominal): Protein pro Euro Analyse - theoretischer Wert ohne Abzüge">Rkr nominal:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="top" 
-                                                title="RKR Nominal: {{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} Protein pro Euro (theoretischer Wert)">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label" 
-                                            data-bs-toggle="tooltip" 
-                                            data-bs-placement="top" 
-                                            title="RKR-Wert (Real): Protein pro Euro Analyse - angepasst für Mahlzeit-Inhalts-Abzüge">Rkr real:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        <span class="rkr-value-mobile"><strong class="rkr-value" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="top" 
-                                                title="RKR Real: {{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} Protein pro Euro (angepasst für Inhalts-Abzüge)">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong></span>
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label" 
-                                            data-bs-toggle="tooltip" 
-                                            data-bs-placement="top" 
-                                            title="MPS (Max Pumper Score): KI-Fitness-Bewertung basierend auf Proteingehalt, Kaloriendichte und Ernährungsvorlieben">MPS:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        {% if meal.mps_score is not none %}
-                                            <span class="mps-value-mobile"><strong class="mps-value" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Max Pumper Score: {{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} KI-Fitness-Bewertung">{{ ("%.1f"|format(meal.mps_score)).replace('.', ',') }} MPS</strong></span>
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
-                                    <strong class="mobile-user-label" 
-                                            data-bs-toggle="tooltip" 
-                                            data-bs-placement="top" 
-                                            title="Ozempic Score: Kaloriendichte-Bewertung - weniger Spritzen = besser zum Abnehmen">OZ:</strong>
-                                    <div class="user-price-caner-info mobile-layout">
-                                        {% if weight_loss_score > 0 and mensa in oz_score_bounds %}
-                                            {% set normalized_score = weight_loss_score|normalize_oz_score(oz_score_bounds[mensa]['min'], oz_score_bounds[mensa]['max']) %}
-                                            {% if normalized_score <= 1.0 %}
-                                                {% set syringes = '💉' %}
-                                            {% elif normalized_score <= 2.0 %}
-                                                {% set syringes = '💉💉' %}
-                                            {% else %}
-                                                {% set syringes = '💉💉💉' %}
-                                            {% endif %}
-                                            <span class="weight-loss-value-mobile"><strong class="weight-loss-value" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Ozempic Score: {{ ("%.2f"|format(weight_loss_score)).replace('.', ',') }} kcal/g (normalisiert: {{ ("%.2f"|format(normalized_score)).replace('.', ',') }})">{{ syringes }}</strong></span>
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    {% endfor %}
-
-                    <!-- Compact Dietary Markings Legend inside mobile-meal-cards -->
-                    {% if mensa != "XXXLutz Hesse Markrestaurant" %}
-                    {% if marking_info %}
-                    <div class="mt-2" style="font-size: 0.8em;">
-                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                            {% for code, info in marking_info.items() %}
-                            <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
-                                {% if info.get('emoji') %}
-                                <span style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
-                                {% endif %}
-                                {% if "images" in info %}
-                                    {% for img in info.images %}
-                                        <img class="food-marking-img" src="{{ img }}" alt="{{ info.title }}" title="{{ info.title }}">
-                                    {% endfor %}
-                                {% endif %}
-                                <span>{{ info.title }}</span>
-                            </span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% endif %}
-                </div>
-            {% endif %}
-                {% else %}
-                    <!-- Non-selected mensen get their own mensa-section -->
-                    <div class="mensa-section mb-4">
-                        {% if mensa == "XXXLutz Hesse Markrestaurant" %}
-                            <!-- XXXLutz header -->
-                            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
-                                <span class="mensa-name-and-emoji-wrapper text-center xxxlutz-title">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
-                                </span>
-                            </h2>
-                            <h2 class="mensa-title-mobile text-center">
-                                <span class="mensa-name-and-emoji-wrapper xxxlutz-title">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
-                                </span>
-                            </h2>
-                        {% else %}
-                            <!-- Other mensa headers -->
-                            <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
-                                <span class="mensa-name-and-emoji-wrapper text-center">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
-                                </span>
-                            </h2>
-                            <h2 class="mensa-title-mobile text-center">
-                                <span class="mensa-name-and-emoji-wrapper">
-                                    <span class="mensa-name-text">{{ mensa }}</span>
-                                    <span class="ms-2">{{ mensa_emojis[mensa] }}</span>
-                                </span>
-                            </h2>
-                        {% endif %}
-
-                        {% if mensa == "XXXLutz Hesse Markrestaurant" %}
-                            <!-- XXXLutz Menu content -->
-                            <div class="xxxlutz-container">
-                                <div class="xxxlutz-section mb-4">
-                                    <h4 class="xxxlutz-section-title">Wechselnde Gerichte der Woche</h4>
-                                    <div class="row justify-content-center">
-                                        {% for meal in meals if meal.category == 'Wechselnde Gerichte Woche' %}
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="xxxlutz-card">
-                                                    {{ meal.description }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <div class="xxxlutz-section mb-4">
-                                    <h4 class="xxxlutz-section-title">Ständiges Angebot</h4>
-                                    <div class="row justify-content-center">
-                                        {% for meal in meals if meal.category == 'Ständiges Angebot' %}
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="xxxlutz-card">
-                                                    {{ meal.description }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <!-- XXXLutz Vouchers Section - Only shown when Mensa Garbsen is selected -->
-                                {% if selected_mensa == "Mensa Garbsen" %}
-                                <div class="xxxlutz-section mb-4">
-                                    <h4 class="xxxlutz-section-title">Gutscheine</h4>
-                                    <div class="row justify-content-center">
-                                        <div class="col-md-6 col-lg-4 mb-3">
-                                            <div class="xxxlutz-card">
-                                                <a href="{{ url_for('download_voucher', voucher_type='new') }}" class="text-decoration-none d-block p-3">
-                                                    <i class="fas fa-download"></i> Neue Gutscheine
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 mb-3">
-                                            <div class="xxxlutz-card">
-                                                <a href="{{ url_for('download_voucher', voucher_type='old') }}" class="text-decoration-none d-block p-3">
-                                                    <i class="fas fa-download"></i> Alte Gutscheine
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <!-- Regular table content for non-selected mensen -->
-                            <div class="table-responsive">
-                                <table class="table meal-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Essen</th>
-                                            <th>Studierende</th>
-                                            <th>Mitarbeitende</th>
-                                            <th>Gästende</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for meal in meals %}
-                                            <tr>
-                                                <td><strong>{{ meal.description }}</strong></td>
-                                                <td>{{ meal.price_student }} €</td>
-                                                <td>{{ meal.price_employee }} €</td>
-                                                <td>{{ meal.price_guest }} €</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% endif %}
-    {% endif %}
-{% else %}
-    <div class="alert alert-info">
-        Keine Mahlzeiten für das ausgewählte Datum oder die ausgewählte Mensa gefunden.
+{% macro mensa_header(mensa, show_controls=True) %}
+  {% if show_controls %}
+    <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex align-items-center control-group">
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}"><i class="fas fa-chevron-left"></i></a>
+        <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+      </div>
+      <div class="d-flex align-items-center control-group">
+        {{ selectors(mensa, "date-mobile", "mensa-mobile") }}
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}"><i class="fas fa-chevron-right"></i></a>
+      </div>
     </div>
+  {% endif %}
+
+  <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
+    {% if show_controls %}
+      <div class="d-flex align-items-center mensa-title-control mensa-title-control-left">
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}"><i class="fas fa-chevron-left"></i></a>
+        <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+      </div>
+    {% endif %}
+    <span class="mensa-name-and-emoji-wrapper text-center">
+      <span class="mensa-name-text">{{ mensa }}</span>
+    </span>
+    {% if show_controls %}
+      <div class="d-flex align-items-center mensa-title-control mensa-title-control-right">
+        {{ selectors(mensa, "date", "mensa") }}
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}"><i class="fas fa-chevron-right"></i></a>
+      </div>
+    {% endif %}
+  </h2>
+
+  <h2 class="mensa-title-mobile text-center">
+    <span class="mensa-name-and-emoji-wrapper">
+      <span class="mensa-name-text">{{ mensa }}</span>
+    </span>
+  </h2>
+{% endmacro %}
+
+{% macro dietary_legend() %}
+  {% if marking_info %}
+    <div class="mt-2" style="font-size: 0.8em;">
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        {% for code, info in marking_info.items() %}
+          <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
+            {% if info.get("emoji") %}
+              <span style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
+            {% endif %}
+            {% if "images" in info %}
+              {% for img in info.images %}
+                <img class="food-marking-img" src="{{ img }}" alt="{{ info.title }}" title="{{ info.title }}">
+              {% endfor %}
+            {% endif %}
+            <span>{{ info.title }}</span>
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro meal_score_cells(meal, mobile=False) %}
+  {% set kcal = meal.nutritional_values|extract_kcal %}
+  {% set protein_g = meal.nutritional_values|extract_protein %}
+  {% set caner_student = kcal|calculate_caner(meal.price_student) %}
+  {% set caner_employee = kcal|calculate_caner(meal.price_employee) %}
+  {% set caner_guest = kcal|calculate_caner(meal.price_guest) %}
+  {% set rkr_nominal_student = protein_g|calculate_rkr_nominal(meal.price_student) %}
+  {% set rkr_real_student = protein_g|calculate_rkr_real(meal.price_student, meal.description) %}
+
+  {% if mobile %}
+    <div class="mobile-user-info-row" data-price-type="student">
+      <div class="mobile-user-label">{{ texts.students }}</div>
+      <div class="user-price-caner-info mobile-layout">
+        <span class="price">{{ meal.price_student }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
+      </div>
+    </div>
+    <div class="mobile-user-info-row d-none" data-price-type="employee">
+      <div class="mobile-user-label">{{ texts.employees }}</div>
+      <div class="user-price-caner-info mobile-layout">
+        <span class="price">{{ meal.price_employee }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
+      </div>
+    </div>
+    <div class="mobile-user-info-row d-none" data-price-type="guest">
+      <div class="mobile-user-label">{{ texts.guests }}</div>
+      <div class="user-price-caner-info mobile-layout">
+        <span class="price">{{ meal.price_guest }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
+      </div>
+    </div>
+    <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      <div class="mobile-user-label">{{ texts.rkr_nominal }}</div>
+      <div class="user-price-caner-info mobile-layout">
+        <span class="rkr-value-mobile"><strong class="rkr-value" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_nominal_value_tooltip.format(value=("%.2f"|format(rkr_nominal_student)).replace('.', ',')) }}">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong></span>
+      </div>
+    </div>
+    <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      <div class="mobile-user-label">{{ texts.rkr_real }}</div>
+      <div class="user-price-caner-info mobile-layout">
+        <span class="rkr-value-mobile"><strong class="rkr-value" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_real_value_tooltip.format(value=("%.2f"|format(rkr_real_student)).replace('.', ',')) }}">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong></span>
+      </div>
+    </div>
+    <div class="mobile-user-info-row expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      <div class="mobile-user-label">MPS</div>
+      <div class="user-price-caner-info mobile-layout">
+        {% if meal.mps_score is not none %}
+          <span class="mps-value-mobile"><strong class="mps-value" data-bs-toggle="tooltip" data-bs-placement="top" title="Max Pumper Score: {{ ("%.0f"|format(meal.mps_score)) }}/100">{{ ("%.0f"|format(meal.mps_score)) }} MPS</strong></span>
+        {% else %}
+          <span class="text-muted">N/A</span>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <td>
+      <div class="user-price-caner-info">
+        <span class="price">{{ meal.price_student }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_student }}">{{ caner_student|generate_caner_symbols|safe }}</span>
+      </div>
+    </td>
+    <td>
+      <div class="user-price-caner-info">
+        <span class="price">{{ meal.price_employee }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_employee }}">{{ caner_employee|generate_caner_symbols|safe }}</span>
+      </div>
+    </td>
+    <td>
+      <div class="user-price-caner-info">
+        <span class="price">{{ meal.price_guest }} €</span>
+        <span class="caner-symbols" data-caner-value="{{ caner_guest }}">{{ caner_guest|generate_caner_symbols|safe }}</span>
+      </div>
+    </td>
+    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      <strong class="rkr-value" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_nominal_value_tooltip.format(value=("%.2f"|format(rkr_nominal_student)).replace('.', ',')) }}">{{ ("%.2f"|format(rkr_nominal_student)).replace('.', ',') }} RkrN</strong>
+    </td>
+    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      <strong class="rkr-value" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_real_value_tooltip.format(value=("%.2f"|format(rkr_real_student)).replace('.', ',')) }}">{{ ("%.2f"|format(rkr_real_student)).replace('.', ',') }} RkrR{% if rkr_real_student < 0 %} 🤮{% endif %}</strong>
+    </td>
+    <td class="expert-mode-col{% if not expert_mode %} d-none{% endif %}">
+      {% if meal.mps_score is not none %}
+        <strong class="mps-value" data-bs-toggle="tooltip" data-bs-placement="top" title="Max Pumper Score: {{ ("%.0f"|format(meal.mps_score)) }}/100">{{ ("%.0f"|format(meal.mps_score)) }} MPS</strong>
+      {% else %}
+        <span class="text-muted">N/A</span>
+      {% endif %}
+    </td>
+  {% endif %}
+{% endmacro %}
+
+{% macro meal_actions(meal) %}
+  <div class="food-markings-row meal-action-row">
+    {{ meal.marking|get_dietary_info(language)|safe }}
+    {% if meal.nutritional_values %}
+      <span class="nutrient-info-trigger" data-bs-toggle="popover" data-bs-trigger="click" data-bs-placement="top" data-bs-html="true" data-bs-content="{{ meal.nutritional_values|format_nutritional_values(language)|safe }}" title="{{ texts.nutritional_values }}" style="cursor: help;">
+        <i class="fas fa-info-circle text-info"></i>
+      </span>
+    {% endif %}
+    <div class="vote-controls" data-meal-id="{{ meal.id }}">
+      <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
+        <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
+      </button>
+      <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
+        <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
+      </button>
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro mobile_price_selector() %}
+  <div class="mobile-price-selector" role="group" aria-label="Price type">
+    <button type="button" class="mobile-price-selector-button active" data-price-type="student" aria-pressed="true">{{ texts.students }}</button>
+    <button type="button" class="mobile-price-selector-button" data-price-type="employee" aria-pressed="false">{{ texts.employees }}</button>
+    <button type="button" class="mobile-price-selector-button" data-price-type="guest" aria-pressed="false">{{ texts.guests }}</button>
+  </div>
+{% endmacro %}
+
+{% macro meal_content(mensa, meals) %}
+  {% if meals|length == 0 %}
+    <div class="no-meals-warning mt-3">
+      <i class="fas fa-utensils me-2"></i>{{ texts.no_meals_for_date }}
+    </div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table meal-table">
+        <thead>
+          <tr>
+            <th>{{ texts.meal }}</th>
+            <th>{{ texts.students }}</th>
+            <th>{{ texts.employees }}</th>
+            <th>{{ texts.guests }}</th>
+            <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_nominal_tooltip }}">{{ texts.rkr_nominal }}</th>
+            <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.rkr_real_tooltip }}">{{ texts.rkr_real }}</th>
+            <th class="expert-mode-col{% if not expert_mode %} d-none{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ texts.mps_tooltip }}">MPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for meal in meals %}
+            <tr>
+              <td>
+                <strong>{{ meal.display_description }}</strong>
+                {{ meal_actions(meal) }}
+              </td>
+              {{ meal_score_cells(meal) }}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mobile-meal-cards">
+      {{ mobile_price_selector() }}
+      {% for meal in meals %}
+        <div class="mobile-meal-card">
+          <div class="mobile-meal-description">
+            <strong>{{ meal.display_description }}</strong>
+            {{ meal_actions(meal) }}
+          </div>
+          <div class="mobile-caner-info">
+            {{ meal_score_cells(meal, mobile=True) }}
+          </div>
+        </div>
+      {% endfor %}
+      {{ dietary_legend() }}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro mensa_section(mensa, meals, show_controls=True) %}
+  <div class="mensa-section mb-4" data-mensa="{{ mensa }}">
+    {{ mensa_header(mensa, show_controls=show_controls) }}
+    {{ meal_content(mensa, meals) }}
+  </div>
+{% endmacro %}
+
+{% block content %}
+{% if data %}
+  {% for mensa, meals in data.items() %}
+    {{ mensa_section(mensa, meals, show_controls=(mensa == selected_mensa)) }}
+  {% endfor %}
+{% else %}
+  <div class="alert alert-info">
+    {{ texts.no_meals_selection }}
+  </div>
 {% endif %}
 
-<!-- AI Recommendation Popup Modal -->
+<button type="button"
+        id="recommendationFloatingButton"
+        class="btn recommendation-trigger recommendation-fab"
+        data-mensa="{{ selected_mensa }}"
+        title="{{ texts.request_recommendation_for.format(mensa=selected_mensa) }}"
+        aria-label="{{ texts.request_recommendation_for.format(mensa=selected_mensa) }}">
+  <i class="fas fa-lightbulb" aria-hidden="true"></i>
+  <span class="recommendation-trigger-emoji recommendation-fab-badge" aria-hidden="true">{{ mensa_emojis.get(selected_mensa, "🍽️") }}</span>
+  <span class="recommendation-trigger-label">{{ texts.recommendation }}</span>
+</button>
+
 <div id="recommendationPopupModal" class="modal fade" tabindex="-1" aria-labelledby="recommendationPopupModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" id="recommendationPopupContent" 
-             style="background-size: cover; background-position: center; padding: 0; border: none; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
-            <div id="recommendationPopupOverlay" 
-                 style="position: relative; background-color: rgba(0,0,0,0.65); padding: 1rem; border-radius: 0.3rem;"> 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="modal-title" id="recommendationPopupModalLabel">AI Empfehlung</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div id="recommendationPopupBody" 
-                     style="min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
-                    <!-- Content will be injected by JavaScript -->
-                    <p>Empfehlung lädt...</p>
-                </div>
-            </div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content recommendation-modal-content" id="recommendationPopupContent">
+      <div class="recommendation-modal-overlay" id="recommendationPopupOverlay">
+        <div class="recommendation-modal-header">
+          <h5 class="modal-title" id="recommendationPopupModalLabel">{{ texts.request_recommendation_title }}</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="recommendation-form">
+          <label class="form-label" for="recommendationRecommenderDropdown">{{ texts.recommendation_person_label }}</label>
+          <input type="hidden" id="recommendationRecommenderSelect" value="Marvin">
+          <div class="dropdown themed-dropdown recommendation-dropdown">
+            <button class="btn dropdown-toggle themed-select-toggle"
+                    type="button"
+                    id="recommendationRecommenderDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+              <span id="recommendationRecommenderDropdownLabel" class="themed-select-label">Marvin</span>
+            </button>
+            <ul class="dropdown-menu themed-dropdown-menu" aria-labelledby="recommendationRecommenderDropdown">
+              <li><button type="button" class="dropdown-item themed-dropdown-item recommendation-recommender-item active" data-value="Marvin" aria-current="true">Marvin</button></li>
+              <li><button type="button" class="dropdown-item themed-dropdown-item recommendation-recommender-item" data-value="Bob der Baumeister">Bob der Baumeister</button></li>
+              <li><button type="button" class="dropdown-item themed-dropdown-item recommendation-recommender-item" data-value="Donald Trump">Donald Trump</button></li>
+              <li><button type="button" class="dropdown-item themed-dropdown-item recommendation-recommender-item" data-value="__custom__">{{ texts.custom_person }}</button></li>
+            </ul>
+          </div>
+          <input type="text"
+                 id="recommendationCustomRecommender"
+                 class="form-control d-none"
+                 maxlength="80"
+                 placeholder="{{ texts.custom_person_placeholder }}">
+          <button type="button" id="requestRecommendationButton" class="btn btn-theme-primary">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i>
+            {{ texts.get_recommendation }}
+          </button>
+        </div>
+        <div id="recommendationPopupBody" class="recommendation-result">
+          <p class="text-muted mb-0">{{ texts.recommendation_intro }}</p>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
 const mealData = {{ data|tojson|safe }};
-const sambalAlarmDisabled = {{ sambal_alarm_disabled|tojson }};
+const currentLanguage = {{ language|tojson|safe }};
+const uiText = {{ texts|tojson|safe }};
 </script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const recommendationModalElement = document.getElementById('recommendationPopupModal');
-    const recommendationModal = recommendationModalElement ? new bootstrap.Modal(recommendationModalElement) : null;
-    const recommendationModalTitle = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupModalLabel') : null;
-    const recommendationModalBody = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupBody') : null;
-    const recommendationModalContent = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupContent') : null;
-    const recommendationModalOverlay = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupOverlay') : null;
+  const recommendationModalElement = document.getElementById('recommendationPopupModal');
+  const recommendationModal = recommendationModalElement ? new bootstrap.Modal(recommendationModalElement) : null;
+  const recommendationModalTitle = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupModalLabel') : null;
+  const recommendationModalBody = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupBody') : null;
+  const recommendationModalContent = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupContent') : null;
+  const recommendationModalOverlay = recommendationModalElement ? recommendationModalElement.querySelector('#recommendationPopupOverlay') : null;
+  const recommendationSelect = document.getElementById('recommendationRecommenderSelect');
+  const recommendationDropdownLabel = document.getElementById('recommendationRecommenderDropdownLabel');
+  const recommendationCustomInput = document.getElementById('recommendationCustomRecommender');
+  const requestRecommendationButton = document.getElementById('requestRecommendationButton');
+  const recommenderProfiles = {
+    Marvin: { backgroundUrl: '/static/img/marvin.jpg' },
+    'Bob der Baumeister': { backgroundUrl: '/static/img/bob.png' },
+    'Donald Trump': { backgroundUrl: '/static/img/trump.jpg' }
+  };
+  let currentRecommendationMensa = '';
 
-
-    function showRecommendationPopup(title, message, backgroundUrl, isError = false) {
-        if (!recommendationModal || !recommendationModalTitle || !recommendationModalBody || !recommendationModalContent || !recommendationModalOverlay) {
-            console.error("Popup modal elements not found");
-            return;
-        }
-
-        recommendationModalTitle.textContent = title;
-        recommendationModalBody.innerHTML = message;
-
-        if (backgroundUrl) {
-            recommendationModalContent.style.backgroundImage = `url('${backgroundUrl}')`;
-        } else {
-            recommendationModalContent.style.backgroundImage = 'none';
-        }
-
-        if (isError) {
-            recommendationModalOverlay.style.backgroundColor = "rgba(100,0,0,0.75)";
-        } else {
-            recommendationModalOverlay.style.backgroundColor = "rgba(0,0,0,0.65)";
-        }
-
-        recommendationModal.show();
+  function applyLanguageParam(params) {
+    if (currentLanguage) {
+      params.set('lang', currentLanguage);
     }
+  }
 
-    function getMealsFromMensaSection(mensaName, isXXXLutz = false) {
-        const meals = new Set();
-
-        // For Mensa Garbsen, try to get from mealData first (works even if not displayed)
-        if (mensaName === 'Mensa Garbsen' && typeof mealData !== 'undefined' && mealData && mealData['Mensa Garbsen']) {
-            mealData['Mensa Garbsen'].forEach(meal => {
-                if (meal.description) {
-                    meals.add(meal.description);
-                }
-            });
-            return Array.from(meals);
-        }
-
-        // For XXXLutz, try to get from mealData first
-        if (isXXXLutz && mensaName === 'XXXLutz Hesse Markrestaurant' && typeof mealData !== 'undefined' && mealData && mealData['XXXLutz Hesse Markrestaurant']) {
-            mealData['XXXLutz Hesse Markrestaurant'].forEach(meal => {
-                if (meal.description) {
-                    meals.add(meal.description);
-                }
-            });
-            return Array.from(meals);
-        }
-
-        // Fallback to scraping the HTML
-        const mensaSections = document.querySelectorAll('.mensa-section');
-        let mensaFound = false;
-        for (const section of mensaSections) {
-            const titleElement = section.querySelector('h2.mensa-title, h2.mensa-title-desktop, h2.mensa-title-mobile');
-            if (titleElement && titleElement.textContent && titleElement.textContent.includes(mensaName)) {
-                mensaFound = true;
-                if (isXXXLutz) {
-                    // Specifically target cards within the xxxlutz-container of the correct mensa section
-                    // Exclude voucher sections by only looking at meal sections
-                    const xxxlutzContainer = section.querySelector('.xxxlutz-container');
-                    if (xxxlutzContainer) {
-                        // Only collect meals from actual meal sections, not voucher sections
-                        xxxlutzContainer.querySelectorAll('.xxxlutz-section').forEach(xxxlutzSection => {
-                            const sectionTitle = xxxlutzSection.querySelector('.xxxlutz-section-title');
-                            // Only include sections with meal titles, exclude "Gutscheine" section
-                            if (sectionTitle && sectionTitle.textContent) {
-                                const titleText = sectionTitle.textContent.trim();
-                                if (titleText === 'Wechselnde Gerichte der Woche' || titleText === 'Ständiges Angebot') {
-                                    xxxlutzSection.querySelectorAll('.xxxlutz-card').forEach(card => {
-                                        const mealText = card.textContent.trim();
-                                        if (mealText) meals.add(mealText);
-                                    });
-                                }
-                            }
-                        });
-                    }
-                } else {
-                    section.querySelectorAll('.meal-table tbody tr').forEach(row => {
-                        const mealDescElement = row.querySelector('td:first-child strong');
-                        if (mealDescElement) meals.add(mealDescElement.textContent.trim());
-                    });
-                    section.querySelectorAll('.mobile-meal-card .mobile-meal-description').forEach(card => {
-                        const strongDesc = card.querySelector('strong');
-                        let mealText = '';
-                        if (strongDesc) {
-                            mealText = strongDesc.textContent.trim();
-                        } else {
-                            let tempText = '';
-                            for (const childNode of card.childNodes) {
-                                if (childNode.nodeType === Node.TEXT_NODE) {
-                                    tempText += childNode.textContent.trim() + ' ';
-                                } else if (childNode.nodeType === Node.ELEMENT_NODE && childNode.tagName === 'STRONG') {
-                                    tempText += childNode.textContent.trim() + ' ';
-                                } else if (childNode.nodeType === Node.ELEMENT_NODE && (childNode.classList.contains('food-markings-row') || childNode.classList.contains('action-buttons'))) {
-                                    break;
-                                }
-                            }
-                            mealText = tempText.trim();
-                        }
-                        if (mealText && mealText.length > 5) {
-                           meals.add(mealText);
-                        }
-                    });
-                }
-                break;
-            }
-        }
-        if (!mensaFound && (mensaName === 'Mensa Garbsen' || mensaName === 'XXXLutz Hesse Markrestaurant')) {
-             console.warn(`Mensa section "${mensaName}" not found for meal collection.`);
-        }
-        return Array.from(meals);
-    }
-
-    // Marvin Recommendation Trigger (only Mensa Garbsen)
-    const marvinEmojiTrigger = document.getElementById('askMarvinEmojiTrigger');
-    const marvinEmojiTriggerMobile = document.getElementById('askMarvinEmojiTrigger-mobile');
-    
-    const marvinClickHandler = function () {
-        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...';
-        showRecommendationPopup("Marvin\'s Deprimierende Einsicht", loadingMessage, '/static/img/marvin.jpg');
-
-        const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
-
-        if (garbsenMeals.length === 0) {
-            showRecommendationPopup("Marvin\'s Antwort", "Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.", '/static/img/marvin.jpg', true);
-            return;
-        }
-
-        fetch('/api/get_marvin_recommendation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: garbsenMeals })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.recommendation) {
-                showRecommendationPopup("Marvin\'s Deprimierende Einsicht", data.recommendation, '/static/img/marvin.jpg');
-            } else {
-                throw new Error(data.error || "Unbekannter Fehler von Marvin.");
-            }
-        })
-        .catch(error => {
-            console.error('Error asking Marvin:', error);
-            showRecommendationPopup("Marvin Fehler", `Selbst die Technik ist deprimierend: ${error.message}`, '/static/img/marvin.jpg', true);
-        });
-    };
-    
-    if (marvinEmojiTrigger && recommendationModal) {
-        marvinEmojiTrigger.addEventListener('click', marvinClickHandler);
-    }
-    if (marvinEmojiTriggerMobile && recommendationModal) {
-        marvinEmojiTriggerMobile.addEventListener('click', marvinClickHandler);
-    }
-
-
-    // Dark Caner Recommendation Trigger
-    const darkCanerEmojiTrigger = document.getElementById('askDarkCanerEmojiTrigger');
-    const darkCanerEmojiTriggerMobile = document.getElementById('askDarkCanerEmojiTrigger-mobile');
-    
-    const darkCanerClickHandler = function () {
-        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Yo, Dark Caner checkt die Gerichte ab, bruder...';
-        showRecommendationPopup("Dark Caner\'s Gangsta Tipp", loadingMessage, '/static/img/darkcaner.png');
-
-        const xxxLutzMealsForDarkCaner = getMealsFromMensaSection('XXXLutz Hesse Markrestaurant', true);
-
-        if (xxxLutzMealsForDarkCaner.length === 0) {
-            showRecommendationPopup("Dark Caner\'s Antwort", "Vallah bruder, hier gibt\'s nix zu checken... Keine Gerichte für meine krassen Berechnungen gefunden!", '/static/img/darkcaner.png', true);
-            return;
-        }
-
-        fetch('/api/get_dark_caner_recommendation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: xxxLutzMealsForDarkCaner })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.recommendation) {
-                showRecommendationPopup("Dark Caner\'s Gangsta Tipp", data.recommendation, '/static/img/darkcaner.png');
-            } else {
-                throw new Error(data.error || "Unbekannter Fehler von Dark Caner.");
-            }
-        })
-        .catch(error => {
-            console.error('Error asking Dark Caner:', error);
-            showRecommendationPopup("Dark Caner Fehler", `Yo bruder, da ist was schiefgelaufen: ${error.message}`, '/static/img/darkcaner.png', true);
-        });
-    };
-    
-    if (darkCanerEmojiTrigger && recommendationModal) {
-        darkCanerEmojiTrigger.addEventListener('click', darkCanerClickHandler);
-    }
-    if (darkCanerEmojiTriggerMobile && recommendationModal) {
-        darkCanerEmojiTriggerMobile.addEventListener('click', darkCanerClickHandler);
-    }
-    // Trump Recommendation Trigger
-    const trumpEmojiTrigger = document.getElementById('askTrumpEmojiTrigger');
-    const trumpEmojiTriggerMobile = document.getElementById('askTrumpEmojiTrigger-mobile');
-    
-    const trumpClickHandler = function () {
-        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Donald Trump analyzing Contine menu...';
-        showRecommendationPopup("Trump\'s Recommendation", loadingMessage, '/static/img/trump.jpg');
-
-        const contineMeals = getMealsFromMensaSection('Contine');
-        if (contineMeals.length === 0) {
-            showRecommendationPopup("Trump Error", "No Contine meals found to recommend.", '/static/img/trump.jpg', true);
-            return;
-        }
-
-        fetch('/api/get_trump_recommendation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: contineMeals })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.recommendation) {
-                showRecommendationPopup("Donald Trump\'s Recommendation", data.recommendation, '/static/img/trump.jpg');
-            } else {
-                throw new Error(data.error || "Unknown error from Trump API.");
-            }
-        })
-        .catch(error => {
-            console.error('Error asking Trump:', error);
-            showRecommendationPopup("Trump Error", `Everything is just terrible: ${error.message}`, '/static/img/trump.jpg', true);
-        });
-    };
-    
-    if (trumpEmojiTrigger && recommendationModal) {
-        trumpEmojiTrigger.addEventListener('click', trumpClickHandler);
-    }
-    if (trumpEmojiTriggerMobile && recommendationModal) {
-        trumpEmojiTriggerMobile.addEventListener('click', trumpClickHandler);
-    }
-
-    // Bob Recommendation Trigger
-    const bobEmojiTrigger = document.getElementById('askBobEmojiTrigger');
-    const bobEmojiTriggerMobile = document.getElementById('askBobEmojiTrigger-mobile');
-    
-    const bobClickHandler = function () {
-        const loadingMessage = '<i class="fas fa-spinner fa-spin"></i> Bob der Baumeister is building your recommendation...';
-        showRecommendationPopup("Bob\'s Empfehlung", loadingMessage, '/static/img/bob.png');
-
-        const hauptMeals = getMealsFromMensaSection('Hauptmensa');
-        if (hauptMeals.length === 0) {
-            showRecommendationPopup("Bob Fehler", "Keine Hauptmensa Gerichte gefunden.", '/static/img/bob.png', true);
-            return;
-        }
-
-        fetch('/api/get_bob_recommendation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: hauptMeals })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.recommendation) {
-                showRecommendationPopup("Bob\'s Empfehlung", data.recommendation, '/static/img/bob.png');
-            } else {
-                throw new Error(data.error || "Unbekannter Fehler von Bob.");
-            }
-        })
-        .catch(error => {
-            console.error('Error asking Bob:', error);
-            showRecommendationPopup("Bob Fehler", `Vergiss nicht deinen Helm! ${error.message}`, '/static/img/bob.png', true);
-        });
-    };
-    
-    if (bobEmojiTrigger && recommendationModal) {
-        bobEmojiTrigger.addEventListener('click', bobClickHandler);
-    }
-    if (bobEmojiTriggerMobile && recommendationModal) {
-        bobEmojiTriggerMobile.addEventListener('click', bobClickHandler);
-    }
-
-    // Dashboard Marvin Recommendation Trigger
-    const marvinContent = document.getElementById('marvin-recommendation-content');
-    if (marvinContent) {
-        // Automatically load Marvin's recommendation
-        const contentDiv = marvinContent;
-
-        // Show loading state
-        contentDiv.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Marvin verarbeitet die Sinnlosigkeit deiner Anfrage...</p>';
-
-        const garbsenMeals = getMealsFromMensaSection('Mensa Garbsen');
-
-        if (garbsenMeals.length === 0) {
-            contentDiv.innerHTML = '<p class="text-danger">Es gibt nichts zu bewerten. Ein seltener Moment der Bedeutungslosigkeit, selbst für Marvin.</p>';
-            return;
-        }
-
-        fetch('/api/get_marvin_recommendation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ meals: garbsenMeals })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.recommendation) {
-                contentDiv.innerHTML = `<strong class="text-dark">${data.recommendation}</strong>`;
-            } else {
-                throw new Error(data.error || "Unbekannter Fehler von Marvin.");
-            }
-        })
-        .catch(error => {
-            console.error('Error asking Marvin:', error);
-            contentDiv.innerHTML = `<div class="alert alert-danger">Selbst die Technik ist deprimierend: ${error.message}</div>`;
-        });
-    }
-    
-    // Placeholder for existing vote script logic
-    /*
-    const voteControls = document.querySelectorAll('.vote-controls');
-    voteControls.forEach(function(control) {
-        // Ensure this part is correctly integrated with your actual voting script if it was previously in this block
+  document.querySelectorAll('.mensa-dropdown-item').forEach(item => {
+    item.addEventListener('click', function () {
+      const targetInput = document.getElementById(item.dataset.targetInput);
+      const dateInput = document.getElementById(item.dataset.dateInput);
+      if (!targetInput || !dateInput) {
+        return;
+      }
+      targetInput.value = item.dataset.value || '';
+      const params = new URLSearchParams(window.location.search);
+      params.set('mensa', targetInput.value);
+      params.set('date', dateInput.value);
+      applyLanguageParam(params);
+      window.location.href = `/?${params.toString()}`;
     });
-    */
-    
-    // Initialize Bootstrap Popovers for nutrient info triggers
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"].nutrient-info-trigger');
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
-        container: 'body' // Attach popover to body to avoid table/card clipping issues
-    }));
+  });
 
-    // Initialize Bootstrap Tooltips for abbreviation definitions
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
-        container: 'body' // Attach tooltip to body to avoid clipping issues
-    }));
+  function setRecommendationRecommender(value) {
+    if (!recommendationSelect) {
+      return;
+    }
+    recommendationSelect.value = value;
+    document.querySelectorAll('.recommendation-recommender-item').forEach(item => {
+      const isActive = item.dataset.value === value;
+      item.classList.toggle('active', isActive);
+      if (isActive) {
+        item.setAttribute('aria-current', 'true');
+      } else {
+        item.removeAttribute('aria-current');
+      }
+    });
+    const activeItem = [...document.querySelectorAll('.recommendation-recommender-item')].find(item => item.dataset.value === value);
+    if (recommendationDropdownLabel && activeItem) {
+      recommendationDropdownLabel.textContent = activeItem.textContent.trim();
+    }
+    const isCustom = value === '__custom__';
+    if (recommendationCustomInput) {
+      recommendationCustomInput.classList.toggle('d-none', !isCustom);
+      if (isCustom) {
+        recommendationCustomInput.focus();
+      }
+    }
+    const profile = recommenderProfiles[value];
+    setRecommendationBackground(profile ? profile.backgroundUrl : '');
+  }
 
+  function setRecommendationBackground(backgroundUrl, isError = false) {
+    if (!recommendationModalContent || !recommendationModalOverlay) {
+      return;
+    }
+    recommendationModalContent.style.backgroundImage = backgroundUrl ? `url('${backgroundUrl}')` : 'none';
+    recommendationModalOverlay.classList.toggle('is-error', isError);
+  }
 
-    // New code for date navigation arrows
-    const mensaSelectForArrows = document.getElementById('mensa'); // Keep this for Mensa value
-    const datePickerInputForArrows = document.getElementById('date'); // This is now the input for the datepicker
+  function setRecommendationResult(message, isError = false) {
+    if (!recommendationModalBody) {
+      return;
+    }
+    recommendationModalBody.classList.toggle('is-error', isError);
+    recommendationModalBody.innerHTML = message;
+  }
 
-    // availableDatesStrings is defined below for the datepicker, ensure it's accessible here or redefined.
-    // For safety, let's ensure availableDatesStrings is defined before it's used by arrow functions.
-    const allAvailableDatesForArrows = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+  function openRecommendationPopup(mensaName) {
+    if (!recommendationModal || !recommendationModalTitle || !recommendationModalBody || !recommendationModalContent || !recommendationModalOverlay) {
+      console.error("Popup modal elements not found");
+      return;
+    }
+    currentRecommendationMensa = mensaName;
+    recommendationModalTitle.textContent = (uiText.recommendation_for || 'Empfehlung für {mensa}').replace('{mensa}', mensaName);
+    setRecommendationRecommender('Marvin');
+    if (recommendationCustomInput) {
+      recommendationCustomInput.value = '';
+    }
+    setRecommendationResult(`<p class="text-muted mb-0">${uiText.recommendation_intro}</p>`);
+    if (requestRecommendationButton) {
+      requestRecommendationButton.disabled = getMealsFromMensaSection(mensaName).length === 0;
+    }
+    if (requestRecommendationButton && requestRecommendationButton.disabled) {
+      setRecommendationResult(`<p class="text-danger mb-0">${uiText.recommendation_no_meals}</p>`, true);
+    }
+    recommendationModal.show();
+  }
 
-    document.querySelectorAll('.date-nav-arrow').forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
-            if (this.classList.contains('disabled')) {
-                return;
-            }
+  function getMealsFromMensaSection(mensaName) {
+    const meals = new Set();
+    if (typeof mealData !== 'undefined' && mealData && mealData[mensaName]) {
+      mealData[mensaName].forEach(meal => {
+        if (meal.display_description) {
+          meals.add(meal.display_description);
+        } else if (meal.description) {
+          meals.add(meal.description);
+        }
+      });
+      return Array.from(meals);
+    }
 
-            const direction = this.dataset.direction === 'prev' ? -1 : 1;
-            
-            if (!datePickerInputForArrows || !mensaSelectForArrows) {
-                console.error("Date input or Mensa select not found for arrow navigation.");
-                return;
-            }
-
-            const currentSelectedMensa = mensaSelectForArrows.value;
-            const currentSelectedDate = datePickerInputForArrows.value; // Value from the datepicker input
-            
-            const currentIndex = allAvailableDatesForArrows.indexOf(currentSelectedDate);
-
-            if (currentIndex === -1) {
-                console.error('Current selected date not found in available dates for arrow navigation:', currentSelectedDate, allAvailableDatesForArrows);
-                return;
-            }
-
-            let newIndex = currentIndex + direction;
-
-            // Ensure newIndex is within bounds
-            if (newIndex < 0) {
-                newIndex = 0;
-            } else if (newIndex >= allAvailableDatesForArrows.length) {
-                newIndex = allAvailableDatesForArrows.length - 1;
-            }
-            
-            const newDate = allAvailableDatesForArrows[newIndex];
-
-            if (newDate && newDate !== currentSelectedDate) { // Only navigate if date actually changes
-                const baseUrl = window.location.pathname; 
-                const params = new URLSearchParams(window.location.search); 
-                params.set('date', newDate);
-                params.set('mensa', currentSelectedMensa); 
-                
-                window.location.href = `${baseUrl}?${params.toString()}`;
-            }
+    document.querySelectorAll('.mensa-section').forEach(section => {
+      if (section.dataset.mensa === mensaName) {
+        section.querySelectorAll('.meal-table tbody tr').forEach(row => {
+          const mealDescElement = row.querySelector('td:first-child strong');
+          if (mealDescElement) meals.add(mealDescElement.textContent.trim());
         });
+        section.querySelectorAll('.mobile-meal-card .mobile-meal-description').forEach(card => {
+          const strongDesc = card.querySelector('strong');
+          if (strongDesc) meals.add(strongDesc.textContent.trim());
+        });
+      }
+    });
+    return Array.from(meals);
+  }
+
+  function getSelectedRecommender() {
+    if (!recommendationSelect) {
+      return '';
+    }
+    if (recommendationSelect.value === '__custom__') {
+      return recommendationCustomInput ? recommendationCustomInput.value.trim() : '';
+    }
+    return recommendationSelect.value;
+  }
+
+  document.querySelectorAll('.recommendation-recommender-item').forEach(item => {
+    item.addEventListener('click', function () {
+      setRecommendationRecommender(item.dataset.value || '');
+    });
+  });
+
+  document.querySelectorAll('.recommendation-trigger').forEach(trigger => {
+    trigger.addEventListener('click', function () {
+      openRecommendationPopup(trigger.dataset.mensa || '');
+    });
+  });
+
+  if (requestRecommendationButton) {
+    requestRecommendationButton.addEventListener('click', function () {
+      const recommender = getSelectedRecommender();
+      const meals = getMealsFromMensaSection(currentRecommendationMensa);
+      const profile = recommenderProfiles[recommender];
+
+      if (!recommender) {
+        setRecommendationResult(`<p class="text-danger mb-0">${uiText.recommendation_missing_person}</p>`, true);
+        return;
+      }
+      if (meals.length === 0) {
+        setRecommendationResult(`<p class="text-danger mb-0">${uiText.recommendation_no_meals}</p>`, true);
+        return;
+      }
+
+      setRecommendationBackground(profile ? profile.backgroundUrl : '');
+      setRecommendationResult(`<p class="mb-0"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> ${uiText.recommendation_loading}</p>`);
+      requestRecommendationButton.disabled = true;
+
+      fetch('/api/get_recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meals: meals,
+          mensa: currentRecommendationMensa,
+          recommender: recommender,
+          lang: currentLanguage
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw new Error(err.error || `HTTP error ${response.status}`); });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.recommendation) {
+          setRecommendationResult(`<div class="recommendation-text">${data.recommendation}</div>`);
+        } else {
+          throw new Error(data.error || uiText.recommendation_unknown_error);
+        }
+      })
+      .catch(error => {
+        console.error('Error asking for recommendation:', error);
+        const errorTemplate = uiText.recommendation_failed || 'Die Empfehlung konnte nicht erstellt werden: {error}';
+        setRecommendationResult(`<p class="text-danger mb-0">${errorTemplate.replace('{error}', error.message)}</p>`, true);
+      })
+      .finally(() => {
+        requestRecommendationButton.disabled = false;
+      });
+    });
+  }
+
+  const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"].nutrient-info-trigger');
+  [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+    container: 'body'
+  }));
+
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
+    container: 'body'
+  }));
+
+  const mensaSelectForArrows = document.getElementById('mensa');
+  const datePickerInputForArrows = document.getElementById('date');
+  const allAvailableDatesForArrows = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+
+  document.querySelectorAll('.date-nav-arrow').forEach(button => {
+    button.addEventListener('click', function(event) {
+      event.preventDefault();
+      if (this.classList.contains('disabled')) {
+        return;
+      }
+      if (!datePickerInputForArrows || !mensaSelectForArrows) {
+        console.error("Date input or Mensa select not found for arrow navigation.");
+        return;
+      }
+      const direction = this.dataset.direction === 'prev' ? -1 : 1;
+      const currentSelectedMensa = mensaSelectForArrows.value;
+      const currentSelectedDate = datePickerInputForArrows.value;
+      const currentIndex = allAvailableDatesForArrows.indexOf(currentSelectedDate);
+      if (currentIndex === -1) {
+        console.error('Current selected date not found in available dates for arrow navigation:', currentSelectedDate, allAvailableDatesForArrows);
+        return;
+      }
+      let newIndex = currentIndex + direction;
+      if (newIndex < 0) {
+        newIndex = 0;
+      } else if (newIndex >= allAvailableDatesForArrows.length) {
+        newIndex = allAvailableDatesForArrows.length - 1;
+      }
+      const newDate = allAvailableDatesForArrows[newIndex];
+      if (newDate && newDate !== currentSelectedDate) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('date', newDate);
+        params.set('mensa', currentSelectedMensa);
+        applyLanguageParam(params);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+      }
+    });
+  });
+
+  function updateMensaTitleArrowStates() {
+    if (!datePickerInputForArrows || allAvailableDatesForArrows.length === 0) return;
+    const currentIndex = allAvailableDatesForArrows.indexOf(datePickerInputForArrows.value);
+    const onFirst = currentIndex <= 0;
+    const onLast = currentIndex === -1 || currentIndex >= allAvailableDatesForArrows.length - 1;
+
+    document.querySelectorAll('.date-nav-arrow[data-direction="prev"]').forEach(btn => {
+      btn.classList.toggle('disabled', onFirst);
+      btn.setAttribute('aria-disabled', onFirst ? 'true' : 'false');
+    });
+    document.querySelectorAll('.date-nav-arrow[data-direction="next"]').forEach(btn => {
+      btn.classList.toggle('disabled', onLast);
+      btn.setAttribute('aria-disabled', onLast ? 'true' : 'false');
+    });
+  }
+
+  updateMensaTitleArrowStates();
+
+  const datepickerEl = document.getElementById('date');
+  if (datepickerEl) {
+    const availableDatesStrings = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+    const availableUtcTimestamps = new Set();
+    availableDatesStrings.forEach(dateStr => {
+      const parts = dateStr.split('.');
+      if (parts.length === 3) {
+        const utcDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
+        availableUtcTimestamps.add(utcDate.getTime());
+      }
     });
 
-    function updateMensaTitleArrowStates() {
-        if (!datePickerInputForArrows || allAvailableDatesForArrows.length === 0) return;
+    new Datepicker(datepickerEl, {
+      format: 'dd.mm.yyyy',
+      language: currentLanguage === 'en' ? 'en' : 'de',
+      autohide: true,
+      todayHighlight: false,
+      buttonClass: 'btn',
+      filter: (dateToFilter) => availableUtcTimestamps.has(dateToFilter.getTime())
+    });
 
-        const currentSelectedDate = datePickerInputForArrows.value;
-        const currentIndex = allAvailableDatesForArrows.indexOf(currentSelectedDate);
+    datepickerEl.addEventListener('changeDate', function() {
+      const params = new URLSearchParams(window.location.search);
+      params.set('date', datepickerEl.value);
+      params.set('mensa', document.getElementById('mensa').value);
+      applyLanguageParam(params);
+      window.location.href = `/?${params.toString()}`;
+    });
 
-        let onFirst = false;
-        let onLast = false;
-        
-        if (currentIndex === -1) { // Should not happen if datepicker enforces selection from available dates
-            onFirst = true; // Disable both if current date is somehow not in the list
-            onLast = true;
-        } else if (allAvailableDatesForArrows.length <= 1) { // Only one or no dates
-            onFirst = true;
-            onLast = true;
-        } else {
-            onFirst = (currentIndex === 0);
-            onLast = (currentIndex === allAvailableDatesForArrows.length - 1);
-        }
-
-        document.querySelectorAll('.date-nav-arrow[data-direction="prev"]').forEach(btn => {
-            btn.classList.toggle('disabled', onFirst);
-            btn.setAttribute('aria-disabled', onFirst ? 'true' : 'false');
-        });
-        document.querySelectorAll('.date-nav-arrow[data-direction="next"]').forEach(btn => {
-            btn.classList.toggle('disabled', onLast);
-            btn.setAttribute('aria-disabled', onLast ? 'true' : 'false');
-        });
-    }
-
-    // Call initially and potentially after date changes (though page reloads anyway for arrows)
     updateMensaTitleArrowStates();
-
-    // Initialize Vanilla JS Datepicker
-    const datepickerEl = document.getElementById('date'); // This is the same as datePickerInputForArrows
-    if (datepickerEl) {
-        const availableDatesStrings = [{% for date_str in available_dates %}"{{ date_str }}"{% if not loop.last %}, {% endif %}{% endfor %}];
-        
-        // Convert available date strings to a Set of UTC timestamps for efficient lookup
-        const availableUtcTimestamps = new Set();
-        availableDatesStrings.forEach(dateStr => {
-            const parts = dateStr.split('.'); // dd.mm.yyyy
-            if (parts.length === 3) {
-                // Create a UTC date to match how the datepicker\'s filter function receives dates
-                const utcDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
-                availableUtcTimestamps.add(utcDate.getTime());
-            }
-        });
-
-        const datepicker = new Datepicker(datepickerEl, {
-            format: 'dd.mm.yyyy',
-            language: 'de',
-            autohide: true,
-            todayHighlight: false, // Disabled to prevent incorrect highlighting of multiple days
-            buttonClass: 'btn', // Ensures Bootstrap buttons for prev/next in calendar
-            // pickLevel: 0, // Can be 0 (days), 1 (months), 2 (years)
-            filter: (dateToFilter) => {
-                // dateToFilter is a Date object, typically midnight UTC for the given day.
-                // We need to check if its timestamp exists in our set of available UTC timestamps.
-                return availableUtcTimestamps.has(dateToFilter.getTime());
-            }
-        });
-
-        datepickerEl.addEventListener('changeDate', function(event) {
-            const dateValue = datepickerEl.value;
-            const mensaValue = document.getElementById('mensa').value;
-            const params = new URLSearchParams(window.location.search);
-            params.set('date', dateValue);
-            params.set('mensa', mensaValue);
-            window.location.href = `/?${params.toString()}`;
-        });
-
-        // To ensure the arrows update if the initial date is edge case/not in list
-        // which shouldn't happen if server correctly sets selected_date from available_dates
-        updateMensaTitleArrowStates();
-
-    } else {
-        console.error("Datepicker input element not found.")
-    }
-
+  }
 });
 </script>
 {% endblock content %}

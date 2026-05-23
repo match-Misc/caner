@@ -1,52 +1,70 @@
-# 🤖 AGENTS.md - Das Caner Development Guide
+# Caner Development Guide
 
 > Quick reference for AI agents and developers.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 git clone https://github.com/match-Misc/caner.git
 cd caner
-uv sync
+cp .env.docker.example .env
+docker compose up --build
 ```
 
-Create `.env` file with required environment variables (see `.env.example` or ask for template).
+Use `.env.docker.example` as the Docker environment template. Do not commit
+`.env` or other files containing secrets. Database tables are created
+automatically on application startup.
 
-Initialize database and run:
+## Development
+
+Use Docker for application runs, checks, tests, and deployment verification.
+Build the app image through the Dockerfile before running checks:
+
 ```bash
-uv run python main.py
+docker compose build caner
+docker compose run --rm --no-deps caner uvx ruff check .
+docker compose run --rm --no-deps caner uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031
 ```
 
-## 🔧 Development
+Before finishing a task, run both Docker-based linters.
+Iterate until all required checks pass. Use local `uv` only for dependency
+lockfile maintenance when a task explicitly requires dependency changes.
 
-**Always use `uv`**:
-- `uv add package-name` - install dependencies
-- `uv run python script.py` - run scripts
-- Database tables are created automatically on app startup
+## Deployment
 
-**Run linting**:
+Local deployments build from the Dockerfile:
+
 ```bash
-uvx ruff check .    # Lint Python code
-uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031   # Lint Jinja templates
+docker compose up --build -d
 ```
 
-> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and `uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031` and fix all issues. Iterate until no errors remain.
+Remote machines should pull a prebuilt image instead of building on the server:
 
-## 🧪 Debugging
+```bash
+CANER_IMAGE=ghcr.io/match-misc/caner:latest docker compose -f docker-compose.remote.yml pull
+CANER_IMAGE=ghcr.io/match-misc/caner:latest docker compose -f docker-compose.remote.yml up -d
+```
 
-Application runs in debug mode with auto-reload. Check console output for errors.
+## Configuration
 
-## 🔑 Configuration
-
-Required in `.env`:
+Required environment variables:
 - `SESSION_SECRET`
-- `MISTRAL_API_KEY`
-- `DATABASE_URL`
+- `OPENROUTER_API_KEY`
+- `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` for Docker Compose
 
-## 🚨 Troubleshooting
+## Debugging
 
-**Port in use**: `uv run python main.py --port 5001`
+Check container logs first when investigating errors:
 
-**Database issues**: Ensure PostgreSQL is running and credentials are correct.
+```bash
+docker compose logs -f caner
+docker compose logs -f postgres
+```
 
-**Missing dependencies**: `uv sync`
+## Troubleshooting
+
+- Port in use: change the host port mapping in `docker-compose.yml`.
+- Database issues: ensure the `postgres` service is healthy with `docker compose ps`.
+- Clean database: run `docker compose down`, remove `./data/postgres`, then run
+  `docker compose up --build`.
+- Missing dependencies: rebuild the image with `docker compose build caner`.

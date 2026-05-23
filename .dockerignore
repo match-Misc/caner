@@ -51,6 +51,7 @@ build/
 *.sqlite
 *.sqlite3
 migrations/
+data/postgres/
 
 # Node (if any)
 node_modules/
@@ -60,6 +61,8 @@ npm-debug.log
 test_*
 tests/
 *_test.py
+!tests/
+!tests/**
 
 # Documentation
 *.md
