@@ -1,9 +1,12 @@
+import os
 import unittest
+from unittest.mock import patch
 
 from i18n import (
     DEFAULT_LANGUAGE,
     format_date_for_language,
     get_meal_display_name,
+    get_recommendation_prompt,
     resolve_language,
     translate_nutrient_label,
     translate_nutrient_value,
@@ -59,6 +62,49 @@ class I18nTest(unittest.TestCase):
             translate_nutrient_value("10g, davon Zucker 2g", "en"),
             "10g, of which sugars 2g",
         )
+
+    def test_persona_recommendation_prompt_language_selection(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertIn(
+                "in English", get_recommendation_prompt("en", "Marvin")
+            )
+            self.assertIn(
+                "auf Deutsch", get_recommendation_prompt("de", "Marvin")
+            )
+            self.assertIn(
+                "in English",
+                get_recommendation_prompt("en", "Bob der Baumeister"),
+            )
+
+    def test_trump_recommendation_prompt_is_always_english(self):
+        with patch.dict(os.environ, {}, clear=True):
+            german_page_prompt = get_recommendation_prompt("de", "Donald Trump")
+            english_page_prompt = get_recommendation_prompt("en", "Donald Trump")
+
+        self.assertIn("in English", german_page_prompt)
+        self.assertEqual(german_page_prompt, english_page_prompt)
+
+    def test_persona_recommendation_prompt_env_override_wins(self):
+        with patch.dict(
+            os.environ,
+            {"PROMPT_MARVIN_EN": "Override line one\\n{meal_list}"},
+            clear=True,
+        ):
+            self.assertEqual(
+                get_recommendation_prompt("en", "Marvin"),
+                "Override line one\n{meal_list}",
+            )
+
+    def test_custom_recommender_uses_generic_prompt_override(self):
+        with patch.dict(
+            os.environ,
+            {"PROMPT_RECOMMENDATION_EN": "Generic English {recommender}"},
+            clear=True,
+        ):
+            self.assertEqual(
+                get_recommendation_prompt("en", "Ada Lovelace"),
+                "Generic English {recommender}",
+            )
 
 
 if __name__ == "__main__":

@@ -42,8 +42,12 @@ Useful optional values:
 - `MEAL_TRANSLATION_ENABLED`, `STARTUP_TRANSLATIONS_ENABLED`, `STARTUP_TRANSLATIONS_BACKGROUND`: fetch missing English meal names.
 - `MEAL_TRANSLATION_BATCH_SIZE`, `MEAL_TRANSLATION_WORKERS`: translation throughput.
 - `MPS_REQUEST_DELAY_SECONDS`, `MEAL_TRANSLATION_REQUEST_DELAY_SECONDS`: OpenRouter pacing.
-- `PROMPT_MPS`, `PROMPT_RECOMMENDATION`, `PROMPT_RECOMMENDATION_EN`, `PROMPT_MEAL_TRANSLATION`: prompt overrides.
+- `PROMPT_MPS`, `PROMPT_MEAL_TRANSLATION`: prompt overrides.
+- `PROMPT_MARVIN`, `PROMPT_MARVIN_EN`, `PROMPT_BOB`, `PROMPT_BOB_EN`, `PROMPT_TRUMP`: persona recommendation prompt overrides. Trump recommendations always use English.
+- `PROMPT_RECOMMENDATION`, `PROMPT_RECOMMENDATION_EN`: fallback recommendation prompt overrides for custom recommenders.
 - `LOG_DIR`: log directory, defaulting to `./logs` in local runs and `/app/logs` in the container.
+
+Prompt override values must be single-line in `.env`; use `\n` for line breaks.
 
 ## Operations
 

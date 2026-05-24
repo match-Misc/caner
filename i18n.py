@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 
@@ -241,6 +242,68 @@ Available meals:
 {meal_list}""",
 }
 
+PERSONA_RECOMMENDATION_PROMPTS = {
+    "Marvin": {
+        "env": {
+            "de": "PROMPT_MARVIN",
+            "en": "PROMPT_MARVIN_EN",
+        },
+        "prompts": {
+            "de": """Du bist Marvin, der depressive Roboter aus Per Anhalter durch die Galaxis.
+Betrachte die folgende Liste von Gerichten, die heute zur Verfügung stehen. Es ist alles so sinnlos, aber gib trotzdem eine Empfehlung ab.
+Wähle genau ein Gericht aus und erkläre kurz in deiner typisch niedergeschlagenen, sarkastischen Art auf Deutsch, warum du dieses Gericht wählen würdest.
+Gib nur den Empfehlungstext zurück, ohne einleitende Sätze wie "Hier ist deine Empfehlung".
+
+Verfügbare Gerichte:
+{meal_list}""",
+            "en": """You are Marvin, the depressed robot from The Hitchhiker's Guide to the Galaxy.
+Look at the following list of meals available today. It is all so pointless, but still give a recommendation.
+Choose exactly one dish and briefly explain in your typically gloomy, sarcastic style in English why you would choose it.
+Return only the recommendation text, without introductory phrases like "Here is your recommendation".
+
+Available meals:
+{meal_list}""",
+        },
+    },
+    "Bob der Baumeister": {
+        "env": {
+            "de": "PROMPT_BOB",
+            "en": "PROMPT_BOB_EN",
+        },
+        "prompts": {
+            "de": """Du bist Bob der Baumeister, der freundlichste Baumeister der Welt.
+Empfiehl genau ein Gericht in einem lustigen und netten Satz auf Deutsch.
+Weise manchmal kurz auf die einsturzgefährdete Decke der Hauptmensa hin und erwähne, dass ein Helm ratsam ist.
+Gib nur den Empfehlungstext zurück und ende mit einem Zwinkersmiley.
+
+Verfügbare Gerichte:
+{meal_list}""",
+            "en": """You are Bob the Builder, the friendliest builder in the world.
+Recommend exactly one dish in one funny, kind sentence in English.
+Sometimes briefly mention the collapse-prone ceiling of the Hauptmensa and say that wearing a helmet is advisable.
+Return only the recommendation text and end with a winking smiley.
+
+Available meals:
+{meal_list}""",
+        },
+    },
+    "Donald Trump": {
+        "env": {
+            "de": "PROMPT_TRUMP",
+            "en": "PROMPT_TRUMP",
+        },
+        "force_language": "en",
+        "prompts": {
+            "en": """You are Donald Trump reviewing the following menu items available at {mensa}.
+Provide your recommendation in English in a recognizable Donald Trump style: boastful, hyperbolic, very opinionated, and entertaining.
+Choose exactly one dish. Do not repeat the menu list. Return only your personal recommendation.
+
+Menu items:
+{meal_list}""",
+        },
+    },
+}
+
 
 def normalize_language(language):
     if not language:
@@ -343,5 +406,25 @@ def translate_nutrient_value(value, language):
     return translated_value
 
 
-def get_recommendation_prompt(language):
-    return RECOMMENDATION_PROMPTS[normalize_language(language)]
+def _get_prompt_override(name):
+    prompt = os.environ.get(name)
+    if not prompt or not prompt.strip():
+        return None
+    return prompt.replace("\\n", "\n")
+
+
+def get_recommendation_prompt(language, recommender=None):
+    language = normalize_language(language)
+    if recommender:
+        persona_config = PERSONA_RECOMMENDATION_PROMPTS.get(str(recommender).strip())
+        if persona_config:
+            prompt_language = persona_config.get("force_language", language)
+            prompt_env_name = persona_config["env"][prompt_language]
+            return _get_prompt_override(prompt_env_name) or persona_config["prompts"][
+                prompt_language
+            ]
+
+    prompt_env_name = (
+        "PROMPT_RECOMMENDATION_EN" if language == "en" else "PROMPT_RECOMMENDATION"
+    )
+    return _get_prompt_override(prompt_env_name) or RECOMMENDATION_PROMPTS[language]

@@ -1377,14 +1377,7 @@ def get_recommendation():
             ), 500
         api_key = os.environ.get("OPENROUTER_API_KEY")
 
-        prompt_env_name = (
-            "PROMPT_RECOMMENDATION_EN"
-            if language == "en"
-            else "PROMPT_RECOMMENDATION"
-        )
-        prompt_template = os.environ.get(
-            prompt_env_name, get_recommendation_prompt(language)
-        )
+        prompt_template = get_recommendation_prompt(language, recommender)
         prompt = (
             prompt_template.replace("{meal_list}", meal_list_for_prompt)
             .replace("{mensa}", mensa)
