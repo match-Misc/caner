@@ -1,105 +1,85 @@
-# 🍽️ Das Caner - Intelligente Essensauswahl für Studierende an der LUH
+# Das Caner
 
-Eine Anwendung zur Analyse von Speiseplänen an der Leibniz Universität Hannover.
-
-## Features
-
-- 📊 Echtzeit-Analyse der Speisepläne aller Campus-Optionen
-- 💰 Caner Score (Kalorien/€) für beste Werte
-- 🤖 KI-gestützte Empfehlungen von Persönlichkeiten
-- 📱 Mobilfreundlich und mit Dunklem Modus
+Compact Flask app for LUH mensa menus. It imports the Studentenwerk Hannover XML feed, stores meals in PostgreSQL, ranks meals by calories per euro (`Cnr`), tracks votes, supports German/English UI text, and can use an OpenRouter-compatible chat model for MPS scores, meal-name translation, and recommendations.
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/match-Misc/caner.git
 cd caner
-uv sync
+cp .env.docker.example .env
+docker compose up --build
 ```
 
-Copy the example environment file and fill in your values:
-
-```bash
-cp .env.example .env
-```
-
-Run the application:
-
-```bash
-uv run python main.py
-```
-
-Visit `http://localhost:5000`
+Open `http://localhost:30823`.
 
 ## Development
 
-**Always use `uv`**:
-
-- `uv add package-name` - install dependencies
-- `uv run python script.py` - run scripts
-
-**Run tests and linting**:
+Use Docker for app runs, checks, tests, and deployment verification.
 
 ```bash
-uvx ruff check .                    # Lint code
-uv run python -m pytest test_downloads.py  # Run tests
+docker compose build caner
+docker compose run --rm --no-deps caner uvx ruff check .
+docker compose run --rm --no-deps caner uvx djlint templates --profile=jinja --ignore=H021,H006,H030,H031
+docker compose run --rm --no-deps caner uv run --with pytest python -m pytest
 ```
 
-> ⚠️ **Before finishing a task**: Run `uvx ruff check .` and fix all issues. Iterate until no errors remain.
-
-## Docker Deployment
-
-Alternatively, you can run the application using Docker:
-
-```bash
-# 1. Copy the example secrets file and fill in your values
-cp .env.docker.example .env
-
-# 2. Build the Docker image
-docker build -t caner .
-
-# 3. Run the container
-docker run -p 30823:30823 --env-file .env caner
-```
-
-Or use Docker Compose:
-
-```bash
-# Build and run
-docker compose up --build
-
-# Run in background
-docker compose up -d
-
-# View logs
-docker compose logs -f
-```
-
-The web app will be available at `http://localhost:30823`
-
-## Tech Stack
-
-- **Backend**: Python 3.13 + Flask
-- **Database**: PostgreSQL + SQLAlchemy
-- **Frontend**: Bootstrap 5 + Vanilla JS
-- **AI**: Mistral API
+Run the app with `docker compose up`. The app creates required database tables on startup and refreshes menu data from the XML feed.
 
 ## Configuration
 
-Required in `.env`:
+Copy `.env.docker.example` to `.env`. Required values:
 
 - `SESSION_SECRET`
-- `MISTRAL_API_KEY`
-- `DATABASE_URL`
+- `OPENROUTER_API_KEY`
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 
-## Troubleshooting
+Useful optional values:
 
-**Port in use**: `uv run python main.py --port 5001`
+- `AI_MODEL`, `AI_MAX_TOKENS`: model and token limit for MPS and translation.
+- `AI_MODEL_MAX`, `AI_MAX_TOKENS_MAX`: model and token limit for recommendations.
+- `STARTUP_MPS_ENABLED`, `STARTUP_MPS_BACKGROUND`: calculate missing MPS scores after boot.
+- `MEAL_TRANSLATION_ENABLED`, `STARTUP_TRANSLATIONS_ENABLED`, `STARTUP_TRANSLATIONS_BACKGROUND`: fetch missing English meal names.
+- `MEAL_TRANSLATION_BATCH_SIZE`, `MEAL_TRANSLATION_WORKERS`: translation throughput.
+- `MPS_REQUEST_DELAY_SECONDS`, `MEAL_TRANSLATION_REQUEST_DELAY_SECONDS`: OpenRouter pacing.
+- `PROMPT_MPS`, `PROMPT_MEAL_TRANSLATION`: prompt overrides.
+- `PROMPT_MARVIN`, `PROMPT_MARVIN_EN`, `PROMPT_BOB`, `PROMPT_BOB_EN`, `PROMPT_TRUMP`: persona recommendation prompt overrides. Trump recommendations always use English.
+- `PROMPT_RECOMMENDATION`, `PROMPT_RECOMMENDATION_EN`: fallback recommendation prompt overrides for custom recommenders.
+- `LOG_DIR`: log directory, defaulting to `./logs` in local runs and `/app/logs` in the container.
 
-**Database issues**: Ensure PostgreSQL is running and credentials are correct.
+Prompt override values must be single-line in `.env`; use `\n` for line breaks.
 
-**Missing dependencies**: `uv sync`
+## Operations
+
+Local deployment builds the image from the Dockerfile:
+
+```bash
+docker compose up --build -d
+docker compose logs -f caner
+```
+
+Remote deployment pulls a prebuilt image:
+
+```bash
+CANER_IMAGE=ghcr.io/match-misc/caner:latest docker compose -f docker-compose.remote.yml pull
+CANER_IMAGE=ghcr.io/match-misc/caner:latest docker compose -f docker-compose.remote.yml up -d
+```
+
+Postgres data is stored in `./data/postgres`. To reset local data:
+
+```bash
+docker compose down
+sudo rm -rf ./data/postgres
+docker compose up --build
+```
+
+## Stack
+
+- Python 3.13, Flask, Gunicorn/gevent
+- PostgreSQL, SQLAlchemy
+- Bootstrap 5, Vanilla JS
+- OpenRouter-compatible chat completions
 
 ## License
 
-MIT License
+MIT

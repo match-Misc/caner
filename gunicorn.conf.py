@@ -12,9 +12,11 @@ timeout = 120  # Request timeout in seconds
 # Process Naming
 proc_name = "caner_production"
 
+log_dir = os.environ.get("LOG_DIR", "/app/logs")
+
 # Logging
-accesslog = "access.log"
-errorlog = "error.log"
+accesslog = os.path.join(log_dir, "gunicorn_access.log")
+errorlog = os.path.join(log_dir, "gunicorn_error.log")
 loglevel = "info"  # Set log level directly
 # Format for logs when behind a proxy (like nginx)
 access_log_format = (

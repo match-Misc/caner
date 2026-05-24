@@ -1,9 +1,9 @@
 import logging
-import traceback  # Added for consistent error logging
+import traceback
 from datetime import datetime
 
-from models import Meal, MensaMealOccurrence, XXXLutzFixedMeal, db
-from utils.xml_parser import parse_mensa_data
+from models import Meal, MensaMealOccurrence, db
+from utils.xml_parser import dedupe_marking_codes, parse_mensa_data
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +51,24 @@ def load_xml_data_to_db(xml_source):
             logger.error("No data was parsed from the XML source")
             return False
 
+        total_mensen = len(mensa_data)
+        total_dates = sum(len(dates) for dates in mensa_data.values())
+        total_menu_items = sum(
+            len(meals) for dates in mensa_data.values() for meals in dates.values()
+        )
+        logger.info(
+            "Preparing database load for parsed Mensa XML: %s mensen, %s dates, %s menu items",
+            total_mensen,
+            total_dates,
+            total_menu_items,
+        )
+
         # Bulk fetch all existing meals to avoid N+1 queries
         # Build a lookup dictionary: description -> meal_id
         logger.info("Fetching existing meals from database...")
         all_meals = Meal.query.all()
         meal_lookup = {meal.description: meal.id for meal in all_meals}
+        meal_by_description = {meal.description: meal for meal in all_meals}
         logger.info(f"Found {len(meal_lookup)} existing meals in database")
 
         # Bulk fetch all existing occurrences to avoid N+1 queries
@@ -68,8 +81,13 @@ def load_xml_data_to_db(xml_source):
         logger.info(f"Found {len(occurrence_lookup)} existing meal occurrences")
 
         # Track stats for logging
-        meal_count = 0
-        occurrence_count = 0
+        created_meal_count = 0
+        reused_meal_count = 0
+        skipped_empty_description_count = 0
+        invalid_date_count = 0
+        created_occurrence_count = 0
+        existing_occurrence_count = 0
+        updated_meal_marking_count = 0
 
         # Collect new meals and occurrences for bulk insert
         new_meals = []
@@ -77,11 +95,19 @@ def load_xml_data_to_db(xml_source):
 
         # Loop through each mensa and date to find unique meals
         for mensa_name, dates in mensa_data.items():
+            mensa_menu_items = sum(len(meals) for meals in dates.values())
+            logger.info(
+                "Loading mensa '%s' into database: %s dates, %s menu items",
+                mensa_name,
+                len(dates),
+                mensa_menu_items,
+            )
             for date_str, meals in dates.items():
                 # Convert date string to date object
                 try:
                     date_obj = datetime.strptime(date_str, "%d.%m.%Y").date()
                 except ValueError:
+                    invalid_date_count += 1
                     logger.warning(f"Skipping invalid date: {date_str}")
                     continue
 
@@ -89,7 +115,9 @@ def load_xml_data_to_db(xml_source):
                 for meal_data in meals:
                     description = meal_data.get("description", "")
                     if not description:
+                        skipped_empty_description_count += 1
                         continue
+                    marking = dedupe_marking_codes(meal_data.get("marking", ""))
 
                     # Check if meal exists using lookup dictionary (O(1) instead of DB query)
                     meal_id = meal_lookup.get(description)
@@ -122,7 +150,7 @@ def load_xml_data_to_db(xml_source):
                             new_meal = Meal(
                                 description=description,
                                 category=meal_data.get("category", ""),
-                                marking=meal_data.get("marking", ""),
+                                marking=marking,
                                 nutritional_values=meal_data.get(
                                     "nutritional_values", ""
                                 ),
@@ -135,13 +163,23 @@ def load_xml_data_to_db(xml_source):
                                 rainforest=meal_data.get("rainforest", ""),
                             )
                             new_meals.append(new_meal)
+                            created_meal_count += 1
 
                         except Exception as e:
                             logger.error(f"Error creating meal '{description}': {e}")
                             continue
                     else:
                         # Meal already exists, use existing ID
-                        pass
+                        reused_meal_count += 1
+                        existing_meal = meal_by_description.get(description)
+                        if existing_meal:
+                            existing_marking = existing_meal.marking or ""
+                            normalized_existing_marking = dedupe_marking_codes(
+                                existing_marking
+                            )
+                            if existing_marking != normalized_existing_marking:
+                                existing_meal.marking = normalized_existing_marking
+                                updated_meal_marking_count += 1
 
                     # Process occurrence after we have meal_id (either from existing or new meal)
                     # For new meals, we need to flush to get the ID
@@ -152,6 +190,7 @@ def load_xml_data_to_db(xml_source):
                         # Update lookup with new meal IDs
                         for new_m in new_meals:
                             meal_lookup[new_m.description] = new_m.id
+                            meal_by_description[new_m.description] = new_m
                         # Get the ID for the current meal
                         meal_id = meal_lookup.get(description)
                         new_meals = []  # Reset for next batch
@@ -207,11 +246,14 @@ def load_xml_data_to_db(xml_source):
                                 )
                                 new_occurrences.append(new_occurrence)
                                 occurrence_lookup[occurrence_key] = True
+                                created_occurrence_count += 1
 
                             except Exception as e:
                                 logger.error(
                                     f"Error creating meal occurrence for '{description}' at {mensa_name} on {date_str}: {e}"
                                 )
+                        else:
+                            existing_occurrence_count += 1
 
         # Handle any remaining new meals
         if new_meals:
@@ -219,6 +261,7 @@ def load_xml_data_to_db(xml_source):
             db.session.flush()
             for new_m in new_meals:
                 meal_lookup[new_m.description] = new_m.id
+                meal_by_description[new_m.description] = new_m
 
         # Bulk insert new occurrences
         if new_occurrences:
@@ -227,13 +270,16 @@ def load_xml_data_to_db(xml_source):
         # Commit all changes to the database
         db.session.commit()
 
-        # Count the results
-        meal_count = len(new_meals) if "new_meals" in dir() else 0
-        occurrence_count = len(new_occurrences)
-
         overall_duration = time.time() - overall_start
         logger.info(
-            f"Successfully loaded {meal_count} unique meals and {occurrence_count} meal occurrences"
+            "Successfully loaded XML data to database: new_meals=%s existing_meals=%s updated_meal_markings=%s new_occurrences=%s existing_occurrences=%s skipped_empty_descriptions=%s invalid_dates=%s",
+            created_meal_count,
+            reused_meal_count,
+            updated_meal_marking_count,
+            created_occurrence_count,
+            existing_occurrence_count,
+            skipped_empty_description_count,
+            invalid_date_count,
         )
         logger.info(
             f"Total load_xml_data_to_db duration: {overall_duration:.2f} seconds"
@@ -244,131 +290,6 @@ def load_xml_data_to_db(xml_source):
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error loading XML data to database: {e}")
-        # It's helpful to see the stack trace for unexpected errors during loading
-        logger.error(traceback.format_exc())
-        return False
-
-
-def load_xxxlutz_meals():
-    """
-    Load XXXLutz meals into the database.
-    - Fixed meals (XXXLutzFixedMeal) are seeded from a hardcoded list if the table is empty.
-    - Changing meals (XXXLutzChangingMeal) are NO LONGER managed here;
-      they are updated by the AI process from the menu image (in app.py).
-    """
-    try:
-        # Handle Fixed Meals: Seed only if the table is empty
-        if XXXLutzFixedMeal.query.count() == 0:
-            logger.info("XXXLutzFixedMeal table is empty. Seeding fixed meals...")
-            fixed_meals_data = [
-                {
-                    "description": "Schnitzel vom Schwein oder Huhn mit Pommes und Ketchup",
-                    "marking": "s,g",
-                    "price_student": 9.90,
-                    "price_employee": 10.90,
-                    "price_guest": 11.90,
-                    "nutritional_values": "Brennwert=3200 kJ (760 kcal)",
-                },
-                {
-                    "description": "Currywurst mit Pommes Frites",
-                    "marking": "s",
-                    "price_student": 7.90,
-                    "price_employee": 8.90,
-                    "price_guest": 9.90,
-                    "nutritional_values": "Brennwert=3000 kJ (715 kcal)",
-                },
-                {
-                    "description": "Käsespätzle mit Bergkäse und Röstzwiebeln",
-                    "marking": "v,26",
-                    "price_student": 8.50,
-                    "price_employee": 9.50,
-                    "price_guest": 10.50,
-                    "nutritional_values": "Brennwert=2900 kJ (690 kcal)",
-                },
-                {
-                    "description": "Süßkartoffel-Gemüse-Curry-Bowl mit Wildreis und Salat",
-                    "marking": "x",
-                    "price_student": 8.90,
-                    "price_employee": 9.90,
-                    "price_guest": 10.90,
-                    "nutritional_values": "Brennwert=2300 kJ (548 kcal)",
-                },
-                {
-                    "description": "Veganes Schnitzel mit Pommes Frites",
-                    "marking": "x",
-                    "price_student": 8.90,
-                    "price_employee": 9.90,
-                    "price_guest": 10.90,
-                    "nutritional_values": "Brennwert=2750 kJ (655 kcal)",
-                },
-                {
-                    "description": "Großer Salatteller mit Briespitzen und Tomate, Gurke",
-                    "marking": "v,26",
-                    "price_student": 7.90,
-                    "price_employee": 8.90,
-                    "price_guest": 9.90,
-                    "nutritional_values": "Brennwert=1500 kJ (358 kcal)",
-                },
-                {
-                    "description": "Caesar Salatteller mit Hühnerbrustmedaillons und Blattsalat, Tomate, Gurke",
-                    "marking": "g,26,22",
-                    "price_student": 8.90,
-                    "price_employee": 9.90,
-                    "price_guest": 10.90,
-                    "nutritional_values": "Brennwert=1800 kJ (430 kcal)",
-                },
-                {
-                    "description": "Seelachfilet mit Kartoffelsalat und Remoulade",
-                    "marking": "f,22",
-                    "price_student": 8.90,
-                    "price_employee": 9.90,
-                    "price_guest": 10.90,
-                    "nutritional_values": "Brennwert=2500 kJ (595 kcal)",
-                },
-                {
-                    "description": "Schweinerückensteaks mit Gemüse und Pommes Frites",
-                    "marking": "s",
-                    "price_student": 9.90,
-                    "price_employee": 10.90,
-                    "price_guest": 11.90,
-                    "nutritional_values": "Brennwert=3100 kJ (740 kcal)",
-                },
-                {
-                    "description": "Spaghetti Bolognese",
-                    "marking": "r,20a",
-                    "price_student": 7.90,
-                    "price_employee": 8.90,
-                    "price_guest": 9.90,
-                    "nutritional_values": "Brennwert=2800 kJ (670 kcal)",
-                },
-            ]
-            for meal_data in fixed_meals_data:
-                meal = XXXLutzFixedMeal(
-                    description=meal_data["description"],
-                    marking=meal_data["marking"],
-                    price_student=meal_data["price_student"],
-                    price_employee=meal_data["price_employee"],
-                    price_guest=meal_data["price_guest"],
-                    nutritional_values=meal_data["nutritional_values"],
-                )
-                db.session.add(meal)
-            db.session.commit()
-            logger.info(
-                f"Successfully seeded {len(fixed_meals_data)} XXXLutz fixed meals."
-            )
-        else:
-            logger.info(
-                "XXXLutzFixedMeal table already populated. Skipping seeding of fixed meals."
-            )
-
-        logger.info(
-            "load_xxxlutz_meals: Fixed meals checked/seeded. Changing meals are managed by the AI process in app.py."
-        )
-        return True
-
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error in load_xxxlutz_meals: {e}")
         # It's helpful to see the stack trace for unexpected errors during loading
         logger.error(traceback.format_exc())
         return False

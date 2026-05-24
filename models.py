@@ -11,6 +11,7 @@ class Meal(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text, nullable=False, unique=True)
+    description_en = db.Column(db.Text)
     category = db.Column(db.String(100))
     marking = db.Column(db.String(100))
     nutritional_values = db.Column(db.Text)
@@ -49,42 +50,6 @@ class MensaMealOccurrence(db.Model):
 
     def __repr__(self):
         return f"<MensaMealOccurrence {self.mensa_name} {self.date} {self.meal_id}>"
-
-
-class XXXLutzChangingMeal(db.Model):
-    """Model for changing XXXLutz meals (weekly special dishes)"""
-
-    __tablename__ = "xxxlutz_changing_meals"
-
-    id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.Text, nullable=False, unique=True)
-    marking = db.Column(db.String(100))
-    price_student = db.Column(db.Float)
-    price_employee = db.Column(db.Float)
-    price_guest = db.Column(db.Float)
-    nutritional_values = db.Column(db.Text)
-    mps_score = db.Column(db.Float)  # Max Pumper Score
-
-    def __repr__(self):
-        return f"<XXXLutzChangingMeal {self.description[:30]}...>"
-
-
-class XXXLutzFixedMeal(db.Model):
-    """Model for fixed/permanent XXXLutz meals (standard menu)"""
-
-    __tablename__ = "xxxlutz_fixed_meals"
-
-    id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.Text, nullable=False, unique=True)
-    marking = db.Column(db.String(100))
-    price_student = db.Column(db.Float)
-    price_employee = db.Column(db.Float)
-    price_guest = db.Column(db.Float)
-    nutritional_values = db.Column(db.Text)
-    mps_score = db.Column(db.Float)  # Max Pumper Score
-
-    def __repr__(self):
-        return f"<XXXLutzFixedMeal {self.description[:30]}...>"
 
 
 class MealVote(db.Model):
