@@ -73,6 +73,11 @@
     --theme-info-accent: var(--primary-yellow);
 }
 
+html {
+    min-height: 100%;
+    background-color: var(--bg-footer-counter);
+}
+
 /* Override Bootstrap's text-dark class in dark mode to use dracula yellow */
 [data-theme="dark"] .text-dark {
     color: var(--text-dark) !important;
@@ -80,12 +85,13 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background-color: var(--bg-light);
+    background-color: var(--bg-footer-counter);
     color: var(--text-dark);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
     /* Sticky footer layout */
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -533,7 +539,8 @@ footer {
 .page-counter-footer {
     background-color: var(--bg-footer-counter);
     color: var(--text-light);
-    padding: 10px 0;
+    flex-shrink: 0;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
     font-size: 0.9rem;
     transition: background-color 0.3s ease;
 }
