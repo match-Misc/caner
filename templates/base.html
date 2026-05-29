@@ -34,10 +34,17 @@
       href="{{ url_for('static', filename='css/style.css') }}"
     />
     <script>
-      // Apply dark mode immediately
       (function () {
-        const isDarkMode = localStorage.getItem("darkMode") === "enabled";
-        if (isDarkMode) {
+        const savedPreference = localStorage.getItem("themePreference");
+        const legacyDarkMode = localStorage.getItem("darkMode");
+        const preference = savedPreference || (
+          legacyDarkMode === "enabled" ? "dark" :
+          legacyDarkMode === "disabled" ? "light" :
+          "system"
+        );
+        const systemDark = window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (preference === "dark" || (preference === "system" && systemDark)) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
       })();

@@ -5,6 +5,7 @@ from unittest.mock import patch
 from i18n import (
     DEFAULT_LANGUAGE,
     format_date_for_language,
+    get_marking_info,
     get_meal_display_name,
     get_recommendation_prompt,
     resolve_language,
@@ -61,6 +62,14 @@ class I18nTest(unittest.TestCase):
         self.assertEqual(
             translate_nutrient_value("10g, davon Zucker 2g", "en"),
             "10g, of which sugars 2g",
+        )
+
+    def test_marking_info_has_dark_variants(self):
+        marking_info = get_marking_info("en")
+        self.assertEqual(marking_info["f"]["dark_emoji"], "🦈")
+        self.assertEqual(
+            marking_info["q"]["dark_images"],
+            ["/static/img/volkswagen_logo_2019.svg"],
         )
 
     def test_persona_recommendation_prompt_language_selection(self):

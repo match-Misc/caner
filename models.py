@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 
 # Create a new SQLAlchemy object
 db = SQLAlchemy()
@@ -73,6 +74,28 @@ class MealVote(db.Model):
 
     def __repr__(self):
         return f"<MealVote {self.meal_id} {self.vote_type} {self.date}>"
+
+
+class MealComment(db.Model):
+    """Model for public meal comments with a good/bad rating."""
+
+    __tablename__ = "meal_comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meal_id = db.Column(db.Integer, db.ForeignKey("meals.id"), nullable=False)
+    client_id = db.Column(db.String(100), nullable=False)
+    rating = db.Column(db.String(10), nullable=False)
+    author_name = db.Column(db.String(80))
+    source_language = db.Column(db.String(5), nullable=False, default="de")
+    text_de = db.Column(db.Text)
+    text_en = db.Column(db.Text)
+    translation_failed = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
+    meal = db.relationship("Meal", backref=db.backref("comments", lazy=True))
+
+    def __repr__(self):
+        return f"<MealComment {self.meal_id} {self.rating} {self.created_at}>"
 
 
 class PageView(db.Model):

@@ -457,6 +457,18 @@ body {
     margin-right: 4px;
 }
 
+.food-marking-dark {
+    display: none;
+}
+
+[data-theme="dark"] .food-marking-light {
+    display: none;
+}
+
+[data-theme="dark"] .food-marking-dark {
+    display: inline-block;
+}
+
 .food-markings-row {
     display: flex;
     align-items: center;
@@ -524,6 +536,166 @@ body {
     font-weight: bold;
 }
 
+.comment-toggle-btn {
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.9rem;
+    gap: 0.25rem;
+    margin-left: 4px;
+    opacity: 0.7;
+    padding: 2px 5px;
+    transition: color 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+[data-theme="dark"] .comment-toggle-btn {
+    color: #F8F8F2;
+}
+
+.comment-toggle-btn:hover,
+.comment-toggle-btn:focus {
+    opacity: 1;
+    outline: none;
+    transform: scale(1.12);
+}
+
+.meal-comments-panel {
+    background-color: var(--bg-nutrient-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-dark);
+    margin-top: 0.5rem;
+    padding: 0.65rem;
+    text-align: left;
+}
+
+.comment-form {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.comment-rating-group {
+    display: inline-flex;
+    gap: 0.35rem;
+}
+
+.comment-rating-btn {
+    align-items: center;
+    background-color: var(--control-bg);
+    border: 1px solid var(--control-border);
+    border-radius: 4px;
+    color: var(--control-text);
+    display: inline-flex;
+    font-size: 0.85rem;
+    gap: 0.35rem;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+}
+
+.comment-rating-btn.active[data-rating="good"] {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #ffffff;
+}
+
+.comment-rating-btn.active[data-rating="bad"] {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .comment-rating-btn.active[data-rating="good"] {
+    background-color: #50fa7b;
+    border-color: #50fa7b;
+    color: #191a21;
+}
+
+[data-theme="dark"] .comment-rating-btn.active[data-rating="bad"] {
+    background-color: #ff5555;
+    border-color: #ff5555;
+    color: #191a21;
+}
+
+.comment-submit-btn {
+    justify-self: start;
+}
+
+.comment-list {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+}
+
+.comment-item {
+    background-color: var(--bg-card);
+    border-left: 4px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+.comment-item-good {
+    border-left-color: #28a745;
+}
+
+.comment-item-bad {
+    border-left-color: #dc3545;
+}
+
+[data-theme="dark"] .comment-item-good {
+    border-left-color: #50fa7b;
+}
+
+[data-theme="dark"] .comment-item-bad {
+    border-left-color: #ff5555;
+}
+
+.comment-meta {
+    align-items: center;
+    color: var(--control-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    gap: 0.45rem;
+}
+
+.comment-rating-label {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.25rem;
+    font-weight: 700;
+}
+
+.comment-author {
+    color: var(--text-dark);
+    font-weight: 700;
+}
+
+.comment-text {
+    margin: 0.35rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.comment-empty {
+    color: var(--control-muted);
+    margin: 0;
+}
+
+.comment-translation-warning {
+    color: var(--control-muted);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.comment-load-more-btn {
+    background-color: var(--control-bg);
+    border: 1px solid var(--control-border);
+    color: var(--control-text);
+    margin-top: 0.65rem;
+}
+
 /* Footer styles */
 footer {
     background-color: var(--bg-footer);
@@ -542,7 +714,9 @@ footer {
     flex-shrink: 0;
     padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
     font-size: 0.9rem;
+    position: relative;
     transition: background-color 0.3s ease;
+    z-index: 2;
 }
 
 .page-view-counter {
@@ -586,6 +760,11 @@ a.github-link {
 /* Vertically align icon if needed, fa-lg should handle size */
 a.github-link i.fa-github {
     line-height: 1; /* Helps with precise vertical centering of Font Awesome icons */
+}
+
+.page-counter-footer .container > .d-flex {
+    display: flex !important;
+    flex-wrap: wrap;
 }
 
 .counter-icon {
@@ -651,7 +830,8 @@ a.github-link i.fa-github {
 .themed-select-toggle,
 input#date.form-control,
 input#date-mobile.form-control,
-.recommendation-form .form-control {
+.recommendation-form .form-control,
+.comment-form .form-control {
     background-color: var(--control-bg) !important;
     border: 1px solid var(--control-border) !important;
     border-radius: 4px;
@@ -680,7 +860,8 @@ input#date-mobile.form-control,
 .themed-select-toggle:focus-visible,
 input#date.form-control:focus,
 input#date-mobile.form-control:focus,
-.recommendation-form .form-control:focus {
+.recommendation-form .form-control:focus,
+.comment-form .form-control:focus {
     border-color: var(--primary-yellow) !important;
     box-shadow: 0 0 0 3px var(--control-focus-ring) !important;
     outline: none !important;
@@ -1466,6 +1647,17 @@ html[data-theme="dark"] .datepicker-panel ul li.selected:hover {
 @media (max-width: 768px) {
     .content-area {
         padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+
+    .page-counter-footer {
+        display: block;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .page-counter-footer .container > .d-flex {
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 38px;
     }
 
     /* Hide desktop elements */

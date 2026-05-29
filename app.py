@@ -32,6 +32,7 @@ from flask import (
 from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from comment_translation import choose_comment_text, translate_comment_text
 from data_loader import load_xml_data_to_db
 from fetch_meal_translations import fetch_meal_translations
 from i18n import (
@@ -58,7 +59,7 @@ from mps_scoring import (
     get_openrouter_base_url,
     has_configured_mps_api_key,
 )
-from models import Meal, MealVote, PageView, db
+from models import Meal, MealComment, MealVote, PageView, db
 from schema import ensure_application_schema
 from utils.xml_parser import (
     dedupe_marking_codes,
@@ -172,6 +173,10 @@ MEAL_TRANSLATION_WORKERS = int(os.environ.get("MEAL_TRANSLATION_WORKERS", "2"))
 
 # Reduced student price for Niedersachsen Menü (marking "q")
 NIEDERSACHSEN_STUDENT_PRICE = "2,50"
+COMMENT_TEXT_MAX_LENGTH = 1000
+COMMENT_AUTHOR_MAX_LENGTH = 80
+COMMENTS_DEFAULT_LIMIT = 5
+COMMENTS_MAX_LIMIT = 25
 
 # Create Flask app
 app = Flask(__name__)
@@ -1121,13 +1126,30 @@ def get_dietary_info(marking, language=DEFAULT_LANGUAGE):
         if code in localized_marking_info:
             title = localized_marking_info[code]["title"]
             emoji = localized_marking_info[code].get("emoji", "")
+            dark_emoji = localized_marking_info[code].get("dark_emoji", "")
+            span_content = ""
             if emoji:
-                span_content = f'<span class="food-marking" title="{title}">{emoji}</span>'
-            else:
-                span_content = ""
+                span_content += (
+                    f'<span class="food-marking food-marking-light" '
+                    f'title="{title}">{emoji}</span>'
+                )
+            if dark_emoji:
+                span_content += (
+                    f'<span class="food-marking food-marking-dark" '
+                    f'title="{title}">{dark_emoji}</span>'
+                )
             if "images" in localized_marking_info[code]:
                 for img in localized_marking_info[code]["images"]:
-                    span_content += f'<img class="food-marking-img" src="{img}" title="{title}">'
+                    span_content += (
+                        f'<img class="food-marking-img food-marking-light" '
+                        f'src="{img}" title="{title}" alt="{title}">'
+                    )
+            if "dark_images" in localized_marking_info[code]:
+                for img in localized_marking_info[code]["dark_images"]:
+                    span_content += (
+                        f'<img class="food-marking-img food-marking-dark" '
+                        f'src="{img}" title="{title}" alt="{title}">'
+                    )
             if span_content:
                 emoji_spans.append(span_content)
 
@@ -1198,6 +1220,25 @@ def get_vote_counts(meal_id):
     upvotes = MealVote.query.filter_by(meal_id=meal_id_int, vote_type="up").count()
     downvotes = MealVote.query.filter_by(meal_id=meal_id_int, vote_type="down").count()
     return {"up": upvotes, "down": downvotes}
+
+
+def get_comment_count(meal_id):
+    meal_id_int = int(meal_id) if isinstance(meal_id, str) else meal_id
+    return MealComment.query.filter_by(meal_id=meal_id_int).count()
+
+
+def serialize_comment(comment, language):
+    display_text = choose_comment_text(comment, language)
+    return {
+        "id": comment.id,
+        "meal_id": comment.meal_id,
+        "rating": comment.rating,
+        "author_name": comment.author_name or "",
+        "text": display_text,
+        "has_text": bool(display_text),
+        "translation_failed": bool(comment.translation_failed),
+        "created_at": comment.created_at.isoformat() if comment.created_at else "",
+    }
 
 
 # Check if a client has already voted for a meal today
@@ -1317,6 +1358,105 @@ def get_votes(meal_id):
         response.set_cookie("client_id", client_id, max_age=60 * 60 * 24 * 365)
 
     return response
+
+
+@app.route("/api/comments/<int:meal_id>", methods=["GET"])
+def get_comments(meal_id):
+    meal = db.session.get(Meal, meal_id)
+    if not meal:
+        return jsonify({"error": "Meal not found"}), 404
+
+    language = normalize_language(request.args.get("lang", DEFAULT_LANGUAGE))
+    try:
+        limit = int(request.args.get("limit", COMMENTS_DEFAULT_LIMIT))
+        offset = int(request.args.get("offset", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid pagination"}), 400
+
+    limit = max(1, min(COMMENTS_MAX_LIMIT, limit))
+    offset = max(0, offset)
+
+    query = MealComment.query.filter_by(meal_id=meal_id).order_by(
+        MealComment.created_at.desc(), MealComment.id.desc()
+    )
+    total = query.count()
+    comments = query.offset(offset).limit(limit).all()
+
+    return jsonify(
+        {
+            "comments": [serialize_comment(comment, language) for comment in comments],
+            "count": total,
+            "has_more": offset + len(comments) < total,
+        }
+    )
+
+
+@app.route("/api/comments", methods=["POST"])
+def create_comment():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": translate(DEFAULT_LANGUAGE, "api_invalid_json")}), 400
+
+    meal_id = data.get("meal_id")
+    rating = str(data.get("rating", "")).strip().lower()
+    author_name = str(data.get("author_name", "") or "").strip()
+    comment_text = str(data.get("text", "") or "").strip()
+    language = normalize_language(data.get("lang", DEFAULT_LANGUAGE))
+
+    if rating not in {"good", "bad"}:
+        return jsonify({"error": translate(language, "api_invalid_comment_rating")}), 400
+    if len(author_name) > COMMENT_AUTHOR_MAX_LENGTH:
+        return jsonify({"error": translate(language, "api_comment_name_too_long")}), 400
+    if len(comment_text) > COMMENT_TEXT_MAX_LENGTH:
+        return jsonify({"error": translate(language, "api_comment_text_too_long")}), 400
+
+    try:
+        meal_id_int = int(meal_id)
+    except (TypeError, ValueError):
+        return jsonify({"error": translate(language, "api_invalid_comment_meal")}), 400
+
+    meal = db.session.get(Meal, meal_id_int)
+    if not meal:
+        return jsonify({"error": translate(language, "api_comment_meal_not_found")}), 404
+
+    client_id = get_client_id()
+    translated = {"de": "", "en": "", "translation_failed": False}
+    if comment_text:
+        try:
+            translated = translate_comment_text(comment_text, language)
+        except MPSAuthenticationError:
+            logger.warning("Comment translation auth failed; saving original text only.")
+            translated = {
+                "de": comment_text if language == "de" else "",
+                "en": comment_text if language == "en" else "",
+                "translation_failed": True,
+            }
+
+    comment = MealComment()
+    comment.meal_id = meal_id_int
+    comment.client_id = client_id
+    comment.rating = rating
+    comment.author_name = author_name or None
+    comment.source_language = language
+    comment.text_de = translated.get("de") or None
+    comment.text_en = translated.get("en") or None
+    comment.translation_failed = bool(translated.get("translation_failed"))
+
+    db.session.add(comment)
+    db.session.commit()
+    db.session.refresh(comment)
+
+    response = make_response(
+        jsonify(
+            {
+                "message": translate(language, "comment_saved"),
+                "comment": serialize_comment(comment, language),
+                "count": get_comment_count(meal_id_int),
+            }
+        )
+    )
+    response.set_cookie("client_id", client_id, max_age=60 * 60 * 24 * 365)
+    return response, 201
 
 
 def clean_recommendation_text(recommendation):

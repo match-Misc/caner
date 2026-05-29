@@ -1,33 +1,75 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Dark mode functionality
     const darkModeToggle = document.getElementById('darkModeToggle');
     const html = document.documentElement;
     const darkModeIcon = darkModeToggle ? darkModeToggle.querySelector('i') : null;
+    const systemThemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-    // Check if dark mode is already enabled in localStorage
-    const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+    function getThemePreference() {
+        const savedPreference = localStorage.getItem('themePreference');
+        if (savedPreference === 'light' || savedPreference === 'dark' || savedPreference === 'system') {
+            return savedPreference;
+        }
 
-    // Set initial dark mode state (icon only, theme is set by inline script)
-    if (isDarkMode && darkModeIcon) {
-        darkModeIcon.classList.remove('fa-moon');
-        darkModeIcon.classList.add('fa-sun');
+        const legacyDarkMode = localStorage.getItem('darkMode');
+        if (legacyDarkMode === 'enabled') {
+            return 'dark';
+        }
+        if (legacyDarkMode === 'disabled') {
+            return 'light';
+        }
+        return 'system';
     }
 
-    // Add click event listener to the dark mode toggle button
-    if (darkModeToggle && darkModeIcon) {
+    function shouldUseDarkTheme(preference) {
+        return preference === 'dark' || (
+            preference === 'system' &&
+            systemThemeQuery &&
+            systemThemeQuery.matches
+        );
+    }
+
+    function applyTheme(preference) {
+        const useDarkTheme = shouldUseDarkTheme(preference);
+        if (useDarkTheme) {
+            html.setAttribute('data-theme', 'dark');
+        } else {
+            html.removeAttribute('data-theme');
+        }
+
+        if (darkModeIcon) {
+            darkModeIcon.classList.toggle('fa-sun', useDarkTheme);
+            darkModeIcon.classList.toggle('fa-moon', !useDarkTheme);
+        }
+        if (darkModeToggle) {
+            darkModeToggle.setAttribute('aria-pressed', useDarkTheme.toString());
+        }
+        return useDarkTheme;
+    }
+
+    let themePreference = getThemePreference();
+    localStorage.setItem('themePreference', themePreference);
+    applyTheme(themePreference);
+
+    if (darkModeToggle) {
         darkModeToggle.addEventListener('click', function() {
-            if (html.getAttribute('data-theme') === 'dark') {
-                // Switch to light mode
-                html.removeAttribute('data-theme');
-                localStorage.setItem('darkMode', 'disabled');
-                darkModeIcon.classList.remove('fa-sun');
-                darkModeIcon.classList.add('fa-moon');
-            } else {
-                // Switch to dark mode
-                html.setAttribute('data-theme', 'dark');
-                localStorage.setItem('darkMode', 'enabled');
-                darkModeIcon.classList.remove('fa-moon');
-                darkModeIcon.classList.add('fa-sun');
+            const isDarkTheme = html.getAttribute('data-theme') === 'dark';
+            themePreference = isDarkTheme ? 'light' : 'dark';
+            localStorage.setItem('themePreference', themePreference);
+            localStorage.setItem('darkMode', themePreference === 'dark' ? 'enabled' : 'disabled');
+            applyTheme(themePreference);
+            if (typeof applyExpertModeStyles === 'function') {
+                applyExpertModeStyles();
+            }
+        });
+    }
+
+    if (systemThemeQuery) {
+        systemThemeQuery.addEventListener('change', function() {
+            if (getThemePreference() === 'system') {
+                applyTheme('system');
+                if (typeof applyExpertModeStyles === 'function') {
+                    applyExpertModeStyles();
+                }
             }
         });
     }
@@ -78,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize meal voting system
     initMealVoting();
+    initMealComments();
     
     // Meal voting functionality
     function initMealVoting() {
@@ -178,6 +221,267 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error submitting vote:', error);
+        });
+    }
+
+    function getCommentLanguage() {
+        if (typeof currentLanguage !== 'undefined' && currentLanguage) {
+            return currentLanguage;
+        }
+        return document.documentElement.lang || 'de';
+    }
+
+    function getCommentText(key, fallback) {
+        if (typeof uiText !== 'undefined' && uiText && uiText[key]) {
+            return uiText[key];
+        }
+        return fallback;
+    }
+
+    function updateCommentCounts(mealId, count) {
+        document.querySelectorAll(`.comment-toggle-btn[data-meal-id="${mealId}"] .comment-count`).forEach(countEl => {
+            countEl.textContent = count;
+        });
+    }
+
+    function createCommentElement(comment) {
+        const item = document.createElement('article');
+        item.className = `comment-item comment-item-${comment.rating}`;
+
+        const meta = document.createElement('div');
+        meta.className = 'comment-meta';
+
+        const rating = document.createElement('span');
+        rating.className = 'comment-rating-label';
+        const ratingIcon = document.createElement('i');
+        ratingIcon.className = comment.rating === 'good' ? 'fas fa-thumbs-up' : 'fas fa-thumbs-down';
+        ratingIcon.setAttribute('aria-hidden', 'true');
+        rating.appendChild(ratingIcon);
+        rating.appendChild(document.createTextNode(
+            comment.rating === 'good'
+                ? getCommentText('comment_good', 'Good')
+                : getCommentText('comment_bad', 'Bad')
+        ));
+
+        const author = document.createElement('span');
+        author.className = 'comment-author';
+        author.textContent = comment.author_name || getCommentText('anonymous', 'Anonymous');
+
+        const time = document.createElement('time');
+        time.className = 'comment-time';
+        if (comment.created_at) {
+            const createdAt = new Date(comment.created_at);
+            if (!Number.isNaN(createdAt.getTime())) {
+                time.dateTime = comment.created_at;
+                time.textContent = createdAt.toLocaleString(getCommentLanguage());
+            }
+        }
+
+        meta.appendChild(rating);
+        meta.appendChild(author);
+        if (time.textContent) {
+            meta.appendChild(time);
+        }
+        item.appendChild(meta);
+
+        if (comment.has_text && comment.text) {
+            const text = document.createElement('p');
+            text.className = 'comment-text';
+            text.textContent = comment.text;
+            item.appendChild(text);
+        }
+
+        if (comment.translation_failed && comment.has_text) {
+            const notice = document.createElement('small');
+            notice.className = 'comment-translation-warning';
+            notice.textContent = getCommentText('translation_unavailable', 'Translation unavailable');
+            item.appendChild(notice);
+        }
+
+        return item;
+    }
+
+    function renderCommentList(panel, comments, append) {
+        const list = panel.querySelector('.comment-list');
+        if (!list) {
+            return;
+        }
+        if (!append) {
+            list.replaceChildren();
+        }
+
+        if (!comments.length && !append) {
+            const empty = document.createElement('p');
+            empty.className = 'comment-empty';
+            empty.textContent = getCommentText('no_comments', 'No comments yet.');
+            list.appendChild(empty);
+            return;
+        }
+
+        const existingEmpty = list.querySelector('.comment-empty');
+        if (existingEmpty) {
+            existingEmpty.remove();
+        }
+        comments.forEach(comment => {
+            list.appendChild(createCommentElement(comment));
+        });
+    }
+
+    function loadComments(panel, append) {
+        const mealId = panel.dataset.mealId;
+        const loadMoreBtn = panel.querySelector('.comment-load-more-btn');
+        const offset = append ? Number.parseInt(panel.dataset.loadedCount || '0', 10) : 0;
+        const params = new URLSearchParams({
+            limit: '5',
+            offset: offset.toString(),
+            lang: getCommentLanguage()
+        });
+
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = true;
+        }
+
+        fetch(`/api/comments/${mealId}?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderCommentList(panel, data.comments || [], append);
+                const loadedCount = append
+                    ? offset + (data.comments || []).length
+                    : (data.comments || []).length;
+                panel.dataset.loadedCount = loadedCount.toString();
+                updateCommentCounts(mealId, data.count || 0);
+                if (loadMoreBtn) {
+                    loadMoreBtn.classList.toggle('d-none', !data.has_more);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading comments:', error);
+            })
+            .finally(() => {
+                if (loadMoreBtn) {
+                    loadMoreBtn.disabled = false;
+                }
+            });
+    }
+
+    function setCommentRating(panel, rating) {
+        panel.querySelectorAll('.comment-rating-btn').forEach(button => {
+            const isActive = button.dataset.rating === rating;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive.toString());
+        });
+    }
+
+    function getCommentPanelFromToggle(toggle) {
+        const actionRow = toggle.closest('.meal-action-row');
+        if (!actionRow) {
+            return null;
+        }
+        const panel = actionRow.nextElementSibling;
+        if (!panel || !panel.classList.contains('meal-comments-panel')) {
+            return null;
+        }
+        return panel;
+    }
+
+    function initMealComments() {
+        document.querySelectorAll('.meal-comments-panel').forEach(panel => {
+            setCommentRating(panel, 'good');
+            loadComments(panel, false);
+
+            panel.querySelectorAll('.comment-rating-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    setCommentRating(panel, button.dataset.rating || 'good');
+                });
+            });
+
+            const loadMoreBtn = panel.querySelector('.comment-load-more-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function() {
+                    loadComments(panel, true);
+                });
+            }
+
+            const form = panel.querySelector('.comment-form');
+            if (!form) {
+                return;
+            }
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const submitBtn = form.querySelector('.comment-submit-btn');
+                const activeRating = form.querySelector('.comment-rating-btn.active');
+                const nameInput = form.querySelector('.comment-name-input');
+                const textInput = form.querySelector('.comment-text-input');
+                const payload = {
+                    meal_id: panel.dataset.mealId,
+                    rating: activeRating ? activeRating.dataset.rating : 'good',
+                    author_name: nameInput ? nameInput.value.trim() : '',
+                    text: textInput ? textInput.value.trim() : '',
+                    lang: getCommentLanguage()
+                };
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+
+                fetch('/api/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `HTTP error ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (nameInput) {
+                        nameInput.value = '';
+                    }
+                    if (textInput) {
+                        textInput.value = '';
+                    }
+                    setCommentRating(panel, 'good');
+                    updateCommentCounts(panel.dataset.mealId, data.count || 0);
+                    loadComments(panel, false);
+                })
+                .catch(error => {
+                    console.error('Error submitting comment:', error);
+                })
+                .finally(() => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.comment-toggle-btn').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const panel = getCommentPanelFromToggle(toggle);
+                if (!panel) {
+                    return;
+                }
+                const isOpening = panel.hidden;
+                panel.hidden = !isOpening;
+                toggle.setAttribute('aria-expanded', isOpening.toString());
+                toggle.title = isOpening
+                    ? getCommentText('hide_comments', 'Hide comments')
+                    : getCommentText('show_comments', 'Show comments');
+                if (isOpening) {
+                    loadComments(panel, false);
+                }
+            });
         });
     }
     
