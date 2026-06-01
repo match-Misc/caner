@@ -439,16 +439,16 @@ def get_marking_info(language):
     language = normalize_language(language)
     titles = DIETARY_TITLES[language]
     return {
-        "v": {"emoji": "🥕", "dark_emoji": "🌵", "title": titles["v"]},
-        "x": {"emoji": "🥦", "dark_emoji": "🪓", "title": titles["x"]},
+        "v": {"emoji": "🥕", "dark_emoji": "🤢", "title": titles["v"]},
+        "x": {"emoji": "🌈", "dark_emoji": "🤮", "title": titles["x"]},
         "g": {"emoji": "🐔", "dark_emoji": "🦅", "title": titles["g"]},
         "s": {"emoji": "🐷", "dark_emoji": "🐗", "title": titles["s"]},
         "f": {"emoji": "🐟", "dark_emoji": "🦈", "title": titles["f"]},
         "r": {"emoji": "🐮", "dark_emoji": "🐂", "title": titles["r"]},
-        "a": {"emoji": "🍺", "dark_emoji": "☠️", "title": titles["a"]},
-        "26": {"emoji": "🥛", "dark_emoji": "🧪", "title": titles["26"]},
-        "22": {"emoji": "🥚", "dark_emoji": "💣", "title": titles["22"]},
-        "20a": {"emoji": "🌾", "dark_emoji": "⚔️", "title": titles["20a"]},
+        "a": {"emoji": "🍺", "dark_emoji": "🍾", "title": titles["a"]},
+        "26": {"emoji": "🥛", "dark_emoji": "🍼", "title": titles["26"]},
+        "22": {"emoji": "🥚", "dark_emoji": "🍳", "title": titles["22"]},
+        "20a": {"emoji": "🌾", "dark_emoji": "🌱", "title": titles["20a"]},
         "q": {
             "title": titles["q"],
             "images": ["/static/img/nds.png"],

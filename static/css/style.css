@@ -249,6 +249,10 @@ body {
     margin: 0 auto;
 }
 
+.header-description-short {
+    display: none;
+}
+
 .caner-image {
     width: 160px;
     height: 160px;
@@ -1247,8 +1251,12 @@ input#date-mobile.form-control:focus,
         font-size: 1.4rem;
     }
     
-    .header-description {
+    .header-description-desktop {
         display: none;
+    }
+
+    .header-description-short {
+        display: block;
     }
     
     .text-container {
@@ -1646,7 +1654,11 @@ html[data-theme="dark"] .datepicker-panel ul li.selected:hover {
 /* Mobile layout */
 @media (max-width: 768px) {
     .content-area {
-        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    }
+
+    .recommendation-fab {
+        bottom: max(0.75rem, env(safe-area-inset-bottom));
     }
 
     .page-counter-footer {
