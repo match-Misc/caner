@@ -36,7 +36,7 @@ from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from comment_translation import choose_comment_text, translate_comment_text
-from data_loader import load_xml_data_to_db
+from data_loader import load_parsed_mensa_data_to_db
 from fetch_meal_translations import fetch_meal_translations
 from i18n import (
     DEFAULT_LANGUAGE,
@@ -53,6 +53,7 @@ from i18n import (
     translate_nutrient_label,
     translate_nutrient_value,
 )
+from menu_refresh import calculate_menu_refresh_delay_seconds
 from meal_translation import has_configured_translation_api_key
 from mps_scoring import (
     MPSAuthenticationError,
@@ -161,6 +162,8 @@ XML_SOURCE_URL = (
 )
 SITE_URL = os.environ.get("SITE_URL", "").strip().rstrip("/")
 CLIENT_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+_mensa_refresh_lock = threading.Lock()
+_menu_refresh_thread = None
 
 
 def get_site_origin():
@@ -288,22 +291,16 @@ app.config["SQLALCHEMY_POOL_RECYCLE"] = 300  # Recycle connections every 5 minut
 
 def refresh_mensa_xml_data():
     global mensa_data, available_mensen, available_dates
+    if not _mensa_refresh_lock.acquire(blocking=False):
+        logger.warning("Skipping Mensa XML refresh because another refresh is active.")
+        return False
+
     refresh_start = time.time()
     logger.info("Attempting to refresh Mensa XML data from %s", XML_SOURCE_URL)
-    xml_source = XML_SOURCE_URL
     try:
         with app.app_context():
-            logger.info("Refresh step 1/2: loading parsed Mensa XML into database")
-            load_success = load_xml_data_to_db(xml_source)
-            if load_success:
-                logger.info(
-                    "Successfully loaded XML data into database during refresh."
-                )
-            else:
-                logger.error("Failed to load XML data into database during refresh.")
-
-            logger.info("Refresh step 2/2: parsing Mensa XML into application memory")
-            current_mensa_data = parse_mensa_data(xml_source)
+            logger.info("Refresh step 1/2: parsing Mensa XML once")
+            current_mensa_data = parse_mensa_data(XML_SOURCE_URL)
             current_available_mensen = get_available_mensen(current_mensa_data)
             current_available_dates = get_available_dates(current_mensa_data)
             current_menu_items = sum(
@@ -317,6 +314,17 @@ def refresh_mensa_xml_data():
                 and current_available_mensen
                 and current_available_dates
             ):
+                logger.info("Refresh step 2/2: loading parsed Mensa XML into database")
+                load_success = load_parsed_mensa_data_to_db(current_mensa_data)
+                if load_success:
+                    logger.info(
+                        "Successfully loaded XML data into database during refresh."
+                    )
+                else:
+                    logger.error(
+                        "Failed to load XML data into database during refresh."
+                    )
+
                 mensa_data = current_mensa_data
                 available_mensen = current_available_mensen
                 available_dates = current_available_dates
@@ -326,20 +334,26 @@ def refresh_mensa_xml_data():
                     len(available_dates),
                     current_menu_items,
                 )
-            else:
-                logger.warning(
-                    "Mensa XML parsing during refresh yielded no/incomplete data. In-memory data not updated."
+                logger.info(
+                    "Mensa XML refresh finished in %.2f seconds",
+                    time.time() - refresh_start,
                 )
+                return load_success
 
+            logger.warning(
+                "Mensa XML parsing during refresh yielded no/incomplete data. In-memory data not updated."
+            )
             logger.info(
-                "Mensa XML refresh finished in %.2f seconds",
+                "Mensa XML refresh finished without in-memory update in %.2f seconds",
                 time.time() - refresh_start,
             )
-            return True
+            return False
     except Exception as e:
         logger.error(f"Error during Mensa XML data refresh: {e}")
         logger.error(traceback.format_exc())
         return False
+    finally:
+        _mensa_refresh_lock.release()
 
 
 def batch_calculate_mps_scores():
@@ -464,6 +478,41 @@ def perform_initial_app_loads():
     with app.app_context():
         refresh_mensa_xml_data()
     logger.info("Initial application data loads completed.")
+
+
+def run_menu_refresh_scheduler():
+    """Refresh visible menu data on a low-load schedule."""
+    logger.info("Background Mensa menu refresh scheduler started.")
+    while True:
+        delay_seconds = calculate_menu_refresh_delay_seconds()
+        logger.info(
+            "Next scheduled Mensa XML refresh in %s seconds.",
+            delay_seconds,
+        )
+        time.sleep(delay_seconds)
+
+        scheduled_start = time.time()
+        logger.info("Starting scheduled Mensa XML refresh.")
+        refresh_success = refresh_mensa_xml_data()
+        logger.info(
+            "Scheduled Mensa XML refresh finished: success=%s duration=%.2fs",
+            refresh_success,
+            time.time() - scheduled_start,
+        )
+
+
+def start_menu_refresh_scheduler():
+    global _menu_refresh_thread
+    if _menu_refresh_thread and _menu_refresh_thread.is_alive():
+        logger.info("Background Mensa menu refresh scheduler is already running.")
+        return
+
+    _menu_refresh_thread = threading.Thread(
+        target=run_menu_refresh_scheduler,
+        name="mensa-menu-refresh-scheduler",
+        daemon=True,
+    )
+    _menu_refresh_thread.start()
 
 
 def run_startup_mps_calculation():
@@ -592,7 +641,7 @@ with app.app_context():  # Needed for db.create_all() and initial loads
 
     # Initialize the database within the app context
     db.init_app(app)
-    logger.info("Startup step 1/4: SQLAlchemy initialized within app context.")
+    logger.info("Startup step 1/6: SQLAlchemy initialized within app context.")
 
     # Initialize global data structures that will be populated by refresh functions
     mensa_data = {}  # Populated by refresh_mensa_xml_data
@@ -601,20 +650,23 @@ with app.app_context():  # Needed for db.create_all() and initial loads
 
     # Create database tables and perform initial data loads
     # No longer need a nested context here as db is initialized in the outer one
-    logger.info("Startup step 2/5: creating database tables if needed.")
+    logger.info("Startup step 2/6: creating database tables if needed.")
     db.create_all()
     logger.info("Database tables created (if not exist).")
     ensure_application_schema(db)
     logger.info("Application schema ensured.")
 
     # Perform initial loads needed *by the app* itself
-    logger.info("Startup step 3/5: loading Mensa XML data.")
+    logger.info("Startup step 3/6: loading Mensa XML data.")
     perform_initial_app_loads()  # This now only loads Mensa XML
 
+    logger.info("Startup step 4/6: starting lunch-window menu refresh scheduler.")
+    start_menu_refresh_scheduler()
+
     # Calculate MPS scores for any meals that don't have them yet
-    logger.info("Startup step 4/5: scheduling missing MPS score calculation.")
+    logger.info("Startup step 5/6: scheduling missing MPS score calculation.")
     start_mps_calculation_after_startup()
-    logger.info("Startup step 5/5: scheduling missing meal translation fetch.")
+    logger.info("Startup step 6/6: scheduling missing meal translation fetch.")
     start_translation_fetch_after_startup()
 
     logger.info(
@@ -631,8 +683,7 @@ def index():
     language = resolve_language(request)
     texts = get_translations(language)
 
-    # Data (`mensa_data`, `available_mensen`, `available_dates`) is loaded at startup
-    # and refreshed periodically by the background scheduler.
+    # Data is loaded at startup and refreshed by the lunch-window scheduler.
 
     # Increment the page view counter (with error handling)
     try:

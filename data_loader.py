@@ -51,6 +51,33 @@ def load_xml_data_to_db(xml_source):
             logger.error("No data was parsed from the XML source")
             return False
 
+        return load_parsed_mensa_data_to_db(mensa_data, overall_start=overall_start)
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error loading XML data to database: {e}")
+        # It's helpful to see the stack trace for unexpected errors during loading
+        logger.error(traceback.format_exc())
+        return False
+
+
+def load_parsed_mensa_data_to_db(mensa_data, overall_start=None):
+    """
+    Load already-parsed Mensa XML data into the database.
+
+    This is used by the app refresh path so one XML download/parse can update both
+    persistent rows and the in-memory dashboard menu.
+    """
+    import time
+
+    if overall_start is None:
+        overall_start = time.time()
+
+    if not mensa_data:
+        logger.error("No parsed Mensa data was provided for database load")
+        return False
+
+    try:
         total_mensen = len(mensa_data)
         total_dates = sum(len(dates) for dates in mensa_data.values())
         total_menu_items = sum(
@@ -282,7 +309,7 @@ def load_xml_data_to_db(xml_source):
             invalid_date_count,
         )
         logger.info(
-            f"Total load_xml_data_to_db duration: {overall_duration:.2f} seconds"
+            f"Total parsed Mensa database load duration: {overall_duration:.2f} seconds"
         )
 
         return True

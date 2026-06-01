@@ -622,6 +622,11 @@ body {
     gap: 0.65rem;
 }
 
+.comment-form .form-control::placeholder {
+    color: var(--control-muted);
+    opacity: 1;
+}
+
 .comment-rating-group {
     display: inline-flex;
     gap: 0.35rem;
