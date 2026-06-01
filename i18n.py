@@ -413,7 +413,14 @@ def resolve_language(req=None):
     query_language = req.args.get("lang")
     if query_language:
         return normalize_language(query_language)
-    return normalize_language(req.cookies.get(LANGUAGE_COOKIE_NAME))
+    cookie_language = req.cookies.get(LANGUAGE_COOKIE_NAME)
+    if cookie_language:
+        return normalize_language(cookie_language)
+    browser_language = req.accept_languages.best_match(
+        sorted(SUPPORTED_LANGUAGES),
+        default=DEFAULT_LANGUAGE,
+    )
+    return normalize_language(browser_language)
 
 
 def get_translations(language):

@@ -26,10 +26,21 @@ class DummyArgs:
         return self.values.get(key)
 
 
+class DummyAcceptLanguages:
+    def __init__(self, match=None):
+        self.match = match
+
+    def best_match(self, supported, default=None):
+        if self.match in supported:
+            return self.match
+        return default
+
+
 class DummyRequest:
-    def __init__(self, args=None, cookies=None):
+    def __init__(self, args=None, cookies=None, browser_language=None):
         self.args = DummyArgs(args or {})
         self.cookies = cookies or {}
+        self.accept_languages = DummyAcceptLanguages(browser_language)
 
 
 class DummyMeal:
@@ -46,6 +57,14 @@ class I18nTest(unittest.TestCase):
     def test_resolve_language_defaults_for_unknown_language(self):
         request = DummyRequest(args={"lang": "fr"})
         self.assertEqual(resolve_language(request), DEFAULT_LANGUAGE)
+
+    def test_resolve_language_uses_browser_preference_without_cookie(self):
+        request = DummyRequest(browser_language="en")
+        self.assertEqual(resolve_language(request), "en")
+
+    def test_resolve_language_cookie_over_browser_preference(self):
+        request = DummyRequest(cookies={"language": "de"}, browser_language="en")
+        self.assertEqual(resolve_language(request), "de")
 
     def test_meal_display_uses_english_with_german_fallback(self):
         self.assertEqual(
