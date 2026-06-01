@@ -2,13 +2,17 @@ import os
 import unittest
 from unittest.mock import patch
 
+from flask import Flask
+
 from i18n import (
     DEFAULT_LANGUAGE,
     format_date_for_language,
     get_marking_info,
     get_meal_display_name,
     get_recommendation_prompt,
+    get_translations,
     resolve_language,
+    set_language_cookie,
     translate_nutrient_label,
     translate_nutrient_value,
 )
@@ -69,8 +73,29 @@ class I18nTest(unittest.TestCase):
         self.assertEqual(marking_info["f"]["dark_emoji"], "🦈")
         self.assertEqual(
             marking_info["q"]["dark_images"],
-            ["/static/img/volkswagen_logo_2019.svg"],
+            [
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Coat_of_arms_of_Saxony.svg/960px-Coat_of_arms_of_Saxony.svg.png"
+            ],
         )
+
+    def test_metadata_translations_exist_for_all_languages(self):
+        for language in ("de", "en"):
+            texts = get_translations(language)
+            self.assertTrue(texts["meta_description"])
+            self.assertTrue(texts["llms_summary"])
+            self.assertTrue(texts["app_short_name"])
+
+    def test_language_cookie_has_privacy_attributes(self):
+        app = Flask(__name__)
+        with app.test_request_context("/", base_url="https://example.test"):
+            response = app.response_class("")
+            set_language_cookie(response, "en")
+
+        cookie = response.headers["Set-Cookie"]
+        self.assertIn("language=en", cookie)
+        self.assertIn("HttpOnly", cookie)
+        self.assertIn("Secure", cookie)
+        self.assertIn("SameSite=Lax", cookie)
 
     def test_persona_recommendation_prompt_language_selection(self):
         with patch.dict(os.environ, {}, clear=True):

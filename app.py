@@ -17,6 +17,8 @@ import time
 import traceback
 import uuid
 from datetime import date, datetime
+from urllib.parse import urlencode
+from xml.sax.saxutils import escape as xml_escape
 
 import markdown2
 import requests
@@ -24,6 +26,7 @@ from dotenv import load_dotenv
 
 from flask import (
     Flask,
+    Response,
     jsonify,
     make_response,
     render_template,
@@ -37,6 +40,7 @@ from data_loader import load_xml_data_to_db
 from fetch_meal_translations import fetch_meal_translations
 from i18n import (
     DEFAULT_LANGUAGE,
+    SUPPORTED_LANGUAGES,
     format_date_for_language,
     get_marking_info,
     get_meal_display_name,
@@ -155,6 +159,53 @@ logger.info(f"Logging initialized. Log file at: {log_file_path}")
 XML_SOURCE_URL = (
     "https://www.studentenwerk-hannover.de/fileadmin/user_upload/Speiseplan/SP-UTF8.xml"
 )
+SITE_URL = os.environ.get("SITE_URL", "").strip().rstrip("/")
+CLIENT_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+
+def get_site_origin():
+    if SITE_URL:
+        return SITE_URL
+    return request.url_root.rstrip("/")
+
+
+def absolute_site_url(path="/"):
+    path = path or "/"
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return f"{get_site_origin()}{path}"
+
+
+def build_index_path(language=DEFAULT_LANGUAGE, selected_date=None, selected_mensa=None):
+    params = {"lang": normalize_language(language)}
+    if selected_date:
+        params["date"] = selected_date
+    if selected_mensa:
+        params["mensa"] = selected_mensa
+    return f"/?{urlencode(params)}"
+
+
+def build_index_url(language=DEFAULT_LANGUAGE, selected_date=None, selected_mensa=None):
+    return absolute_site_url(
+        build_index_path(
+            language=language,
+            selected_date=selected_date,
+            selected_mensa=selected_mensa,
+        )
+    )
+
+
+def set_client_id_cookie(response, client_id):
+    response.set_cookie(
+        "client_id",
+        client_id,
+        max_age=CLIENT_ID_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=request.is_secure,
+        samesite="Lax",
+    )
+    return response
+
 
 def env_flag(name, default=False):
     value = os.environ.get(name)
@@ -190,6 +241,32 @@ app.wsgi_app = ProxyFix(
     x_host=1,  # Number of proxies handling host headers
     x_prefix=1,  # Number of proxies handling path prefix
 )
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    )
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: https://upload.wikimedia.org; "
+        "font-src 'self' data: https://cdnjs.cloudflare.com; "
+        "connect-src 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+        "frame-ancestors 'none'",
+    )
+    return response
+
 
 # Configure the database from DATABASE_URL.
 database_url = os.environ.get("DATABASE_URL")
@@ -742,6 +819,21 @@ def index():
                 marking_info=get_marking_info(language),
                 language=language,
                 texts=texts,
+                meta_description=texts["meta_description"],
+                canonical_url=build_index_url(
+                    language=language,
+                    selected_date=selected_date,
+                    selected_mensa=selected_mensa,
+                ),
+                alternate_urls={
+                    supported_language: build_index_url(
+                        language=supported_language,
+                        selected_date=selected_date,
+                        selected_mensa=selected_mensa,
+                    )
+                    for supported_language in sorted(SUPPORTED_LANGUAGES)
+                },
+                og_image_url=absolute_site_url("/static/img/caner.png"),
             )
         )
         set_language_cookie(response, language)
@@ -760,6 +852,157 @@ def index():
             "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
             500,
         )
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    content = "\n".join(
+        [
+            "User-agent: *",
+            "Allow: /",
+            f"Sitemap: {absolute_site_url('/sitemap.xml')}",
+            f"LLMs: {absolute_site_url('/llms.txt')}",
+            "",
+        ]
+    )
+    return Response(content, content_type="text/plain; charset=utf-8")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    lastmod = date.today().isoformat()
+    language_urls = {
+        language: build_index_url(language=language)
+        for language in sorted(SUPPORTED_LANGUAGES)
+    }
+
+    def url_entry(location, include_alternates=False):
+        alternates = ""
+        if include_alternates:
+            alternates = "\n".join(
+                "    "
+                f'<xhtml:link rel="alternate" hreflang="{language}" '
+                f'href="{xml_escape(url)}" />'
+                for language, url in language_urls.items()
+            )
+        return "\n".join(
+            [
+                "  <url>",
+                f"    <loc>{xml_escape(location)}</loc>",
+                f"    <lastmod>{lastmod}</lastmod>",
+                alternates,
+                "  </url>",
+            ]
+        )
+
+    entries = [
+        url_entry(absolute_site_url("/"), include_alternates=True),
+        *[
+            url_entry(location, include_alternates=True)
+            for location in language_urls.values()
+        ],
+        url_entry(absolute_site_url("/llms.txt")),
+        url_entry(absolute_site_url("/llms-full.txt")),
+    ]
+    xml = "\n".join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+            '        xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+            *entries,
+            "</urlset>",
+            "",
+        ]
+    )
+    return Response(xml, content_type="application/xml; charset=utf-8")
+
+
+def build_llms_text(full=False):
+    default_texts = get_translations(DEFAULT_LANGUAGE)
+    lines = [
+        "# Das Caner",
+        "",
+        f"> {default_texts['llms_summary']}",
+        "",
+        "## Primary Content",
+        "",
+        (
+            f"- [{default_texts['llms_primary_content']}]"
+            f"({build_index_url(DEFAULT_LANGUAGE)})"
+        ),
+        "",
+        "## Machine-Readable Endpoints",
+        "",
+        f"- [Sitemap]({absolute_site_url('/sitemap.xml')})",
+        f"- [Full LLM context]({absolute_site_url('/llms-full.txt')})",
+        "",
+        "## Notes",
+        "",
+        f"- {default_texts['llms_language_note']}",
+        f"- {default_texts['llms_data_note']}",
+    ]
+
+    if full:
+        lines.extend(["", "## Localised Summaries", ""])
+        for language in sorted(SUPPORTED_LANGUAGES):
+            texts = get_translations(language)
+            lines.extend(
+                [
+                    f"### {language}",
+                    "",
+                    texts["llms_summary"],
+                    "",
+                    f"- {texts['llms_primary_content']}: {build_index_url(language)}",
+                    f"- {texts['llms_language_note']}",
+                    f"- {texts['llms_data_note']}",
+                    "",
+                ]
+            )
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+@app.route("/llms.txt")
+def llms_txt():
+    return Response(
+        build_llms_text(full=False),
+        content_type="text/plain; charset=utf-8",
+    )
+
+
+@app.route("/llms-full.txt")
+def llms_full_txt():
+    return Response(
+        build_llms_text(full=True),
+        content_type="text/plain; charset=utf-8",
+    )
+
+
+@app.route("/site.webmanifest")
+def site_webmanifest():
+    texts = get_translations(DEFAULT_LANGUAGE)
+    manifest = {
+        "name": texts["app_title"],
+        "short_name": texts["app_short_name"],
+        "description": texts["meta_description"],
+        "start_url": build_index_path(DEFAULT_LANGUAGE),
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#ffcc00",
+        "theme_color": "#ff3333",
+        "icons": [
+            {
+                "src": "/static/img/caner.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable",
+            }
+        ],
+    }
+    return Response(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        content_type="application/manifest+json; charset=utf-8",
+    )
 
 
 @app.template_filter("format_date")
@@ -1329,7 +1572,7 @@ def vote():
     response = make_response(jsonify({"message": message, "votes": vote_counts}))
 
     # Set client ID cookie (expires in 1 year)
-    response.set_cookie("client_id", client_id, max_age=60 * 60 * 24 * 365)
+    set_client_id_cookie(response, client_id)
 
     return response
 
@@ -1355,7 +1598,7 @@ def get_votes(meal_id):
 
     # Set client ID cookie if new
     if not request.cookies.get("client_id"):
-        response.set_cookie("client_id", client_id, max_age=60 * 60 * 24 * 365)
+        set_client_id_cookie(response, client_id)
 
     return response
 
@@ -1455,7 +1698,7 @@ def create_comment():
             }
         )
     )
-    response.set_cookie("client_id", client_id, max_age=60 * 60 * 24 * 365)
+    set_client_id_cookie(response, client_id)
     return response, 201
 
 

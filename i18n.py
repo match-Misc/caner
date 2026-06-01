@@ -11,6 +11,34 @@ LANGUAGE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 TRANSLATIONS = {
     "de": {
         "app_title": "Das Caner - Mensa LUH",
+        "meta_description": (
+            "Das Caner vergleicht die Speisepläne der LUH-Mensen nach "
+            "Energie pro Euro, Preisen, Nährwerten, Kommentaren und "
+            "Empfehlungen."
+        ),
+        "og_site_name": "Das Caner",
+        "app_short_name": "Caner",
+        "llms_summary": (
+            "Das Caner ist eine deutsch- und englischsprachige Web-App für "
+            "LUH-Mensen. Sie zeigt aktuelle Speisepläne, sortiert Gerichte "
+            "nach Caner-Wert (Energie pro Euro), ergänzt Nährwerte, "
+            "Kommentare, Stimmen und optionale KI-Empfehlungen."
+        ),
+        "llms_primary_content": "Aktuelle Mensa-Gerichte, Preise und Caner-Werte",
+        "llms_language_note": "Verfügbare Sprachen: Deutsch und Englisch.",
+        "llms_data_note": (
+            "Die Speiseplandaten stammen vom Studentenwerk Hannover und "
+            "werden beim Start der Anwendung geladen."
+        ),
+        "vote_up": "Positiv bewerten",
+        "vote_down": "Negativ bewerten",
+        "date_picker_label": "Datum auswählen",
+        "price_type_label": "Preistyp",
+        "display_settings": "Anzeigeeinstellungen",
+        "language": "Sprache",
+        "dark_mode_toggle": "Hell- und Dunkelmodus umschalten",
+        "home_link": "Zur Startseite",
+        "close": "Schließen",
         "header_description_desktop": (
             "Das Caner, auch kurz Cnr, wurde im Zuge einer ausgiebigen "
             "Recherche und der dringenden Notwendigkeit zur "
@@ -108,6 +136,33 @@ TRANSLATIONS = {
     },
     "en": {
         "app_title": "Das Caner - LUH Mensa",
+        "meta_description": (
+            "Das Caner compares LUH mensa menus by food energy per euro, "
+            "prices, nutrition, comments, votes, and recommendations."
+        ),
+        "og_site_name": "Das Caner",
+        "app_short_name": "Caner",
+        "llms_summary": (
+            "Das Caner is a German and English web app for LUH mensas. It "
+            "shows current menus, ranks meals by Caner value (food energy per "
+            "euro), and adds nutrition, comments, votes, and optional AI "
+            "recommendations."
+        ),
+        "llms_primary_content": "Current mensa meals, prices, and Caner scores",
+        "llms_language_note": "Available languages: German and English.",
+        "llms_data_note": (
+            "Menu data comes from Studentenwerk Hannover and is loaded when "
+            "the application starts."
+        ),
+        "vote_up": "Upvote",
+        "vote_down": "Downvote",
+        "date_picker_label": "Select date",
+        "price_type_label": "Price type",
+        "display_settings": "Display settings",
+        "language": "Language",
+        "dark_mode_toggle": "Toggle light and dark mode",
+        "home_link": "Home",
+        "close": "Close",
         "header_description_desktop": (
             "Das Caner, also known as Cnr, was introduced in 2021 after "
             "extensive research and the urgent need for resource-efficient "
@@ -390,7 +445,9 @@ def get_marking_info(language):
         "q": {
             "title": titles["q"],
             "images": ["/static/img/nds.png"],
-            "dark_images": ["/static/img/volkswagen_logo_2019.svg"],
+            "dark_images": [
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Coat_of_arms_of_Saxony.svg/960px-Coat_of_arms_of_Saxony.svg.png"
+            ],
         },
     }
 
@@ -404,10 +461,20 @@ def get_meal_display_name(meal, language):
 
 
 def set_language_cookie(response, language):
+    secure = False
+    try:
+        from flask import request
+
+        secure = request.is_secure
+    except RuntimeError:
+        secure = False
+
     response.set_cookie(
         LANGUAGE_COOKIE_NAME,
         normalize_language(language),
         max_age=LANGUAGE_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=secure,
         samesite="Lax",
     )
     return response

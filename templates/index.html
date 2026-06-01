@@ -31,12 +31,12 @@
   {% if show_controls %}
     <div class="selectors-row-mobile d-flex justify-content-between align-items-center mb-2">
       <div class="d-flex align-items-center control-group">
-        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}"><i class="fas fa-chevron-left"></i></a>
-        <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}" aria-label="{{ texts.previous_day }}"><i class="fas fa-chevron-left" aria-hidden="true"></i></a>
+        <input type="text" name="date" id="date-mobile" class="form-control form-control-sm" value="{{ selected_date }}" readonly aria-label="{{ texts.date_picker_label }}">
       </div>
       <div class="d-flex align-items-center control-group">
         {{ selectors(mensa, "date-mobile", "mensa-mobile") }}
-        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}"><i class="fas fa-chevron-right"></i></a>
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}" aria-label="{{ texts.next_day }}"><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
       </div>
     </div>
   {% endif %}
@@ -44,8 +44,8 @@
   <h2 class="mensa-title-desktop d-flex align-items-center justify-content-between">
     {% if show_controls %}
       <div class="d-flex align-items-center mensa-title-control mensa-title-control-left">
-        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}"><i class="fas fa-chevron-left"></i></a>
-        <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly>
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="prev" title="{{ texts.previous_day }}" aria-label="{{ texts.previous_day }}"><i class="fas fa-chevron-left" aria-hidden="true"></i></a>
+        <input type="text" name="date" id="date" class="form-control form-control-sm" value="{{ selected_date }}" readonly aria-label="{{ texts.date_picker_label }}">
       </div>
     {% endif %}
     <span class="mensa-name-and-emoji-wrapper text-center">
@@ -54,7 +54,7 @@
     {% if show_controls %}
       <div class="d-flex align-items-center mensa-title-control mensa-title-control-right">
         {{ selectors(mensa, "date", "mensa") }}
-        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}"><i class="fas fa-chevron-right"></i></a>
+        <a href="#" role="button" class="btn btn-sm btn-outline-secondary date-nav-arrow" data-direction="next" title="{{ texts.next_day }}" aria-label="{{ texts.next_day }}"><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
       </div>
     {% endif %}
   </h2>
@@ -188,16 +188,16 @@
   <div class="food-markings-row meal-action-row">
     {{ meal.marking|get_dietary_info(language)|safe }}
     {% if meal.nutritional_values %}
-      <span class="nutrient-info-trigger" data-bs-toggle="popover" data-bs-trigger="click" data-bs-placement="top" data-bs-html="true" data-bs-content="{{ meal.nutritional_values|format_nutritional_values(language)|safe }}" title="{{ texts.nutritional_values }}" style="cursor: help;">
-        <i class="fas fa-info-circle text-info"></i>
+      <span class="nutrient-info-trigger" data-bs-toggle="popover" data-bs-trigger="click" data-bs-placement="top" data-bs-html="true" data-bs-content="{{ meal.nutritional_values|format_nutritional_values(language)|safe }}" title="{{ texts.nutritional_values }}" style="cursor: help;" role="button" tabindex="0" aria-label="{{ texts.nutritional_values }}">
+        <i class="fas fa-info-circle text-info" aria-hidden="true"></i>
       </span>
     {% endif %}
     <div class="vote-controls" data-meal-id="{{ meal.id }}">
-      <button class="btn btn-sm vote-btn upvote-btn" title="Upvote">
-        <i class="fas fa-thumbs-up"></i> <span class="upvote-count">0</span>
+      <button class="btn btn-sm vote-btn upvote-btn" type="button" title="{{ texts.vote_up }}" aria-label="{{ texts.vote_up }}">
+        <i class="fas fa-thumbs-up" aria-hidden="true"></i> <span class="upvote-count">0</span>
       </button>
-      <button class="btn btn-sm vote-btn downvote-btn" title="Downvote">
-        <i class="fas fa-thumbs-down"></i> <span class="downvote-count">0</span>
+      <button class="btn btn-sm vote-btn downvote-btn" type="button" title="{{ texts.vote_down }}" aria-label="{{ texts.vote_down }}">
+        <i class="fas fa-thumbs-down" aria-hidden="true"></i> <span class="downvote-count">0</span>
       </button>
     </div>
     <button type="button"
@@ -242,7 +242,7 @@
 {% endmacro %}
 
 {% macro mobile_price_selector() %}
-  <div class="mobile-price-selector" role="group" aria-label="Price type">
+  <div class="mobile-price-selector" role="group" aria-label="{{ texts.price_type_label }}">
     <button type="button" class="mobile-price-selector-button active" data-price-type="student" aria-pressed="true">{{ texts.students }}</button>
     <button type="button" class="mobile-price-selector-button" data-price-type="employee" aria-pressed="false">{{ texts.employees }}</button>
     <button type="button" class="mobile-price-selector-button" data-price-type="guest" aria-pressed="false">{{ texts.guests }}</button>
@@ -335,7 +335,7 @@
       <div class="recommendation-modal-overlay" id="recommendationPopupOverlay">
         <div class="recommendation-modal-header">
           <h5 class="modal-title" id="recommendationPopupModalLabel">{{ texts.request_recommendation_title }}</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ texts.close }}"></button>
         </div>
         <div class="recommendation-form">
           <label class="form-label" for="recommendationRecommenderDropdown">{{ texts.recommendation_person_label }}</label>
