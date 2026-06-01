@@ -448,7 +448,7 @@ def get_marking_info(language):
         "a": {"emoji": "🍺", "dark_emoji": "🍾", "title": titles["a"]},
         "26": {"emoji": "🥛", "dark_emoji": "🍼", "title": titles["26"]},
         "22": {"emoji": "🥚", "dark_emoji": "🍳", "title": titles["22"]},
-        "20a": {"emoji": "🌾", "dark_emoji": "🌱", "title": titles["20a"]},
+        "20a": {"emoji": "🌾", "dark_emoji": "🍟", "title": titles["20a"]},
         "q": {
             "title": titles["q"],
             "images": ["/static/img/nds.png"],
