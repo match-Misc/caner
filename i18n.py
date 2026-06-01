@@ -439,8 +439,8 @@ def get_marking_info(language):
     language = normalize_language(language)
     titles = DIETARY_TITLES[language]
     return {
-        "v": {"emoji": "🥕", "dark_emoji": "🤢", "title": titles["v"]},
-        "x": {"emoji": "🌈", "dark_emoji": "🤮", "title": titles["x"]},
+        "v": {"emoji": "🌿", "dark_emoji": "🤢", "title": titles["v"]},
+        "x": {"emoji": "🌱", "dark_emoji": "🤮", "title": titles["x"]},
         "g": {"emoji": "🐔", "dark_emoji": "🦅", "title": titles["g"]},
         "s": {"emoji": "🐷", "dark_emoji": "🐗", "title": titles["s"]},
         "f": {"emoji": "🐟", "dark_emoji": "🦈", "title": titles["f"]},

@@ -68,15 +68,15 @@
 
 {% macro dietary_legend() %}
   {% if marking_info %}
-    <div class="mt-2" style="font-size: 0.8em;">
+    <div class="dietary-legend mt-2">
       <div class="d-flex flex-wrap justify-content-center gap-2">
         {% for code, info in marking_info.items() %}
-          <span class="d-inline-flex align-items-center" style="font-size: 0.8em;" title="{{ info.title }}">
+          <span class="dietary-legend-item d-inline-flex align-items-center" title="{{ info.title }}">
             {% if info.get("emoji") %}
-              <span class="food-marking-light" style="font-size: 1.2em; margin-right: 0.2em;">{{ info.emoji }}</span>
+              <span class="dietary-legend-emoji food-marking-light">{{ info.emoji }}</span>
             {% endif %}
             {% if info.get("dark_emoji") %}
-              <span class="food-marking-dark" style="font-size: 1.2em; margin-right: 0.2em;">{{ info.dark_emoji }}</span>
+              <span class="dietary-legend-emoji food-marking-dark">{{ info.dark_emoji }}</span>
             {% endif %}
             {% if "images" in info %}
               {% for img in info.images %}
@@ -203,40 +203,12 @@
     <button type="button"
             class="btn btn-sm comment-toggle-btn"
             data-meal-id="{{ meal.id }}"
+            data-meal-title="{{ meal.display_description }}"
             title="{{ texts.show_comments }}"
-            aria-expanded="false">
+            aria-label="{{ texts.show_comments }}"
+            aria-haspopup="dialog">
       <i class="fas fa-comment" aria-hidden="true"></i>
       <span class="comment-count">0</span>
-    </button>
-  </div>
-  <div class="meal-comments-panel" data-meal-id="{{ meal.id }}" hidden>
-    <form class="comment-form">
-      <div class="comment-rating-group" role="group" aria-label="{{ texts.comments }}">
-        <button type="button" class="comment-rating-btn active" data-rating="good" aria-pressed="true">
-          <i class="fas fa-thumbs-up" aria-hidden="true"></i>
-          {{ texts.comment_good }}
-        </button>
-        <button type="button" class="comment-rating-btn" data-rating="bad" aria-pressed="false">
-          <i class="fas fa-thumbs-down" aria-hidden="true"></i>
-          {{ texts.comment_bad }}
-        </button>
-      </div>
-      <input type="text"
-             class="form-control form-control-sm comment-name-input"
-             maxlength="80"
-             placeholder="{{ texts.comment_name_placeholder }}">
-      <textarea class="form-control form-control-sm comment-text-input"
-                maxlength="1000"
-                rows="2"
-                placeholder="{{ texts.comment_text_placeholder }}"></textarea>
-      <button type="submit" class="btn btn-sm btn-theme-primary comment-submit-btn">
-        <i class="fas fa-paper-plane" aria-hidden="true"></i>
-        {{ texts.submit_comment }}
-      </button>
-    </form>
-    <div class="comment-list" aria-live="polite"></div>
-    <button type="button" class="btn btn-sm comment-load-more-btn d-none">
-      {{ texts.load_more_comments }}
     </button>
   </div>
 {% endmacro %}
@@ -328,6 +300,47 @@
   <span class="recommendation-trigger-emoji recommendation-fab-badge" aria-hidden="true">{{ mensa_emojis.get(selected_mensa, "🍽️") }}</span>
   <span class="recommendation-trigger-label">{{ texts.recommendation }}</span>
 </button>
+
+<div id="commentPopupModal" class="modal fade" tabindex="-1" aria-labelledby="commentPopupModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content comment-modal-content">
+      <div class="modal-header comment-modal-header">
+        <h5 class="modal-title" id="commentPopupModalLabel">{{ texts.comments }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ texts.close }}"></button>
+      </div>
+      <div class="modal-body comment-modal-body">
+        <form class="comment-form" id="commentPopupForm">
+          <div class="comment-rating-group" role="group" aria-label="{{ texts.comments }}">
+            <button type="button" class="comment-rating-btn active" data-rating="good" aria-pressed="true">
+              <i class="fas fa-thumbs-up" aria-hidden="true"></i>
+              {{ texts.comment_good }}
+            </button>
+            <button type="button" class="comment-rating-btn" data-rating="bad" aria-pressed="false">
+              <i class="fas fa-thumbs-down" aria-hidden="true"></i>
+              {{ texts.comment_bad }}
+            </button>
+          </div>
+          <input type="text"
+                 class="form-control comment-name-input"
+                 maxlength="80"
+                 placeholder="{{ texts.comment_name_placeholder }}">
+          <textarea class="form-control comment-text-input"
+                    maxlength="1000"
+                    rows="3"
+                    placeholder="{{ texts.comment_text_placeholder }}"></textarea>
+          <button type="submit" class="btn btn-theme-primary comment-submit-btn">
+            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            {{ texts.submit_comment }}
+          </button>
+        </form>
+        <div class="comment-list" id="commentPopupList" aria-live="polite"></div>
+        <button type="button" class="btn comment-load-more-btn d-none" id="commentPopupLoadMore">
+          {{ texts.load_more_comments }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="recommendationPopupModal" class="modal fade" tabindex="-1" aria-labelledby="recommendationPopupModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

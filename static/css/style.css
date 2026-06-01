@@ -447,6 +447,24 @@ body {
 }
 
 /* Food Markings */
+.dietary-legend {
+    font-size: 0.85em;
+}
+
+.dietary-legend-item {
+    font-size: 0.85em;
+}
+
+.dietary-legend-emoji {
+    font-size: 1.25em;
+    line-height: 1;
+    margin-right: 0.2em;
+}
+
+.dietary-legend .food-marking-img {
+    height: 1.55em;
+}
+
 .food-marking {
     display: inline-block;
     font-size: 1.2rem;
@@ -568,19 +586,40 @@ body {
     transform: scale(1.12);
 }
 
-.meal-comments-panel {
-    background-color: var(--bg-nutrient-card);
+.comment-modal-content {
+    background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
     color: var(--text-dark);
-    margin-top: 0.5rem;
-    padding: 0.65rem;
-    text-align: left;
+    overflow: hidden;
+}
+
+.comment-modal-header {
+    background-color: var(--theme-action-hover-bg);
+    border-bottom: 0;
+    color: #ffffff;
+}
+
+.comment-modal-header .modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.comment-modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.9;
+}
+
+.comment-modal-body {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    padding: 1rem;
 }
 
 .comment-form {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.65rem;
 }
 
 .comment-rating-group {
@@ -599,29 +638,30 @@ body {
     gap: 0.35rem;
     justify-content: center;
     padding: 0.25rem 0.5rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .comment-rating-btn.active[data-rating="good"] {
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: #1f7a4d;
+    border-color: #1f7a4d;
     color: #ffffff;
 }
 
 .comment-rating-btn.active[data-rating="bad"] {
-    background-color: #dc3545;
-    border-color: #dc3545;
+    background-color: var(--theme-action-hover-bg);
+    border-color: var(--theme-action-hover-bg);
     color: #ffffff;
 }
 
 [data-theme="dark"] .comment-rating-btn.active[data-rating="good"] {
-    background-color: #50fa7b;
-    border-color: #50fa7b;
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
     color: #191a21;
 }
 
 [data-theme="dark"] .comment-rating-btn.active[data-rating="bad"] {
-    background-color: #ff5555;
-    border-color: #ff5555;
+    background-color: var(--primary-red);
+    border-color: var(--primary-red);
     color: #191a21;
 }
 
@@ -632,14 +672,18 @@ body {
 .comment-list {
     display: grid;
     gap: 0.5rem;
-    margin-top: 0.65rem;
+    margin-top: 1rem;
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+    padding-right: 0.15rem;
 }
 
 .comment-item {
-    background-color: var(--bg-card);
+    background-color: var(--bg-nutrient-card);
     border-left: 4px solid var(--border-color);
     border-radius: 4px;
     padding: 0.5rem;
+    text-align: left;
 }
 
 .comment-item-good {
@@ -687,6 +731,7 @@ body {
 .comment-empty {
     color: var(--control-muted);
     margin: 0;
+    text-align: center;
 }
 
 .comment-translation-warning {
@@ -700,6 +745,25 @@ body {
     border: 1px solid var(--control-border);
     color: var(--control-text);
     margin-top: 0.65rem;
+    width: 100%;
+}
+
+.comment-load-more-btn:hover,
+.comment-load-more-btn:focus {
+    background-color: var(--control-hover-bg);
+    border-color: var(--primary-yellow);
+    color: var(--control-text);
+}
+
+[data-theme="dark"] .comment-modal-content,
+[data-theme="dark"] .comment-modal-body {
+    background-color: var(--bg-card);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .comment-modal-header {
+    background-color: var(--bg-header);
+    color: var(--primary-yellow);
 }
 
 /* Footer styles */

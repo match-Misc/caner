@@ -118,10 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
         selectPriceType('student');
     });
     
-    // Initialize meal voting system
-    initMealVoting();
-    initMealComments();
-    
     // Meal voting functionality
     function initMealVoting() {
         // Find all vote controls in the document
@@ -244,6 +240,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const commentModalElement = document.getElementById('commentPopupModal');
+    const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
+    const commentModalTitle = commentModalElement ? commentModalElement.querySelector('#commentPopupModalLabel') : null;
+    const commentForm = commentModalElement ? commentModalElement.querySelector('#commentPopupForm') : null;
+    const commentList = commentModalElement ? commentModalElement.querySelector('#commentPopupList') : null;
+    const commentLoadMoreBtn = commentModalElement ? commentModalElement.querySelector('#commentPopupLoadMore') : null;
+
     function createCommentElement(comment) {
         const item = document.createElement('article');
         item.className = `comment-item comment-item-${comment.rating}`;
@@ -301,44 +304,70 @@ document.addEventListener('DOMContentLoaded', function() {
         return item;
     }
 
-    function renderCommentList(panel, comments, append) {
-        const list = panel.querySelector('.comment-list');
-        if (!list) {
+    function renderCommentList(comments, append) {
+        if (!commentList) {
             return;
         }
         if (!append) {
-            list.replaceChildren();
+            commentList.replaceChildren();
         }
 
         if (!comments.length && !append) {
             const empty = document.createElement('p');
             empty.className = 'comment-empty';
             empty.textContent = getCommentText('no_comments', 'No comments yet.');
-            list.appendChild(empty);
+            commentList.appendChild(empty);
             return;
         }
 
-        const existingEmpty = list.querySelector('.comment-empty');
+        const existingEmpty = commentList.querySelector('.comment-empty');
         if (existingEmpty) {
             existingEmpty.remove();
         }
         comments.forEach(comment => {
-            list.appendChild(createCommentElement(comment));
+            commentList.appendChild(createCommentElement(comment));
         });
     }
 
-    function loadComments(panel, append) {
-        const mealId = panel.dataset.mealId;
-        const loadMoreBtn = panel.querySelector('.comment-load-more-btn');
-        const offset = append ? Number.parseInt(panel.dataset.loadedCount || '0', 10) : 0;
+    function loadCommentCount(mealId) {
+        const params = new URLSearchParams({
+            limit: '1',
+            offset: '0',
+            lang: getCommentLanguage()
+        });
+
+        fetch(`/api/comments/${mealId}?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                updateCommentCounts(mealId, data.count || 0);
+            })
+            .catch(error => {
+                console.error('Error loading comment count:', error);
+            });
+    }
+
+    function loadComments(append) {
+        if (!commentModalElement) {
+            return;
+        }
+        const mealId = commentModalElement.dataset.mealId;
+        if (!mealId) {
+            return;
+        }
+        const offset = append ? Number.parseInt(commentModalElement.dataset.loadedCount || '0', 10) : 0;
         const params = new URLSearchParams({
             limit: '5',
             offset: offset.toString(),
             lang: getCommentLanguage()
         });
 
-        if (loadMoreBtn) {
-            loadMoreBtn.disabled = true;
+        if (commentLoadMoreBtn) {
+            commentLoadMoreBtn.disabled = true;
         }
 
         fetch(`/api/comments/${mealId}?${params.toString()}`)
@@ -349,76 +378,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                renderCommentList(panel, data.comments || [], append);
+                renderCommentList(data.comments || [], append);
                 const loadedCount = append
                     ? offset + (data.comments || []).length
                     : (data.comments || []).length;
-                panel.dataset.loadedCount = loadedCount.toString();
+                commentModalElement.dataset.loadedCount = loadedCount.toString();
                 updateCommentCounts(mealId, data.count || 0);
-                if (loadMoreBtn) {
-                    loadMoreBtn.classList.toggle('d-none', !data.has_more);
+                if (commentLoadMoreBtn) {
+                    commentLoadMoreBtn.classList.toggle('d-none', !data.has_more);
                 }
             })
             .catch(error => {
                 console.error('Error loading comments:', error);
             })
             .finally(() => {
-                if (loadMoreBtn) {
-                    loadMoreBtn.disabled = false;
+                if (commentLoadMoreBtn) {
+                    commentLoadMoreBtn.disabled = false;
                 }
             });
     }
 
-    function setCommentRating(panel, rating) {
-        panel.querySelectorAll('.comment-rating-btn').forEach(button => {
+    function setCommentRating(scope, rating) {
+        if (!scope) {
+            return;
+        }
+        scope.querySelectorAll('.comment-rating-btn').forEach(button => {
             const isActive = button.dataset.rating === rating;
             button.classList.toggle('active', isActive);
             button.setAttribute('aria-pressed', isActive.toString());
         });
     }
 
-    function getCommentPanelFromToggle(toggle) {
-        const actionRow = toggle.closest('.meal-action-row');
-        if (!actionRow) {
-            return null;
+    function resetCommentForm() {
+        if (!commentForm) {
+            return;
         }
-        const panel = actionRow.nextElementSibling;
-        if (!panel || !panel.classList.contains('meal-comments-panel')) {
-            return null;
+        const nameInput = commentForm.querySelector('.comment-name-input');
+        const textInput = commentForm.querySelector('.comment-text-input');
+        if (nameInput) {
+            nameInput.value = '';
         }
-        return panel;
+        if (textInput) {
+            textInput.value = '';
+        }
+        setCommentRating(commentForm, 'good');
+    }
+
+    function openCommentPopup(toggle) {
+        if (!commentModal || !commentModalElement || !commentModalTitle || !commentList) {
+            console.error('Comment modal elements not found');
+            return;
+        }
+        const mealId = toggle.dataset.mealId || '';
+        if (!mealId) {
+            return;
+        }
+        const mealTitle = toggle.dataset.mealTitle || getCommentText('comments', 'Comments');
+        commentModalElement.dataset.mealId = mealId;
+        commentModalElement.dataset.loadedCount = '0';
+        commentModalTitle.textContent = mealTitle;
+        commentList.replaceChildren();
+        if (commentLoadMoreBtn) {
+            commentLoadMoreBtn.classList.add('d-none');
+        }
+        resetCommentForm();
+        loadComments(false);
+        commentModal.show();
     }
 
     function initMealComments() {
-        document.querySelectorAll('.meal-comments-panel').forEach(panel => {
-            setCommentRating(panel, 'good');
-            loadComments(panel, false);
+        if (commentForm) {
+            setCommentRating(commentForm, 'good');
 
-            panel.querySelectorAll('.comment-rating-btn').forEach(button => {
+            commentForm.querySelectorAll('.comment-rating-btn').forEach(button => {
                 button.addEventListener('click', function() {
-                    setCommentRating(panel, button.dataset.rating || 'good');
+                    setCommentRating(commentForm, button.dataset.rating || 'good');
                 });
             });
 
-            const loadMoreBtn = panel.querySelector('.comment-load-more-btn');
-            if (loadMoreBtn) {
-                loadMoreBtn.addEventListener('click', function() {
-                    loadComments(panel, true);
-                });
-            }
-
-            const form = panel.querySelector('.comment-form');
-            if (!form) {
-                return;
-            }
-            form.addEventListener('submit', function(event) {
+            commentForm.addEventListener('submit', function(event) {
                 event.preventDefault();
-                const submitBtn = form.querySelector('.comment-submit-btn');
-                const activeRating = form.querySelector('.comment-rating-btn.active');
-                const nameInput = form.querySelector('.comment-name-input');
-                const textInput = form.querySelector('.comment-text-input');
+                if (!commentModalElement || !commentModalElement.dataset.mealId) {
+                    return;
+                }
+                const submitBtn = commentForm.querySelector('.comment-submit-btn');
+                const activeRating = commentForm.querySelector('.comment-rating-btn.active');
+                const nameInput = commentForm.querySelector('.comment-name-input');
+                const textInput = commentForm.querySelector('.comment-text-input');
                 const payload = {
-                    meal_id: panel.dataset.mealId,
+                    meal_id: commentModalElement.dataset.mealId,
                     rating: activeRating ? activeRating.dataset.rating : 'good',
                     author_name: nameInput ? nameInput.value.trim() : '',
                     text: textInput ? textInput.value.trim() : '',
@@ -445,15 +493,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
-                    if (nameInput) {
-                        nameInput.value = '';
-                    }
-                    if (textInput) {
-                        textInput.value = '';
-                    }
-                    setCommentRating(panel, 'good');
-                    updateCommentCounts(panel.dataset.mealId, data.count || 0);
-                    loadComments(panel, false);
+                    resetCommentForm();
+                    updateCommentCounts(commentModalElement.dataset.mealId, data.count || 0);
+                    loadComments(false);
                 })
                 .catch(error => {
                     console.error('Error submitting comment:', error);
@@ -464,26 +506,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             });
-        });
+        }
 
+        if (commentLoadMoreBtn) {
+            commentLoadMoreBtn.addEventListener('click', function() {
+                loadComments(true);
+            });
+        }
+
+        const countedMealIds = new Set();
         document.querySelectorAll('.comment-toggle-btn').forEach(toggle => {
+            if (toggle.dataset.mealId && !countedMealIds.has(toggle.dataset.mealId)) {
+                countedMealIds.add(toggle.dataset.mealId);
+                loadCommentCount(toggle.dataset.mealId);
+            }
+
             toggle.addEventListener('click', function() {
-                const panel = getCommentPanelFromToggle(toggle);
-                if (!panel) {
-                    return;
-                }
-                const isOpening = panel.hidden;
-                panel.hidden = !isOpening;
-                toggle.setAttribute('aria-expanded', isOpening.toString());
-                toggle.title = isOpening
-                    ? getCommentText('hide_comments', 'Hide comments')
-                    : getCommentText('show_comments', 'Show comments');
-                if (isOpening) {
-                    loadComments(panel, false);
-                }
+                openCommentPopup(toggle);
             });
         });
     }
+
+    // Initialize meal voting and comments after their DOM helpers are ready.
+    initMealVoting();
+    initMealComments();
     
 
     // Expert Mode Toggle
