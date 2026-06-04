@@ -66,6 +66,12 @@ from mps_scoring import (
 )
 from models import Meal, MealComment, MealVote, PageView, db
 from schema import ensure_application_schema
+from studifutter import (
+    StudiFutterError,
+    directus_asset_api_url,
+    find_meal_image,
+    is_directus_file_id,
+)
 from utils.xml_parser import (
     dedupe_marking_codes,
     get_available_dates,
@@ -1751,6 +1757,71 @@ def create_comment():
     )
     set_client_id_cookie(response, client_id)
     return response, 201
+
+
+@app.route("/api/meal_image", methods=["GET"])
+def get_meal_image():
+    language = resolve_language(request)
+    texts = get_translations(language)
+    meal_id = request.args.get("meal_id", type=int)
+    mensa_name = (request.args.get("mensa") or "").strip()
+    selected_date = (request.args.get("date") or "").strip()
+
+    if not meal_id or not mensa_name or not selected_date:
+        return jsonify({"error": texts["api_invalid_meal_image_request"]}), 400
+
+    meal = db.session.get(Meal, meal_id)
+    if meal is None:
+        return jsonify({"error": texts["api_comment_meal_not_found"]}), 404
+
+    try:
+        image_result = find_meal_image(
+            meal.description,
+            mensa_name,
+            selected_date,
+        )
+    except ValueError:
+        return jsonify({"error": texts["api_invalid_meal_image_request"]}), 400
+    except (requests.RequestException, StudiFutterError) as e:
+        logger.warning("StudiFutter image lookup failed: %s", e)
+        return jsonify({"error": texts["api_meal_image_lookup_failed"]}), 502
+
+    if not image_result:
+        return jsonify(
+            {
+                "found": False,
+                "message": texts["meal_image_unavailable"],
+            }
+        )
+
+    return jsonify({"found": True, **image_result})
+
+
+@app.route("/api/studifutter/assets/<file_id>", methods=["GET"])
+def proxy_studifutter_asset(file_id):
+    if not is_directus_file_id(file_id):
+        return jsonify({"error": "Invalid asset id"}), 400
+
+    try:
+        upstream_response = requests.get(
+            directus_asset_api_url(file_id),
+            timeout=15,
+        )
+        upstream_response.raise_for_status()
+    except requests.RequestException as e:
+        logger.warning("StudiFutter asset proxy failed for %s: %s", file_id, e)
+        return jsonify({"error": "Unable to load asset"}), 502
+
+    content_type = upstream_response.headers.get("Content-Type", "")
+    if not content_type.lower().startswith("image/"):
+        return jsonify({"error": "Asset is not an image"}), 502
+
+    response = Response(
+        upstream_response.content,
+        content_type=content_type,
+    )
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
 
 
 def clean_recommendation_text(recommendation):

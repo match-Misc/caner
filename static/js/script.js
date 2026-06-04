@@ -246,6 +246,149 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentForm = commentModalElement ? commentModalElement.querySelector('#commentPopupForm') : null;
     const commentList = commentModalElement ? commentModalElement.querySelector('#commentPopupList') : null;
     const commentLoadMoreBtn = commentModalElement ? commentModalElement.querySelector('#commentPopupLoadMore') : null;
+    const mealImageModalElement = document.getElementById('mealImagePopupModal');
+    const mealImageModal = mealImageModalElement ? new bootstrap.Modal(mealImageModalElement) : null;
+    const mealImageModalTitle = mealImageModalElement ? mealImageModalElement.querySelector('#mealImagePopupModalLabel') : null;
+    const mealImageModalBody = mealImageModalElement ? mealImageModalElement.querySelector('#mealImagePopupBody') : null;
+
+    function setMealImageStatus(message, isError) {
+        if (!mealImageModalBody) {
+            return;
+        }
+        mealImageModalBody.replaceChildren();
+        const status = document.createElement('div');
+        status.className = isError ? 'meal-image-status text-danger' : 'meal-image-status text-muted';
+        status.textContent = message;
+        mealImageModalBody.appendChild(status);
+    }
+
+    function setMealImageLoading() {
+        if (!mealImageModalBody) {
+            return;
+        }
+        mealImageModalBody.replaceChildren();
+        const status = document.createElement('div');
+        status.className = 'meal-image-status text-muted';
+        const spinner = document.createElement('i');
+        spinner.className = 'fas fa-spinner fa-spin';
+        spinner.setAttribute('aria-hidden', 'true');
+        status.appendChild(spinner);
+        status.appendChild(document.createTextNode(` ${getCommentText('meal_image_loading', 'Loading image...')}`));
+        mealImageModalBody.appendChild(status);
+    }
+
+    function renderMealImage(imageUrl, mealTitle) {
+        if (!mealImageModalBody) {
+            return;
+        }
+        mealImageModalBody.replaceChildren();
+        const image = document.createElement('img');
+        image.className = 'meal-image-preview';
+        image.src = imageUrl;
+        image.alt = mealTitle;
+        image.loading = 'lazy';
+        mealImageModalBody.appendChild(image);
+    }
+
+    function getMealImageParams(trigger) {
+        return new URLSearchParams({
+            meal_id: trigger.dataset.mealId || '',
+            mensa: trigger.dataset.mensa || '',
+            date: trigger.dataset.date || '',
+            lang: getCommentLanguage()
+        });
+    }
+
+    function fetchMealImageData(trigger) {
+        const params = getMealImageParams(trigger);
+
+        return fetch(`/api/meal_image?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `HTTP error ${response.status}`);
+                    });
+                }
+                return response.json();
+            });
+    }
+
+    function openMealImagePopup(toggle) {
+        if (!mealImageModal || !mealImageModalElement || !mealImageModalTitle || !mealImageModalBody) {
+            console.error('Meal image modal elements not found');
+            return;
+        }
+
+        const mealTitle = toggle.dataset.mealTitle || getCommentText('meal_image', 'Meal image');
+        mealImageModalTitle.textContent = mealTitle;
+        setMealImageLoading();
+        mealImageModal.show();
+
+        fetchMealImageData(toggle)
+            .then(data => {
+                if (data.found && data.image_url) {
+                    renderMealImage(data.image_url, mealTitle);
+                    return;
+                }
+                setMealImageStatus(data.message || getCommentText('meal_image_unavailable', 'No image available.'), false);
+            })
+            .catch(error => {
+                console.error('Error loading meal image:', error);
+                const template = getCommentText('meal_image_lookup_failed', 'The image could not be loaded: {error}');
+                setMealImageStatus(template.replace('{error}', error.message), true);
+            });
+    }
+
+    function setMealThumbnailPlaceholder(thumbnail, iconClass, stateClass) {
+        thumbnail.classList.remove('is-loading', 'is-loaded', 'is-unavailable');
+        if (stateClass) {
+            thumbnail.classList.add(stateClass);
+        }
+
+        const placeholder = document.createElement('span');
+        placeholder.className = 'mobile-meal-thumbnail-placeholder';
+        placeholder.setAttribute('aria-hidden', 'true');
+
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        placeholder.appendChild(icon);
+
+        thumbnail.replaceChildren(placeholder);
+    }
+
+    function renderMealThumbnail(thumbnail, imageUrl) {
+        thumbnail.classList.remove('is-loading', 'is-unavailable');
+        thumbnail.classList.add('is-loaded');
+
+        const image = document.createElement('img');
+        image.className = 'mobile-meal-thumbnail-img';
+        image.src = imageUrl;
+        image.alt = thumbnail.dataset.mealTitle || getCommentText('meal_image', 'Meal image');
+        image.loading = 'lazy';
+
+        thumbnail.replaceChildren(image);
+    }
+
+    function loadMealThumbnail(thumbnail) {
+        if (thumbnail.dataset.thumbnailLoaded === 'true') {
+            return;
+        }
+        thumbnail.dataset.thumbnailLoaded = 'true';
+        setMealThumbnailPlaceholder(thumbnail, 'fas fa-spinner fa-spin', 'is-loading');
+
+        fetchMealImageData(thumbnail)
+            .then(data => {
+                if (data.found && data.image_url) {
+                    renderMealThumbnail(thumbnail, data.image_url);
+                    return;
+                }
+                setMealThumbnailPlaceholder(thumbnail, 'fas fa-image', 'is-unavailable');
+            })
+            .catch(error => {
+                console.error('Error loading meal thumbnail:', error);
+                setMealThumbnailPlaceholder(thumbnail, 'fas fa-image', 'is-unavailable');
+            });
+    }
 
     function createCommentElement(comment) {
         const item = document.createElement('article');
@@ -527,9 +670,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function initMealImages() {
+        document.querySelectorAll('.meal-image-toggle-btn, .meal-image-thumbnail-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                openMealImagePopup(toggle);
+            });
+        });
+
+        const thumbnailToggles = document.querySelectorAll('.meal-image-thumbnail-toggle');
+        if (!thumbnailToggles.length) {
+            return;
+        }
+
+        if ('IntersectionObserver' in window) {
+            const thumbnailObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+                    loadMealThumbnail(entry.target);
+                    thumbnailObserver.unobserve(entry.target);
+                });
+            }, { rootMargin: '120px 0px' });
+
+            thumbnailToggles.forEach(thumbnail => {
+                thumbnailObserver.observe(thumbnail);
+            });
+            return;
+        }
+
+        thumbnailToggles.forEach(thumbnail => {
+            loadMealThumbnail(thumbnail);
+        });
+    }
+
     // Initialize meal voting and comments after their DOM helpers are ready.
     initMealVoting();
     initMealComments();
+    initMealImages();
     
 
     // Expert Mode Toggle
@@ -598,6 +776,8 @@ document.addEventListener('DOMContentLoaded', function() {
         expertModeCols.forEach(col => {
             if (col.tagName === 'TH' || col.tagName === 'TD') {
                 col.style.display = expertModeEnabled ? 'table-cell' : 'none';
+            } else if (col.classList.contains('mobile-expert-info-row')) {
+                col.style.display = expertModeEnabled ? 'grid' : 'none';
             } else { // For mobile view elements (divs behaving as rows/items)
                 col.style.display = expertModeEnabled ? 'flex' : 'none';
             }

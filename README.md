@@ -43,7 +43,7 @@ Useful optional values:
 - `MEAL_TRANSLATION_BATCH_SIZE`, `MEAL_TRANSLATION_WORKERS`: translation throughput.
 - `MPS_REQUEST_DELAY_SECONDS`, `MEAL_TRANSLATION_REQUEST_DELAY_SECONDS`: OpenRouter pacing.
 - `PROMPT_MPS`, `PROMPT_MEAL_TRANSLATION`, `PROMPT_COMMENT_TRANSLATION`: prompt overrides.
-- `PROMPT_MARVIN`, `PROMPT_MARVIN_EN`, `PROMPT_BOB`, `PROMPT_BOB_EN`, `PROMPT_TRUMP`: persona recommendation prompt overrides. Trump recommendations always use English.
+- `PROMPT_MARVIN`, `PROMPT_MARVIN_EN`, `PROMPT_GORDON`, `PROMPT_GORDON_EN`, `PROMPT_RICK`, `PROMPT_RICK_EN`, `PROMPT_TRUMP`: persona recommendation prompt overrides. Trump recommendations always use English.
 - `PROMPT_RECOMMENDATION`, `PROMPT_RECOMMENDATION_EN`: fallback recommendation prompt overrides for custom recommenders.
 - `SITE_URL`: public origin used for canonical URLs, sitemap links, and LLM discovery files.
 - `LOG_DIR`: log directory, defaulting to `./logs` in local runs and `/app/logs` in the container.

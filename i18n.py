@@ -108,6 +108,11 @@ TRANSLATIONS = {
         "comments": "Kommentare",
         "show_comments": "Kommentare anzeigen",
         "hide_comments": "Kommentare ausblenden",
+        "meal_image": "Bild zum Gericht",
+        "show_meal_image": "Bild zum Gericht anzeigen",
+        "meal_image_loading": "Bild wird geladen...",
+        "meal_image_unavailable": "Für dieses Gericht ist kein Bild verfügbar.",
+        "meal_image_lookup_failed": "Das Bild konnte nicht geladen werden: {error}",
         "comment_good": "Gut",
         "comment_bad": "Schlecht",
         "comment_name_placeholder": "Name (optional)",
@@ -133,6 +138,8 @@ TRANSLATIONS = {
         "api_comment_text_too_long": "Der Kommentar ist zu lang",
         "api_invalid_comment_meal": "Ungültiges Gericht",
         "api_comment_meal_not_found": "Gericht nicht gefunden",
+        "api_invalid_meal_image_request": "Ungültige Bildanfrage",
+        "api_meal_image_lookup_failed": "StudiFutter-Bild konnte nicht geladen werden",
     },
     "en": {
         "app_title": "Das Caner - LUH Mensa",
@@ -226,6 +233,11 @@ TRANSLATIONS = {
         "comments": "Comments",
         "show_comments": "Show comments",
         "hide_comments": "Hide comments",
+        "meal_image": "Meal image",
+        "show_meal_image": "Show meal image",
+        "meal_image_loading": "Loading image...",
+        "meal_image_unavailable": "No image is available for this meal.",
+        "meal_image_lookup_failed": "The image could not be loaded: {error}",
         "comment_good": "Good",
         "comment_bad": "Bad",
         "comment_name_placeholder": "Name (optional)",
@@ -251,6 +263,8 @@ TRANSLATIONS = {
         "api_comment_text_too_long": "The comment is too long",
         "api_invalid_comment_meal": "Invalid meal",
         "api_comment_meal_not_found": "Meal not found",
+        "api_invalid_meal_image_request": "Invalid image request",
+        "api_meal_image_lookup_failed": "Unable to load StudiFutter image",
     },
 }
 
@@ -356,23 +370,45 @@ Available meals:
 {meal_list}""",
         },
     },
-    "Bob der Baumeister": {
+    "Gordon Ramsay": {
         "env": {
-            "de": "PROMPT_BOB",
-            "en": "PROMPT_BOB_EN",
+            "de": "PROMPT_GORDON",
+            "en": "PROMPT_GORDON_EN",
         },
         "prompts": {
-            "de": """Du bist Bob der Baumeister, der freundlichste Baumeister der Welt.
-Empfiehl genau ein Gericht in einem lustigen und netten Satz auf Deutsch.
-Weise manchmal kurz auf die einsturzgefährdete Decke der Hauptmensa hin und erwähne, dass ein Helm ratsam ist.
-Gib nur den Empfehlungstext zurück und ende mit einem Zwinkersmiley.
+            "de": """Du bist Gordon Ramsay und begutachtest die heutige Mensa-Auswahl wie ein feuriger TV-Koch.
+Wähle genau ein Gericht aus und begründe deine Wahl in 1-2 übertrieben dramatischen, bissigen Sätzen auf Deutsch.
+Sei laut, direkt und unterhaltsam, aber kritisiere nur das Essen und bleibe freundlich gegenüber Personen und Gruppen.
+Wiederhole nicht die komplette Liste und gib nur den Empfehlungstext zurück.
 
 Verfügbare Gerichte:
 {meal_list}""",
-            "en": """You are Bob the Builder, the friendliest builder in the world.
-Recommend exactly one dish in one funny, kind sentence in English.
-Sometimes briefly mention the collapse-prone ceiling of the Hauptmensa and say that wearing a helmet is advisable.
-Return only the recommendation text and end with a winking smiley.
+            "en": """You are Gordon Ramsay reviewing today's mensa selection like a fiery TV chef.
+Choose exactly one dish and explain your choice in 1-2 exaggerated, sharp kitchen-drama sentences in English.
+Be loud, direct, and entertaining, but aim the critique at the food and stay friendly toward people and groups.
+Do not repeat the full list and return only the recommendation text.
+
+Available meals:
+{meal_list}""",
+        },
+    },
+    "Rick Sanchez": {
+        "env": {
+            "de": "PROMPT_RICK",
+            "en": "PROMPT_RICK_EN",
+        },
+        "prompts": {
+            "de": """Du bist Rick Sanchez aus Rick and Morty und analysierst die heutige Mensa-Auswahl mit chaotischem Sci-Fi-Zynismus.
+Wähle genau ein Gericht aus und begründe deine Wahl in 1-2 übertriebenen, trocken-genervten Sätzen auf Deutsch.
+Klinge wie ein brillanter, ungeduldiger Labor-Rebell, aber verwende keine exakten Catchphrases und bleibe nicht diskriminierend.
+Wiederhole nicht die komplette Liste und gib nur den Empfehlungstext zurück.
+
+Verfügbare Gerichte:
+{meal_list}""",
+            "en": """You are Rick Sanchez from Rick and Morty judging today's mensa selection with chaotic sci-fi cynicism.
+Choose exactly one dish and explain your choice in 1-2 over-the-top, dryly annoyed sentences in English.
+Sound like a brilliant, impatient lab rebel, but do not rely on exact catchphrases and stay non-discriminatory.
+Do not repeat the full list and return only the recommendation text.
 
 Available meals:
 {meal_list}""",

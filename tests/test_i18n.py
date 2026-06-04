@@ -126,8 +126,28 @@ class I18nTest(unittest.TestCase):
             )
             self.assertIn(
                 "in English",
-                get_recommendation_prompt("en", "Bob der Baumeister"),
+                get_recommendation_prompt("en", "Gordon Ramsay"),
             )
+            self.assertIn(
+                "auf Deutsch",
+                get_recommendation_prompt("de", "Gordon Ramsay"),
+            )
+            self.assertIn(
+                "in English",
+                get_recommendation_prompt("en", "Rick Sanchez"),
+            )
+            self.assertIn(
+                "auf Deutsch",
+                get_recommendation_prompt("de", "Rick Sanchez"),
+            )
+
+    def test_removed_bob_persona_uses_generic_prompt(self):
+        with patch.dict(os.environ, {}, clear=True):
+            bob_prompt = get_recommendation_prompt("en", "Bob der Baumeister")
+            generic_prompt = get_recommendation_prompt("en", "Ada Lovelace")
+
+        self.assertEqual(bob_prompt, generic_prompt)
+        self.assertNotIn("Bob the Builder", bob_prompt)
 
     def test_trump_recommendation_prompt_is_always_english(self):
         with patch.dict(os.environ, {}, clear=True):
@@ -146,6 +166,17 @@ class I18nTest(unittest.TestCase):
             self.assertEqual(
                 get_recommendation_prompt("en", "Marvin"),
                 "Override line one\n{meal_list}",
+            )
+
+    def test_new_persona_recommendation_prompt_env_override_wins(self):
+        with patch.dict(
+            os.environ,
+            {"PROMPT_RICK_EN": "Rick override\\n{meal_list}"},
+            clear=True,
+        ):
+            self.assertEqual(
+                get_recommendation_prompt("en", "Rick Sanchez"),
+                "Rick override\n{meal_list}",
             )
 
     def test_custom_recommender_uses_generic_prompt_override(self):
