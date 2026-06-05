@@ -177,23 +177,31 @@
 {% macro meal_image_button(meal, mensa, selected_date) %}
   {% if meal.id %}
     <button type="button"
-            class="btn btn-sm meal-image-toggle-btn"
+            class="btn btn-sm meal-image-toggle-btn meal-image-thumbnail-toggle"
             data-meal-id="{{ meal.id }}"
             data-mensa="{{ mensa }}"
             data-date="{{ selected_date }}"
             data-meal-title="{{ meal.display_description }}"
             title="{{ texts.show_meal_image }}"
             aria-label="{{ texts.show_meal_image }}"
-            aria-haspopup="dialog">
-      <i class="fas fa-camera" aria-hidden="true"></i>
-    </button>
+            aria-haspopup="dialog"
+            hidden></button>
   {% endif %}
 {% endmacro %}
 
-{% macro meal_name(meal, mensa, selected_date) %}
+{% macro meal_name(meal) %}
   <div class="meal-name-row">
     <strong class="meal-name-text">{{ meal.display_description }}</strong>
+  </div>
+{% endmacro %}
+
+{% macro desktop_meal_summary(meal, mensa, selected_date) %}
+  <div class="meal-table-meal">
     {{ meal_image_button(meal, mensa, selected_date) }}
+    <div class="meal-table-meal-content">
+      {{ meal_name(meal) }}
+      {{ meal_actions(meal) }}
+    </div>
   </div>
 {% endmacro %}
 
@@ -236,17 +244,8 @@
             data-meal-title="{{ meal.display_description }}"
             title="{{ texts.show_meal_image }}"
             aria-label="{{ texts.show_meal_image }}"
-            aria-haspopup="dialog">
-      <span class="mobile-meal-thumbnail-placeholder" aria-hidden="true">
-        <i class="fas fa-utensils"></i>
-      </span>
-    </button>
-  {% else %}
-    <div class="mobile-meal-thumbnail mobile-meal-thumbnail-static" aria-hidden="true">
-      <span class="mobile-meal-thumbnail-placeholder">
-        <i class="fas fa-utensils"></i>
-      </span>
-    </div>
+            aria-haspopup="dialog"
+            hidden></button>
   {% endif %}
 {% endmacro %}
 
@@ -281,8 +280,7 @@
           {% for meal in meals %}
             <tr>
               <td>
-                {{ meal_name(meal, mensa, selected_date) }}
-                {{ meal_actions(meal) }}
+                {{ desktop_meal_summary(meal, mensa, selected_date) }}
               </td>
               {{ meal_score_cells(meal) }}
             </tr>
@@ -299,7 +297,7 @@
             {{ mobile_meal_thumbnail(meal, mensa, selected_date) }}
             <div class="mobile-meal-card-content">
               <div class="mobile-meal-description">
-                {{ meal_name(meal, mensa, selected_date) }}
+                {{ meal_name(meal) }}
                 {{ meal_actions(meal) }}
               </div>
               <div class="mobile-caner-info">

@@ -370,6 +370,35 @@ body {
     overflow-wrap: anywhere;
 }
 
+.meal-table-meal {
+    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+}
+
+.meal-table-meal.has-meal-thumbnail {
+    column-gap: 18px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    padding-left: clamp(14px, 2vw, 32px);
+    padding-right: 12px;
+}
+
+.meal-table-meal .meal-image-toggle-btn {
+    align-self: center;
+    grid-column: 1;
+    justify-self: start;
+}
+
+.meal-table-meal-content {
+    grid-column: 1;
+    min-width: 0;
+}
+
+.meal-table-meal.has-meal-thumbnail .meal-table-meal-content {
+    grid-column: 2;
+}
+
 /* Ensure price and expert columns have enough space for their headers */
 .meal-table th:nth-child(2),
 .meal-table td:nth-child(2),
@@ -542,6 +571,10 @@ body {
     transition: color 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
+.meal-image-thumbnail-toggle[hidden] {
+    display: none !important;
+}
+
 .vote-btn,
 .comment-toggle-btn {
     border-radius: 4px;
@@ -617,20 +650,39 @@ body {
 }
 
 .meal-image-toggle-btn {
-    border-radius: 999px;
-    flex: 0 0 auto;
-    font-size: 0.76rem;
+    background-color: var(--bg-nutrient-card);
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    color: inherit;
+    flex: 0 0 68px;
     gap: 0;
-    height: 24px;
+    height: 68px;
     margin-left: 0;
+    min-height: 68px;
+    opacity: 1;
+    overflow: hidden;
     padding: 0;
-    transform: translateY(1px);
-    width: 24px;
+    position: relative;
+    transform: none;
+    transform-origin: center center;
+    width: 68px;
+    z-index: 1;
 }
 
 .meal-image-toggle-btn:hover,
 .meal-image-toggle-btn:focus {
-    transform: translateY(1px) scale(1.12);
+    border-color: var(--primary-yellow);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transform: scale(1.08);
+    z-index: 3;
+}
+
+.meal-image-thumbnail-img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
 }
 
 .comment-toggle-btn {
@@ -1001,15 +1053,6 @@ a.github-link i.fa-github {
     outline-offset: 3px;
 }
 
-.mobile-meal-thumbnail-placeholder {
-    align-items: center;
-    display: flex;
-    font-size: 1rem;
-    height: 100%;
-    justify-content: center;
-    width: 100%;
-}
-
 .mobile-meal-thumbnail-img {
     display: block;
     height: 100%;
@@ -1017,13 +1060,8 @@ a.github-link i.fa-github {
     width: 100%;
 }
 
-.mobile-meal-thumbnail.is-loaded .mobile-meal-thumbnail-placeholder {
-    display: none;
-}
-
 .mobile-meal-thumbnail.is-unavailable {
-    cursor: pointer;
-    opacity: 0.72;
+    display: none !important;
 }
 
 .mobile-meal-description {
@@ -1542,7 +1580,25 @@ input#date-mobile.form-control:focus,
         align-items: stretch;
         display: grid;
         gap: 8px;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .mobile-meal-card-main.has-meal-thumbnail {
         grid-template-columns: var(--mobile-meal-thumbnail-size) minmax(0, 1fr);
+    }
+
+    .mobile-meal-card-main.has-meal-thumbnail .mobile-meal-card-content {
+        display: contents;
+    }
+
+    .mobile-meal-card-main.has-meal-thumbnail .mobile-meal-description {
+        align-self: center;
+        grid-column: 2;
+        margin-bottom: 0;
+    }
+
+    .mobile-meal-card-main.has-meal-thumbnail .mobile-caner-info {
+        grid-column: 1 / -1;
     }
 
     .mobile-meal-card .meal-name-row .meal-image-toggle-btn {

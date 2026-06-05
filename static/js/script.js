@@ -250,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mealImageModal = mealImageModalElement ? new bootstrap.Modal(mealImageModalElement) : null;
     const mealImageModalTitle = mealImageModalElement ? mealImageModalElement.querySelector('#mealImagePopupModalLabel') : null;
     const mealImageModalBody = mealImageModalElement ? mealImageModalElement.querySelector('#mealImagePopupBody') : null;
+    const mealImageDataCache = new Map();
 
     function setMealImageStatus(message, isError) {
         if (!mealImageModalBody) {
@@ -299,10 +300,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function fetchMealImageData(trigger) {
-        const params = getMealImageParams(trigger);
+    function getMealImageCacheKey(trigger) {
+        return JSON.stringify([
+            trigger.dataset.mealId || '',
+            trigger.dataset.mensa || '',
+            trigger.dataset.date || '',
+            getCommentLanguage()
+        ]);
+    }
 
-        return fetch(`/api/meal_image?${params.toString()}`)
+    function fetchMealImageData(trigger) {
+        const cacheKey = getMealImageCacheKey(trigger);
+        if (mealImageDataCache.has(cacheKey)) {
+            return mealImageDataCache.get(cacheKey);
+        }
+
+        const params = getMealImageParams(trigger);
+        const imageDataPromise = fetch(`/api/meal_image?${params.toString()}`)
             .then(response => {
                 if (!response.ok) {
                     return response.json().then(errorData => {
@@ -311,6 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return response.json();
             });
+
+        mealImageDataCache.set(cacheKey, imageDataPromise);
+        return imageDataPromise;
     }
 
     function openMealImagePopup(toggle) {
@@ -321,6 +338,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const mealTitle = toggle.dataset.mealTitle || getCommentText('meal_image', 'Meal image');
         mealImageModalTitle.textContent = mealTitle;
+        if (toggle.dataset.imageUrl) {
+            renderMealImage(toggle.dataset.imageUrl, mealTitle);
+            mealImageModal.show();
+            return;
+        }
+
         setMealImageLoading();
         mealImageModal.show();
 
@@ -339,34 +362,46 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    function setMealThumbnailPlaceholder(thumbnail, iconClass, stateClass) {
-        thumbnail.classList.remove('is-loading', 'is-loaded', 'is-unavailable');
-        if (stateClass) {
-            thumbnail.classList.add(stateClass);
+    function setMealThumbnailLayout(thumbnail, hasThumbnail) {
+        const mobileCardMain = thumbnail.closest('.mobile-meal-card-main');
+        if (mobileCardMain) {
+            mobileCardMain.classList.toggle('has-meal-thumbnail', hasThumbnail);
         }
 
-        const placeholder = document.createElement('span');
-        placeholder.className = 'mobile-meal-thumbnail-placeholder';
-        placeholder.setAttribute('aria-hidden', 'true');
+        const desktopMeal = thumbnail.closest('.meal-table-meal');
+        if (desktopMeal) {
+            desktopMeal.classList.toggle('has-meal-thumbnail', hasThumbnail);
+        }
+    }
 
-        const icon = document.createElement('i');
-        icon.className = iconClass;
-        placeholder.appendChild(icon);
-
-        thumbnail.replaceChildren(placeholder);
+    function hideMealThumbnail(thumbnail) {
+        thumbnail.classList.remove('is-loading', 'is-loaded', 'is-unavailable');
+        thumbnail.hidden = true;
+        thumbnail.removeAttribute('data-image-url');
+        thumbnail.replaceChildren();
+        setMealThumbnailLayout(thumbnail, false);
     }
 
     function renderMealThumbnail(thumbnail, imageUrl) {
         thumbnail.classList.remove('is-loading', 'is-unavailable');
         thumbnail.classList.add('is-loaded');
+        thumbnail.dataset.imageUrl = imageUrl;
 
         const image = document.createElement('img');
-        image.className = 'mobile-meal-thumbnail-img';
+        image.className = thumbnail.classList.contains('mobile-meal-thumbnail')
+            ? 'mobile-meal-thumbnail-img'
+            : 'meal-image-thumbnail-img';
         image.src = imageUrl;
         image.alt = thumbnail.dataset.mealTitle || getCommentText('meal_image', 'Meal image');
+        image.decoding = 'async';
         image.loading = 'lazy';
+        image.addEventListener('error', function() {
+            hideMealThumbnail(thumbnail);
+        }, { once: true });
 
         thumbnail.replaceChildren(image);
+        thumbnail.hidden = false;
+        setMealThumbnailLayout(thumbnail, true);
     }
 
     function loadMealThumbnail(thumbnail) {
@@ -374,7 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         thumbnail.dataset.thumbnailLoaded = 'true';
-        setMealThumbnailPlaceholder(thumbnail, 'fas fa-spinner fa-spin', 'is-loading');
+        thumbnail.classList.add('is-loading');
+        thumbnail.hidden = true;
 
         fetchMealImageData(thumbnail)
             .then(data => {
@@ -382,11 +418,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderMealThumbnail(thumbnail, data.image_url);
                     return;
                 }
-                setMealThumbnailPlaceholder(thumbnail, 'fas fa-image', 'is-unavailable');
+                hideMealThumbnail(thumbnail);
             })
             .catch(error => {
                 console.error('Error loading meal thumbnail:', error);
-                setMealThumbnailPlaceholder(thumbnail, 'fas fa-image', 'is-unavailable');
+                hideMealThumbnail(thumbnail);
             });
     }
 
@@ -671,36 +707,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initMealImages() {
-        document.querySelectorAll('.meal-image-toggle-btn, .meal-image-thumbnail-toggle').forEach(toggle => {
+        const imageToggles = document.querySelectorAll('.meal-image-thumbnail-toggle');
+        if (!imageToggles.length) {
+            return;
+        }
+
+        imageToggles.forEach(toggle => {
             toggle.addEventListener('click', function() {
                 openMealImagePopup(toggle);
             });
-        });
-
-        const thumbnailToggles = document.querySelectorAll('.meal-image-thumbnail-toggle');
-        if (!thumbnailToggles.length) {
-            return;
-        }
-
-        if ('IntersectionObserver' in window) {
-            const thumbnailObserver = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
-                    loadMealThumbnail(entry.target);
-                    thumbnailObserver.unobserve(entry.target);
-                });
-            }, { rootMargin: '120px 0px' });
-
-            thumbnailToggles.forEach(thumbnail => {
-                thumbnailObserver.observe(thumbnail);
-            });
-            return;
-        }
-
-        thumbnailToggles.forEach(thumbnail => {
-            loadMealThumbnail(thumbnail);
+            loadMealThumbnail(toggle);
         });
     }
 
