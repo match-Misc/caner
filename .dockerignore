@@ -52,6 +52,7 @@ build/
 *.sqlite3
 migrations/
 data/postgres/
+data/meal_images/
 
 # Node (if any)
 node_modules/

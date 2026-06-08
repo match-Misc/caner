@@ -414,8 +414,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetchMealImageData(thumbnail)
             .then(data => {
-                if (data.found && data.image_url) {
-                    renderMealThumbnail(thumbnail, data.image_url);
+                const thumbnailUrl = data.thumbnail_url || data.image_url;
+                if (data.found && thumbnailUrl) {
+                    renderMealThumbnail(thumbnail, thumbnailUrl);
                     return;
                 }
                 hideMealThumbnail(thumbnail);

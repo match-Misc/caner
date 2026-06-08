@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 
@@ -96,6 +98,39 @@ class MealComment(db.Model):
 
     def __repr__(self):
         return f"<MealComment {self.meal_id} {self.rating} {self.created_at}>"
+
+
+class MealImageLookupCache(db.Model):
+    """Cache for meal/date/mensa image lookup results from StudiFutter."""
+
+    __tablename__ = "meal_image_lookup_cache"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meal_id = db.Column(db.Integer, db.ForeignKey("meals.id"), nullable=False)
+    mensa_name = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.String(10), nullable=False)
+    found = db.Column(db.Boolean, nullable=False, default=False)
+    image_file_id = db.Column(db.String(36))
+    matched_name = db.Column(db.String(255))
+    checked_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "meal_id",
+            "mensa_name",
+            "date",
+            name="unique_meal_image_lookup",
+        ),
+    )
+
+    meal = db.relationship("Meal", backref=db.backref("image_lookup_cache", lazy=True))
+
+    def __repr__(self):
+        return f"<MealImageLookupCache {self.meal_id} {self.mensa_name} {self.date}>"
 
 
 class PageView(db.Model):

@@ -123,6 +123,7 @@ dmypy.json
 
 # Local Docker database data
 data/postgres/
+data/meal_images/
 
 # Log files
 *.log

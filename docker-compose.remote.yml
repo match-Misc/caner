@@ -33,6 +33,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-caner}:${POSTGRES_PASSWORD:-caner_dev_password}@postgres:5432/${POSTGRES_DB:-caner}
     volumes:
       - ./logs:/app/logs
+      - ./data/meal_images:/app/data/meal_images
     networks:
       - default
       - npmnet

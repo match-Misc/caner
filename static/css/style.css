@@ -32,6 +32,8 @@
     --theme-overlay-bg: rgba(0, 0, 0, 0.68);
     --theme-overlay-error-bg: rgba(100, 0, 0, 0.78);
     --theme-info-accent: var(--primary-red);
+    --menu-control-height: 31px;
+    --menu-nav-size: 31px;
 }
 
 [data-theme="dark"] {
@@ -1092,7 +1094,8 @@ a.github-link i.fa-github {
 
 /* Unified themed controls */
 .themed-dropdown {
-    display: inline-block;
+    display: inline-flex;
+    min-height: var(--menu-control-height);
     min-width: 0;
 }
 
@@ -1173,6 +1176,34 @@ input#date-mobile.form-control:focus,
 
 .mensa-select-toggle {
     width: 250px;
+}
+
+.mensa-dropdown {
+    align-items: stretch;
+    height: var(--menu-control-height);
+}
+
+#date,
+#date-mobile,
+.mensa-select-toggle,
+.date-nav-arrow {
+    box-sizing: border-box;
+    height: var(--menu-control-height);
+    line-height: 1;
+    min-height: var(--menu-control-height);
+}
+
+.date-nav-arrow {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 var(--menu-nav-size);
+    justify-content: center;
+    padding: 0 !important;
+    width: var(--menu-nav-size);
+}
+
+.date-nav-arrow i {
+    line-height: 1;
 }
 
 .mensa-select-toggle:hover,

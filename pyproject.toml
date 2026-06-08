@@ -21,6 +21,7 @@ dependencies = [
     "markupsafe==3.0.2",
     "markdown2",
     "packaging==25.0",
+    "pillow",
     "psycopg2-binary==2.9.10",
     "python-dotenv==1.1.0",
     "requests==2.32.3",

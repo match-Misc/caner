@@ -98,7 +98,19 @@ class StudiFutterTest(unittest.TestCase):
             )
         )
 
-    def test_find_meal_image_returns_proxied_directus_asset_url(self):
+    def test_proxied_asset_url_supports_full_and_thumbnail_variants(self):
+        image_id = "4ff2b6bf-1239-4a2b-ade2-73196977b777"
+
+        self.assertEqual(
+            studifutter.proxied_asset_url(image_id),
+            f"/api/studifutter/assets/{image_id}",
+        )
+        self.assertEqual(
+            studifutter.proxied_asset_url(image_id, variant="thumb"),
+            f"/api/studifutter/assets/{image_id}?variant=thumb",
+        )
+
+    def test_find_meal_image_returns_proxied_directus_asset_urls(self):
         image_id = "4ff2b6bf-1239-4a2b-ade2-73196977b777"
         session = FakeSession(
             [
@@ -135,6 +147,10 @@ class StudiFutterTest(unittest.TestCase):
         )
 
         self.assertEqual(result["image_url"], f"/api/studifutter/assets/{image_id}")
+        self.assertEqual(
+            result["thumbnail_url"],
+            f"/api/studifutter/assets/{image_id}?variant=thumb",
+        )
         foodoffer_params = session.calls[1]["params"]
         self.assertEqual(foodoffer_params["limit"], "-1")
         self.assertEqual(

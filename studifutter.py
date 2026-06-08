@@ -56,10 +56,13 @@ def directus_asset_api_url(file_id):
     return f"{STUDIFUTTER_API_BASE_URL}/assets/{file_id}"
 
 
-def proxied_asset_url(file_id):
+def proxied_asset_url(file_id, variant="full"):
     if not is_directus_file_id(file_id):
         return ""
-    return f"/api/studifutter/assets/{file_id}"
+    asset_url = f"/api/studifutter/assets/{file_id}"
+    if variant == "thumb":
+        return f"{asset_url}?variant=thumb"
+    return asset_url
 
 
 def get_studifutter_json(path, params=None, session=None):
@@ -202,6 +205,7 @@ def image_response_from_offer(offer):
 
     return {
         "image_url": image_url,
+        "thumbnail_url": proxied_asset_url(image_file_id, variant="thumb"),
         "image_file_id": image_file_id,
         "matched_name": food.get("alias") or offer.get("alias") or "",
     }

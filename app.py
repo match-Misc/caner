@@ -31,6 +31,7 @@ from flask import (
     make_response,
     render_template,
     request,
+    send_file,
 )
 from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -54,6 +55,13 @@ from i18n import (
     translate_nutrient_value,
 )
 from menu_refresh import calculate_menu_refresh_delay_seconds
+from meal_image_cache import (
+    FULL_VARIANT,
+    MealImageCacheError,
+    MealImageCacheInvalidRequest,
+    get_cached_studifutter_asset,
+)
+from meal_image_lookup_cache import find_or_cache_meal_image
 from meal_translation import has_configured_translation_api_key
 from mps_scoring import (
     MPSAuthenticationError,
@@ -68,8 +76,6 @@ from models import Meal, MealComment, MealVote, PageView, db
 from schema import ensure_application_schema
 from studifutter import (
     StudiFutterError,
-    directus_asset_api_url,
-    find_meal_image,
     is_directus_file_id,
 )
 from utils.xml_parser import (
@@ -237,6 +243,9 @@ COMMENT_TEXT_MAX_LENGTH = 1000
 COMMENT_AUTHOR_MAX_LENGTH = 80
 COMMENTS_DEFAULT_LIMIT = 5
 COMMENTS_MAX_LIMIT = 25
+MEAL_IMAGE_NEGATIVE_LOOKUP_TTL_SECONDS = int(
+    os.environ.get("MEAL_IMAGE_NEGATIVE_LOOKUP_TTL_SECONDS", "21600")
+)
 
 # Create Flask app
 app = Flask(__name__)
@@ -1775,10 +1784,11 @@ def get_meal_image():
         return jsonify({"error": texts["api_comment_meal_not_found"]}), 404
 
     try:
-        image_result = find_meal_image(
-            meal.description,
+        image_result = find_or_cache_meal_image(
+            meal,
             mensa_name,
             selected_date,
+            MEAL_IMAGE_NEGATIVE_LOOKUP_TTL_SECONDS,
         )
     except ValueError:
         return jsonify({"error": texts["api_invalid_meal_image_request"]}), 400
@@ -1802,25 +1812,23 @@ def proxy_studifutter_asset(file_id):
     if not is_directus_file_id(file_id):
         return jsonify({"error": "Invalid asset id"}), 400
 
+    variant = (request.args.get("variant") or FULL_VARIANT).strip().lower()
+
     try:
-        upstream_response = requests.get(
-            directus_asset_api_url(file_id),
-            timeout=15,
-        )
-        upstream_response.raise_for_status()
-    except requests.RequestException as e:
+        asset = get_cached_studifutter_asset(file_id, variant=variant)
+    except MealImageCacheInvalidRequest as e:
+        return jsonify({"error": str(e)}), 400
+    except (requests.RequestException, MealImageCacheError) as e:
         logger.warning("StudiFutter asset proxy failed for %s: %s", file_id, e)
         return jsonify({"error": "Unable to load asset"}), 502
 
-    content_type = upstream_response.headers.get("Content-Type", "")
-    if not content_type.lower().startswith("image/"):
-        return jsonify({"error": "Asset is not an image"}), 502
-
-    response = Response(
-        upstream_response.content,
-        content_type=content_type,
+    response = send_file(
+        asset.path,
+        mimetype=asset.content_type,
+        conditional=True,
+        max_age=31536000,
     )
-    response.headers["Cache-Control"] = "public, max-age=86400"
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return response
 
 

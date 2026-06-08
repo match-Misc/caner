@@ -62,6 +62,8 @@ packaging==25.0
     # via
     #   caner
     #   gunicorn
+pillow==12.2.0
+    # via caner
 psycopg2-binary==2.9.10
     # via caner
 pycparser==2.22 ; platform_python_implementation == 'CPython' and sys_platform == 'win32'
