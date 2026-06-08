@@ -8,6 +8,7 @@ from models import Meal, MealImageLookupCache, db
 
 
 IMAGE_ID = "4ff2b6bf-1239-4a2b-ade2-73196977b777"
+RACED_IMAGE_ID = "f51a0a8a-3a13-44b3-95fb-4126b5d4a66f"
 
 
 class FakeFinder:
@@ -125,6 +126,42 @@ class MealImageLookupCacheTest(unittest.TestCase):
         self.assertEqual(len(finder.calls), 2)
         self.assertEqual(expired_negative["image_file_id"], IMAGE_ID)
         self.assertTrue(cache_entry.found)
+
+    def test_lookup_recovers_when_parallel_request_inserts_same_cache_key(self):
+        now = datetime(2026, 6, 8, tzinfo=timezone.utc)
+
+        def finder(meal_description, mensa_name, selected_date):
+            db.session.add(
+                MealImageLookupCache(
+                    meal_id=self.meal.id,
+                    mensa_name=mensa_name,
+                    date=selected_date,
+                    found=True,
+                    image_file_id=RACED_IMAGE_ID,
+                    matched_name="Parallel cached result",
+                    checked_at=now,
+                )
+            )
+            db.session.commit()
+            return {
+                "image_file_id": IMAGE_ID,
+                "matched_name": meal_description,
+            }
+
+        result = find_or_cache_meal_image(
+            self.meal,
+            "Mensa Garbsen",
+            "08.06.2026",
+            21600,
+            finder=finder,
+            now=now,
+        )
+        cache_entry = MealImageLookupCache.query.one()
+
+        self.assertEqual(result["image_file_id"], IMAGE_ID)
+        self.assertEqual(result["matched_name"], self.meal.description)
+        self.assertEqual(cache_entry.image_file_id, IMAGE_ID)
+        self.assertEqual(cache_entry.matched_name, self.meal.description)
 
 
 if __name__ == "__main__":

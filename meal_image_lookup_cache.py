@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from models import MealImageLookupCache, db
+from sqlalchemy.exc import IntegrityError
 from studifutter import find_meal_image, proxied_asset_url
 
 
@@ -43,7 +44,7 @@ def find_or_cache_meal_image(
 
     image_result = finder(meal.description, mensa_name, selected_date)
     if image_result:
-        cache_entry = _upsert_cache_entry(
+        cache_entry = _save_cache_entry(
             cache_entry,
             meal.id,
             mensa_name,
@@ -53,13 +54,12 @@ def find_or_cache_meal_image(
             matched_name=image_result.get("matched_name", ""),
             checked_at=current_time,
         )
-        db.session.commit()
         return build_meal_image_payload(
             cache_entry.image_file_id,
             cache_entry.matched_name,
         )
 
-    _upsert_cache_entry(
+    _save_cache_entry(
         cache_entry,
         meal.id,
         mensa_name,
@@ -69,7 +69,6 @@ def find_or_cache_meal_image(
         matched_name="",
         checked_at=current_time,
     )
-    db.session.commit()
     return None
 
 
@@ -82,6 +81,55 @@ def _ensure_aware_datetime(value):
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value
+
+
+def _save_cache_entry(
+    cache_entry,
+    meal_id,
+    mensa_name,
+    selected_date,
+    found,
+    image_file_id,
+    matched_name,
+    checked_at,
+):
+    cache_entry = _upsert_cache_entry(
+        cache_entry,
+        meal_id,
+        mensa_name,
+        selected_date,
+        found,
+        image_file_id,
+        matched_name,
+        checked_at,
+    )
+
+    try:
+        db.session.commit()
+        return cache_entry
+    except IntegrityError:
+        db.session.rollback()
+
+        cache_entry = MealImageLookupCache.query.filter_by(
+            meal_id=meal_id,
+            mensa_name=mensa_name,
+            date=selected_date,
+        ).first()
+        if cache_entry is None:
+            raise
+
+        cache_entry = _upsert_cache_entry(
+            cache_entry,
+            meal_id,
+            mensa_name,
+            selected_date,
+            found,
+            image_file_id,
+            matched_name,
+            checked_at,
+        )
+        db.session.commit()
+        return cache_entry
 
 
 def _upsert_cache_entry(
