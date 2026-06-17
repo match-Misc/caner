@@ -76,7 +76,10 @@ class MealImageLookupCacheTest(unittest.TestCase):
 
         self.assertEqual(len(finder.calls), 1)
         self.assertEqual(first, second)
-        self.assertEqual(first["image_url"], f"/api/studifutter/assets/{IMAGE_ID}")
+        self.assertEqual(
+            first["image_url"],
+            f"/api/studifutter/assets/{IMAGE_ID}?variant=full",
+        )
         self.assertEqual(
             first["thumbnail_url"],
             f"/api/studifutter/assets/{IMAGE_ID}?variant=thumb",

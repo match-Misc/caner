@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import tempfile
 from dataclasses import dataclass
 from io import BytesIO
@@ -13,20 +12,13 @@ from studifutter import directus_asset_api_url, is_directus_file_id
 
 
 DEFAULT_CACHE_DIR = os.path.join(os.path.dirname(__file__), "data", "meal_images")
+DEFAULT_FULL_IMAGE_QUALITY = 88
 DEFAULT_THUMBNAIL_SIZE = 240
 DEFAULT_THUMBNAIL_QUALITY = 72
+FULL_CACHE_VERSION = 2
 FULL_VARIANT = "full"
 THUMB_VARIANT = "thumb"
 SUPPORTED_VARIANTS = {FULL_VARIANT, THUMB_VARIANT}
-
-_FORMAT_CONTENT_TYPES = {
-    "JPEG": ("image/jpeg", "jpg"),
-    "PNG": ("image/png", "png"),
-    "WEBP": ("image/webp", "webp"),
-    "GIF": ("image/gif", "gif"),
-    "BMP": ("image/bmp", "bmp"),
-    "TIFF": ("image/tiff", "tiff"),
-}
 
 
 class MealImageCacheError(Exception):
@@ -51,6 +43,15 @@ def get_meal_image_cache_dir():
     return Path(os.environ.get("MEAL_IMAGE_CACHE_DIR", DEFAULT_CACHE_DIR))
 
 
+def get_full_image_quality():
+    return _bounded_int_env(
+        "MEAL_IMAGE_FULL_QUALITY",
+        DEFAULT_FULL_IMAGE_QUALITY,
+        1,
+        95,
+    )
+
+
 def get_thumbnail_size():
     return _bounded_int_env("MEAL_IMAGE_THUMBNAIL_SIZE", DEFAULT_THUMBNAIL_SIZE, 1, 2048)
 
@@ -64,6 +65,7 @@ def get_cached_studifutter_asset(
     variant=FULL_VARIANT,
     session=None,
     cache_dir=None,
+    full_quality=None,
     thumbnail_size=None,
     thumbnail_quality=None,
 ):
@@ -74,7 +76,12 @@ def get_cached_studifutter_asset(
 
     root = Path(cache_dir) if cache_dir else get_meal_image_cache_dir()
     if variant == FULL_VARIANT:
-        return get_cached_full_asset(file_id, session=session, cache_dir=root)
+        return get_cached_full_asset(
+            file_id,
+            session=session,
+            cache_dir=root,
+            full_quality=full_quality,
+        )
 
     return get_cached_thumbnail_asset(
         file_id,
@@ -85,30 +92,39 @@ def get_cached_studifutter_asset(
     )
 
 
-def get_cached_full_asset(file_id, session=None, cache_dir=None):
+def get_cached_full_asset(file_id, session=None, cache_dir=None, full_quality=None):
     root = Path(cache_dir) if cache_dir else get_meal_image_cache_dir()
+    quality = full_quality or get_full_image_quality()
+    file_name = _full_file_name(file_id, quality)
+    image_path = root / "full" / file_name
+
     metadata = _load_metadata(root, file_id)
+    if _is_current_full_metadata(metadata, file_name, quality) and image_path.exists():
+        return CachedMealImage(image_path, "image/webp")
+
+    if image_path.exists():
+        _write_full_metadata(root, file_id, file_name, quality)
+        return CachedMealImage(image_path, "image/webp")
+
+    legacy_path = _legacy_cached_full_path(root, metadata)
+    if legacy_path:
+        _create_full_webp(legacy_path, image_path, quality)
+        _write_full_metadata(root, file_id, file_name, quality)
+        return CachedMealImage(image_path, "image/webp")
+
+    payload = _download_image(file_id, session=session)
+    _validate_image_content(payload.content)
+    _create_full_webp_from_bytes(payload.content, image_path, quality)
+    _write_full_metadata(root, file_id, file_name, quality)
+    return CachedMealImage(image_path, "image/webp")
+
+
+def _legacy_cached_full_path(root, metadata):
     if metadata:
         cached_path = root / "full" / metadata["file_name"]
         if cached_path.exists():
-            return CachedMealImage(cached_path, metadata["content_type"])
-
-    payload = _download_image(file_id, session=session)
-    content_type, extension = _resolve_image_metadata(
-        payload.content,
-        payload.content_type,
-    )
-    file_name = f"{file_id}.{extension}"
-    image_path = root / "full" / file_name
-    _write_bytes_atomic(image_path, payload.content)
-    _write_json_atomic(
-        _metadata_path(root, file_id),
-        {
-            "file_name": file_name,
-            "content_type": content_type,
-        },
-    )
-    return CachedMealImage(image_path, content_type)
+            return cached_path
+    return None
 
 
 def get_cached_thumbnail_asset(
@@ -146,14 +162,6 @@ def _download_image(file_id, session=None):
     return _DownloadedImage(response.content, content_type)
 
 
-def _resolve_image_metadata(content, content_type):
-    image_format = _validate_image_content(content)
-    mapped = _FORMAT_CONTENT_TYPES.get(image_format)
-    if mapped:
-        return mapped
-    return content_type, _extension_from_content_type(content_type)
-
-
 def _validate_image_content(content):
     try:
         with Image.open(BytesIO(content)) as image:
@@ -165,6 +173,48 @@ def _validate_image_content(content):
     if not image_format:
         raise MealImageCacheInvalidImage("Asset image format is unknown")
     return image_format.upper()
+
+
+def _create_full_webp_from_bytes(content, full_path, quality):
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=full_path.parent,
+            suffix=".webp",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+
+        with Image.open(BytesIO(content)) as image:
+            _save_webp_image(image, temp_path, quality)
+
+        os.replace(temp_path, full_path)
+    except (OSError, UnidentifiedImageError) as exc:
+        if temp_path and temp_path.exists():
+            temp_path.unlink()
+        raise MealImageCacheInvalidImage("Unable to create full-size image") from exc
+
+
+def _create_full_webp(source_path, full_path, quality):
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=full_path.parent,
+            suffix=".webp",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+
+        with Image.open(source_path) as image:
+            _save_webp_image(image, temp_path, quality)
+
+        os.replace(temp_path, full_path)
+    except (OSError, UnidentifiedImageError) as exc:
+        if temp_path and temp_path.exists():
+            temp_path.unlink()
+        raise MealImageCacheInvalidImage("Unable to create full-size image") from exc
 
 
 def _create_thumbnail(source_path, thumbnail_path, size, quality):
@@ -179,19 +229,24 @@ def _create_thumbnail(source_path, thumbnail_path, size, quality):
             temp_path = Path(temp_file.name)
 
         with Image.open(source_path) as image:
-            image = ImageOps.exif_transpose(image)
-            image.thumbnail((size, size), Image.Resampling.LANCZOS)
-            if _has_alpha(image):
-                image = image.convert("RGBA")
-            else:
-                image = image.convert("RGB")
-            image.save(temp_path, "WEBP", quality=quality, method=6)
+            _save_webp_image(image, temp_path, quality, max_size=size)
 
         os.replace(temp_path, thumbnail_path)
     except (OSError, UnidentifiedImageError) as exc:
         if temp_path and temp_path.exists():
             temp_path.unlink()
         raise MealImageCacheInvalidImage("Unable to create image thumbnail") from exc
+
+
+def _save_webp_image(image, output_path, quality, max_size=None):
+    image = ImageOps.exif_transpose(image)
+    if max_size:
+        image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+    if _has_alpha(image):
+        image = image.convert("RGBA")
+    else:
+        image = image.convert("RGB")
+    image.save(output_path, "WEBP", quality=quality, method=6)
 
 
 def _has_alpha(image):
@@ -214,6 +269,32 @@ def _load_metadata(root, file_id):
 
 def _metadata_path(root, file_id):
     return root / "metadata" / f"{file_id}.json"
+
+
+def _full_file_name(file_id, quality):
+    return f"{file_id}_full_q{quality}.webp"
+
+
+def _is_current_full_metadata(metadata, file_name, quality):
+    return (
+        isinstance(metadata, dict)
+        and metadata.get("cache_version") == FULL_CACHE_VERSION
+        and metadata.get("file_name") == file_name
+        and metadata.get("content_type") == "image/webp"
+        and metadata.get("quality") == quality
+    )
+
+
+def _write_full_metadata(root, file_id, file_name, quality):
+    _write_json_atomic(
+        _metadata_path(root, file_id),
+        {
+            "cache_version": FULL_CACHE_VERSION,
+            "content_type": "image/webp",
+            "file_name": file_name,
+            "quality": quality,
+        },
+    )
 
 
 def _write_json_atomic(path, payload):
@@ -239,12 +320,6 @@ def _write_bytes_atomic(path, payload):
 
 def _clean_content_type(content_type):
     return content_type.split(";", 1)[0].strip().lower()
-
-
-def _extension_from_content_type(content_type):
-    subtype = content_type.split("/", 1)[1]
-    subtype = subtype.split("+", 1)[0].replace("jpeg", "jpg")
-    return re.sub(r"[^a-z0-9]+", "", subtype) or "img"
 
 
 def _bounded_int_env(name, default, minimum, maximum):

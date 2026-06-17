@@ -378,20 +378,22 @@ document.addEventListener('DOMContentLoaded', function() {
         thumbnail.classList.remove('is-loading', 'is-loaded', 'is-unavailable');
         thumbnail.hidden = true;
         thumbnail.removeAttribute('data-image-url');
+        thumbnail.removeAttribute('data-thumbnail-url');
         thumbnail.replaceChildren();
         setMealThumbnailLayout(thumbnail, false);
     }
 
-    function renderMealThumbnail(thumbnail, imageUrl) {
+    function renderMealThumbnail(thumbnail, thumbnailUrl, imageUrl) {
         thumbnail.classList.remove('is-loading', 'is-unavailable');
         thumbnail.classList.add('is-loaded');
         thumbnail.dataset.imageUrl = imageUrl;
+        thumbnail.dataset.thumbnailUrl = thumbnailUrl;
 
         const image = document.createElement('img');
         image.className = thumbnail.classList.contains('mobile-meal-thumbnail')
             ? 'mobile-meal-thumbnail-img'
             : 'meal-image-thumbnail-img';
-        image.src = imageUrl;
+        image.src = thumbnailUrl;
         image.alt = thumbnail.dataset.mealTitle || getCommentText('meal_image', 'Meal image');
         image.decoding = 'async';
         image.loading = 'lazy';
@@ -415,8 +417,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchMealImageData(thumbnail)
             .then(data => {
                 const thumbnailUrl = data.thumbnail_url || data.image_url;
-                if (data.found && thumbnailUrl) {
-                    renderMealThumbnail(thumbnail, thumbnailUrl);
+                if (data.found && thumbnailUrl && data.image_url) {
+                    renderMealThumbnail(thumbnail, thumbnailUrl, data.image_url);
                     return;
                 }
                 hideMealThumbnail(thumbnail);

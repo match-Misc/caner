@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from io import BytesIO
@@ -56,11 +57,17 @@ class MealImageCacheTest(unittest.TestCase):
                 session=session,
                 cache_dir=cache_dir,
             )
+            with Image.open(first.path) as image:
+                image_format = image.format
+                image_size = image.size
 
         self.assertEqual(len(session.calls), 1)
-        self.assertEqual(first.content_type, "image/png")
-        self.assertEqual(second.content_type, "image/png")
+        self.assertEqual(first.content_type, "image/webp")
+        self.assertEqual(second.content_type, "image/webp")
         self.assertEqual(first.path.name, second.path.name)
+        self.assertTrue(first.path.name.endswith("_full_q88.webp"))
+        self.assertEqual(image_format, "WEBP")
+        self.assertEqual(image_size, (32, 24))
 
     def test_thumbnail_generation_creates_cached_webp(self):
         session = FakeSession([FakeImageResponse(make_png_bytes())])
@@ -94,6 +101,39 @@ class MealImageCacheTest(unittest.TestCase):
         self.assertEqual(cached_again.path, thumbnail.path)
         self.assertEqual(image_format, "WEBP")
         self.assertLessEqual(max(image_size), 20)
+
+    def test_legacy_cached_full_asset_is_migrated_to_full_size_webp(self):
+        with tempfile.TemporaryDirectory() as cache_dir:
+            root = Path(cache_dir)
+            legacy_path = root / "full" / f"{IMAGE_ID}.png"
+            legacy_path.parent.mkdir(parents=True)
+            legacy_path.write_bytes(make_png_bytes())
+            metadata_path = root / "metadata" / f"{IMAGE_ID}.json"
+            metadata_path.parent.mkdir(parents=True)
+            metadata_path.write_text(
+                json.dumps(
+                    {
+                        "content_type": "image/png",
+                        "file_name": legacy_path.name,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            migrated = get_cached_studifutter_asset(
+                IMAGE_ID,
+                session=FakeSession([]),
+                cache_dir=cache_dir,
+            )
+
+            with Image.open(migrated.path) as image:
+                image_format = image.format
+                image_size = image.size
+
+        self.assertEqual(migrated.content_type, "image/webp")
+        self.assertNotEqual(migrated.path.name, legacy_path.name)
+        self.assertEqual(image_format, "WEBP")
+        self.assertEqual(image_size, (32, 24))
 
     def test_invalid_content_type_is_rejected(self):
         session = FakeSession([FakeImageResponse(b"not an image", "text/plain")])

@@ -62,6 +62,8 @@ def proxied_asset_url(file_id, variant="full"):
     asset_url = f"/api/studifutter/assets/{file_id}"
     if variant == "thumb":
         return f"{asset_url}?variant=thumb"
+    if variant == "full":
+        return f"{asset_url}?variant=full"
     return asset_url
 
 

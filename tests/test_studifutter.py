@@ -103,7 +103,7 @@ class StudiFutterTest(unittest.TestCase):
 
         self.assertEqual(
             studifutter.proxied_asset_url(image_id),
-            f"/api/studifutter/assets/{image_id}",
+            f"/api/studifutter/assets/{image_id}?variant=full",
         )
         self.assertEqual(
             studifutter.proxied_asset_url(image_id, variant="thumb"),
@@ -146,7 +146,10 @@ class StudiFutterTest(unittest.TestCase):
             session=session,
         )
 
-        self.assertEqual(result["image_url"], f"/api/studifutter/assets/{image_id}")
+        self.assertEqual(
+            result["image_url"],
+            f"/api/studifutter/assets/{image_id}?variant=full",
+        )
         self.assertEqual(
             result["thumbnail_url"],
             f"/api/studifutter/assets/{image_id}?variant=thumb",
